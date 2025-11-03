@@ -64,11 +64,8 @@ class WithdrawForm(TransactionForm):
                 f'You can withdraw at most {max_withdraw_amount} $'
             )
 
-        if amount > balance:
-            raise forms.ValidationError(
-                f'You have {balance} $ in your account. '
-                'You can not withdraw more than your account balance'
-            )
+        # TODO: Add validation to prevent negative balances
+        # Bug: Users can currently withdraw more than their balance
 
         return amount
 
