@@ -16,11 +16,14 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import include, path
 
-from core.views import HomeView
+from core.views import HomeView, HealthDashboardView, AnalyticsDashboardView, AnalyticsExportView
 
 
 urlpatterns = [
     path('', HomeView.as_view(), name='home'),
+    path('health/', HealthDashboardView.as_view(), name='health_dashboard'),
+    path('analytics/', AnalyticsDashboardView.as_view(), name='analytics_dashboard'),
+    path('analytics/export/', AnalyticsExportView.as_view(), name='analytics_export'),
     path('accounts/', include('accounts.urls', namespace='accounts')),
     path('admin/', admin.site.urls),
     path(

@@ -1,0 +1,84 @@
+{% extends 'core/base.html' %}
+
+{% block head_title %}Fraud Detection Dashboard{% endblock %}
+
+{% block content %}
+    <h1 class="font-mono font-bold text-3xl text-center pb-5 pt-10">Fraud Detection Dashboard</h1>
+    
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-5 mb-5">
+        <div class="bg-white rounded-lg shadow p-6">
+            <h3 class="text-gray-500 text-sm font-medium">Total Alerts</h3>
+            <p class="text-3xl font-bold text-gray-800">{{ total_alerts }}</p>
+        </div>
+        <div class="bg-white rounded-lg shadow p-6">
+            <h3 class="text-gray-500 text-sm font-medium">Unresolved Alerts</h3>
+            <p class="text-3xl font-bold text-orange-600">{{ unresolved_alerts }}</p>
+        </div>
+        <div class="bg-white rounded-lg shadow p-6">
+            <h3 class="text-gray-500 text-sm font-medium">High Severity</h3>
+            <p class="text-3xl font-bold text-red-600">{{ high_severity }}</p>
+        </div>
+    </div>
+    
+    <div class="bg-white rounded-lg shadow overflow-hidden">
+        <table class="table-auto w-full">
+            <thead class="bg-gray-800 text-white">
+            <tr class="uppercase font-semibold text-sm">
+                <th class="px-4 py-2">Date</th>
+                <th class="px-4 py-2">Account</th>
+                <th class="px-4 py-2">Alert Type</th>
+                <th class="px-4 py-2">Severity</th>
+                <th class="px-4 py-2">Description</th>
+                <th class="px-4 py-2">Status</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for alert in alerts %}
+            <tr class="{% cycle 'bg-gray-100' 'bg-white' %} hover:bg-gray-200">
+                <td class="border px-4 py-2 text-center">{{ alert.created_at|date:"Y-m-d H:i" }}</td>
+                <td class="border px-4 py-2 text-center">{{ alert.account.account_no }}</td>
+                <td class="border px-4 py-2 text-center">{{ alert.get_alert_type_display }}</td>
+                <td class="border px-4 py-2 text-center">
+                    <span class="px-2 py-1 rounded text-xs font-bold
+                        {% if alert.severity == 'HIGH' %}bg-red-200 text-red-800
+                        {% elif alert.severity == 'MEDIUM' %}bg-orange-200 text-orange-800
+                        {% else %}bg-yellow-200 text-yellow-800{% endif %}">
+                        {{ alert.severity }}
+                    </span>
+                </td>
+                <td class="border px-4 py-2">{{ alert.description }}</td>
+                <td class="border px-4 py-2 text-center">
+                    {% if alert.is_resolved %}
+                        <span class="text-green-600 font-semibold">✓ Resolved</span>
+                    {% else %}
+                        <span class="text-red-600 font-semibold">● Active</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" class="border px-4 py-8 text-center text-gray-500">
+                    No fraud alerts found
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    {% if is_paginated %}
+    <div class="mt-5 flex justify-center">
+        <nav class="inline-flex rounded-md shadow">
+            {% if page_obj.has_previous %}
+                <a href="?page=1" class="px-3 py-2 bg-white border border-gray-300 hover:bg-gray-50">First</a>
+                <a href="?page={{ page_obj.previous_page_number }}" class="px-3 py-2 bg-white border border-gray-300 hover:bg-gray-50">Previous</a>
+            {% endif %}
+            <span class="px-3 py-2 bg-blue-600 text-white border border-blue-600">{{ page_obj.number }}</span>
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}" class="px-3 py-2 bg-white border border-gray-300 hover:bg-gray-50">Next</a>
+                <a href="?page={{ page_obj.paginator.num_pages }}" class="px-3 py-2 bg-white border border-gray-300 hover:bg-gray-50">Last</a>
+            {% endif %}
+        </nav>
+    </div>
+    {% endif %}
+{% endblock %}
