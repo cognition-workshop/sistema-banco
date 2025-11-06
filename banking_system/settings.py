@@ -40,9 +40,16 @@ INSTALLED_APPS = [
 
     'django_celery_beat',
 
+    'health_check',
+    'health_check.db',
+    'health_check.cache',
+    'health_check.contrib.redis',
+    'health_check.contrib.celery',
+
     'accounts',
     'core',
     'transactions',
+    'monitoring',
 ]
 
 MIDDLEWARE = [
@@ -53,6 +60,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'monitoring.middleware.PerformanceMonitoringMiddleware',
 ]
 
 ROOT_URLCONF = 'banking_system.urls'
@@ -140,3 +148,43 @@ CELERY_ACCEPT_CONTENT = ['application/json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = TIME_ZONE
+
+HEALTH_CHECK = {
+    'DISK_USAGE_MAX': 90,
+    'MEMORY_MIN': 100,
+}
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {message}',
+            'style': '{',
+        },
+        'json': {
+            'format': '{"time": "%(asctime)s", "level": "%(levelname)s", "logger": "%(name)s", "message": "%(message)s"}',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+        'monitoring': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'json',
+        },
+    },
+    'loggers': {
+        'monitoring': {
+            'handlers': ['monitoring'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'django': {
+            'handlers': ['console'],
+            'level': 'INFO',
+        },
+    },
+}
