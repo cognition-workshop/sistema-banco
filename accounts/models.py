@@ -9,11 +9,20 @@ from django.db import models
 
 from .constants import GENDER_CHOICE
 from .managers import UserManager
+from .validators import validate_cpf
 
 
 class User(AbstractUser):
     username = None
     email = models.EmailField(unique=True, null=False, blank=False)
+    cpf = models.CharField(
+        max_length=11,
+        unique=True,
+        validators=[validate_cpf],
+        help_text='CPF (somente números, 11 dígitos)',
+        null=True,
+        blank=True
+    )
 
     objects = UserManager()
 
@@ -78,6 +87,9 @@ class UserBankAccount(models.Model):
         on_delete=models.CASCADE
     )
     account_no = models.PositiveIntegerField(unique=True)
+    agencia = models.CharField(max_length=4, default='0001')
+    numero_conta = models.CharField(max_length=10, default='')
+    digito_verificador = models.CharField(max_length=1, default='0')
     gender = models.CharField(max_length=1, choices=GENDER_CHOICE)
     birth_date = models.DateField(null=True, blank=True)
     balance = models.DecimalField(
@@ -94,7 +106,18 @@ class UserBankAccount(models.Model):
     initial_deposit_date = models.DateField(null=True, blank=True)
 
     def __str__(self):
+        if self.numero_conta:
+            return f"{self.agencia}-{self.numero_conta}-{self.digito_verificador}"
         return str(self.account_no)
+    
+    def calculate_digito_verificador(self, numero_conta):
+        """Calculate check digit using modulo 11."""
+        weights = [2, 3, 4, 5, 6, 7, 8, 9]
+        sum_val = 0
+        for i, digit in enumerate(reversed(str(numero_conta))):
+            sum_val += int(digit) * weights[i % len(weights)]
+        remainder = sum_val % 11
+        return str(0 if remainder < 2 else 11 - remainder)
 
     def get_interest_calculation_months(self):
         """

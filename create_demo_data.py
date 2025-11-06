@@ -37,8 +37,9 @@ current_type, _ = BankAccountType.objects.get_or_create(
 demo_user, created = User.objects.get_or_create(
     email='demo@example.com',
     defaults={
-        'first_name': 'John',
-        'last_name': 'Doe',
+        'first_name': 'João',
+        'last_name': 'Silva',
+        'cpf': '12345678909',
     }
 )
 
@@ -52,6 +53,9 @@ account, _ = UserBankAccount.objects.get_or_create(
     defaults={
         'account_type': savings_type,
         'account_no': 1001,
+        'agencia': '0001',
+        'numero_conta': '00001001',
+        'digito_verificador': '9',
         'gender': 'M',
         'birth_date': '1990-01-01',
         'balance': 5000.00,

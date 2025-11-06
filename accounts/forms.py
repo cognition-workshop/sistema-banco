@@ -38,6 +38,11 @@ class UserRegistrationForm(UserCreationForm):
     )
     gender = forms.ChoiceField(choices=GENDER_CHOICE)
     birth_date = forms.DateField()
+    cpf = forms.CharField(
+        max_length=14,
+        required=False,
+        help_text='Digite o CPF (somente números)'
+    )
 
     class Meta:
         model = User
@@ -45,6 +50,7 @@ class UserRegistrationForm(UserCreationForm):
             'first_name',
             'last_name',
             'email',
+            'cpf',
             'password1',
             'password2',
         ]
@@ -73,14 +79,19 @@ class UserRegistrationForm(UserCreationForm):
             gender = self.cleaned_data.get('gender')
             birth_date = self.cleaned_data.get('birth_date')
 
-            UserBankAccount.objects.create(
+            account_no = user.id + settings.ACCOUNT_NUMBER_START_FROM
+            numero_conta = str(account_no)[-8:].zfill(8)
+            agencia = '0001'
+            
+            account = UserBankAccount(
                 user=user,
                 gender=gender,
                 birth_date=birth_date,
                 account_type=account_type,
-                account_no=(
-                    user.id +
-                    settings.ACCOUNT_NUMBER_START_FROM
-                )
+                account_no=account_no,
+                agencia=agencia,
+                numero_conta=numero_conta,
             )
+            account.digito_verificador = account.calculate_digito_verificador(numero_conta)
+            account.save()
         return user
