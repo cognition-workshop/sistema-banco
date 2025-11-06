@@ -9,6 +9,7 @@ from django.db import models
 
 from .constants import GENDER_CHOICE
 from .managers import UserManager
+from .validators import validate_cpf
 
 
 class User(AbstractUser):
@@ -79,6 +80,14 @@ class UserBankAccount(models.Model):
     )
     account_no = models.PositiveIntegerField(unique=True)
     gender = models.CharField(max_length=1, choices=GENDER_CHOICE)
+    cpf = models.CharField(
+        max_length=11,
+        unique=True,
+        null=True,
+        blank=True,
+        validators=[validate_cpf],
+        help_text='CPF number (11 digits)'
+    )
     birth_date = models.DateField(null=True, blank=True)
     balance = models.DecimalField(
         default=0,

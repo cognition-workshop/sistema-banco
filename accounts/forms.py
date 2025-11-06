@@ -37,6 +37,10 @@ class UserRegistrationForm(UserCreationForm):
         queryset=BankAccountType.objects.all()
     )
     gender = forms.ChoiceField(choices=GENDER_CHOICE)
+    cpf = forms.CharField(
+        max_length=11,
+        help_text='CPF number (11 digits only, no formatting)'
+    )
     birth_date = forms.DateField()
 
     class Meta:
@@ -71,11 +75,13 @@ class UserRegistrationForm(UserCreationForm):
             user.save()
             account_type = self.cleaned_data.get('account_type')
             gender = self.cleaned_data.get('gender')
+            cpf = self.cleaned_data.get('cpf')
             birth_date = self.cleaned_data.get('birth_date')
 
             UserBankAccount.objects.create(
                 user=user,
                 gender=gender,
+                cpf=cpf,
                 birth_date=birth_date,
                 account_type=account_type,
                 account_no=(
