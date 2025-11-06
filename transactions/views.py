@@ -3,6 +3,7 @@ from dateutil.relativedelta import relativedelta
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth import get_user_model
+from django.http import HttpResponseRedirect
 from django.urls import reverse_lazy
 from django.utils import timezone
 from django.views.generic import CreateView, ListView
@@ -179,6 +180,9 @@ class TransferMoneyView(CreateView):
         })
         return context
 
+    def get_success_url(self):
+        return str(self.success_url)
+
     def form_valid(self, form):
         from django.db import transaction
         from accounts.models import UserBankAccount
@@ -223,4 +227,4 @@ class TransferMoneyView(CreateView):
             f'Successfully transferred {amount}$ to account {recipient_account_no}'
         )
         
-        return super().form_valid(form)
+        return HttpResponseRedirect(self.get_success_url())

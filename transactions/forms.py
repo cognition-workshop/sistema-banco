@@ -83,6 +83,7 @@ class TransferForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         self.account = kwargs.pop('account')
+        kwargs.pop('instance', None)
         super().__init__(*args, **kwargs)
 
     def clean_recipient_account_no(self):
