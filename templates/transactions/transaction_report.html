@@ -26,6 +26,11 @@
                 <p class="text-red-600 text-sm italic">{{ error }}</p>
             {% endfor %}
         {% endif %}
+        <div class="mt-4">
+            <select name="transaction_type" class="h-10 pl-3 pr-8 bg-white border rounded-md border-gray-500 w-full outline-none focus:outline-none active:outline-none">
+                {{ form.transaction_type }}
+            </select>
+        </div>
     </form>
     <table class="table-auto mx-auto w-full mt-8">
         <thead class="bg-gray-800 text-white">
