@@ -13,7 +13,7 @@ from transactions.forms import (
     TransactionDateRangeForm,
     WithdrawForm,
 )
-from transactions.models import Transaction
+from transactions.models import Transaction, create_audit_log
 
 
 class TransactionRepostView(ListView):
@@ -95,12 +95,13 @@ class DepositMoneyView(TransactionCreateMixin):
 
     def form_valid(self, form):
         amount = form.cleaned_data.get('amount')
-        # Bypass login - use demo user
         User = get_user_model()
         demo_user = User.objects.filter(email='demo@example.com').first()
         account = demo_user.account if demo_user and hasattr(demo_user, 'account') else None
         if not account:
             return super().form_valid(form)
+        
+        balance_before = account.balance
 
         if not account.initial_deposit_date:
             now = timezone.now()
@@ -122,13 +123,27 @@ class DepositMoneyView(TransactionCreateMixin):
                 'interest_start_date'
             ]
         )
+        
+        response = super().form_valid(form)
+        
+        create_audit_log(
+            user=demo_user,
+            account=account,
+            operation_type='deposit',
+            amount=amount,
+            balance_before=balance_before,
+            balance_after=account.balance,
+            transaction=self.object,
+            ip_address=self.request.META.get('REMOTE_ADDR'),
+            user_agent=self.request.META.get('HTTP_USER_AGENT')
+        )
 
         messages.success(
             self.request,
             f'{amount}$ was deposited to your account successfully'
         )
 
-        return super().form_valid(form)
+        return response
 
 
 class WithdrawMoneyView(TransactionCreateMixin):
@@ -141,16 +156,34 @@ class WithdrawMoneyView(TransactionCreateMixin):
 
     def form_valid(self, form):
         amount = form.cleaned_data.get('amount')
-        # Bypass login - use demo user
         User = get_user_model()
         demo_user = User.objects.filter(email='demo@example.com').first()
-        if demo_user and hasattr(demo_user, 'account'):
-            demo_user.account.balance -= form.cleaned_data.get('amount')
-            demo_user.account.save(update_fields=['balance'])
+        if not demo_user or not hasattr(demo_user, 'account'):
+            return super().form_valid(form)
+        
+        account = demo_user.account
+        balance_before = account.balance
+
+        account.balance -= form.cleaned_data.get('amount')
+        account.save(update_fields=['balance'])
+        
+        response = super().form_valid(form)
+        
+        create_audit_log(
+            user=demo_user,
+            account=account,
+            operation_type='withdrawal',
+            amount=amount,
+            balance_before=balance_before,
+            balance_after=account.balance,
+            transaction=self.object,
+            ip_address=self.request.META.get('REMOTE_ADDR'),
+            user_agent=self.request.META.get('HTTP_USER_AGENT')
+        )
 
         messages.success(
             self.request,
             f'Successfully withdrawn {amount}$ from your account'
         )
 
-        return super().form_valid(form)
+        return response
