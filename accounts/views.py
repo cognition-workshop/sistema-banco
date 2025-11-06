@@ -38,7 +38,7 @@ class UserRegistrationView(TemplateView):
                 self.request,
                 (
                     f'Thank You For Creating A Bank Account. '
-                    f'Your Account Number is {user.account.account_no}. '
+                    f'Your Account is: {user.account.get_formatted_account()}. '
                 )
             )
             return HttpResponseRedirect(
