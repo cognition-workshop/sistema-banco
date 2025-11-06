@@ -4,6 +4,7 @@ from django import forms
 from django.conf import settings
 
 from .models import Transaction
+from accounts.models import UserBankAccount
 
 
 class TransactionForm(forms.ModelForm):
@@ -66,6 +67,49 @@ class WithdrawForm(TransactionForm):
 
         # TODO: Add validation to prevent negative balances
         # Bug: Users can currently withdraw more than their balance
+
+        return amount
+
+
+class TransferForm(TransactionForm):
+    recipient_account_no = forms.IntegerField(
+        label='Recipient Account Number'
+    )
+
+    def clean_recipient_account_no(self):
+        recipient_account_no = self.cleaned_data.get('recipient_account_no')
+        
+        try:
+            recipient_account = UserBankAccount.objects.get(
+                account_no=recipient_account_no
+            )
+        except UserBankAccount.DoesNotExist:
+            raise forms.ValidationError(
+                f'Account number {recipient_account_no} does not exist'
+            )
+        
+        if recipient_account.id == self.account.id:
+            raise forms.ValidationError(
+                'You cannot transfer money to your own account'
+            )
+        
+        return recipient_account_no
+
+    def clean_amount(self):
+        account = self.account
+        min_transfer_amount = settings.MINIMUM_WITHDRAWAL_AMOUNT
+        balance = account.balance
+        amount = self.cleaned_data.get('amount')
+
+        if amount < min_transfer_amount:
+            raise forms.ValidationError(
+                f'You can transfer at least {min_transfer_amount} $'
+            )
+
+        if amount > balance:
+            raise forms.ValidationError(
+                f'You have insufficient balance. Current balance: {balance} $'
+            )
 
         return amount
 
