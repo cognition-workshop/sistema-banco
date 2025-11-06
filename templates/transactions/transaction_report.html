@@ -2,30 +2,32 @@
 
 {% block head_title %}Transaction Report{% endblock %}
 
-{% block head_extra %}
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/jquery/latest/jquery.min.js"></script>
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
-{% endblock %}
-
 {% block content %}
     <h1 class="font-mono font-bold text-3xl text-center pb-5 pt-10">Transaction Report</h1>
     <hr />
     <form method="get">
-        <div class="mt-10 h-10 pl-3 pr-2 bg-white border rounded-md border-gray-500 flex justify-between items-center relative">
-            <input type="search" name="daterange" id="search" placeholder="Filter using date range" value="{{ request.GET.daterange }}" class="appearance-none w-full outline-none focus:outline-none active:outline-none" />
-            <button type="submit" class="ml-1 outline-none focus:outline-none active:outline-none">
-                <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" class="w-6 h-6">
-                    <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                </svg>
-            </button>
+        <div class="mt-10 bg-white border rounded-md border-gray-500 p-4">
+            <div class="flex gap-4 items-end flex-wrap">
+                <div class="flex-1 min-w-[200px]">
+                    <label for="start_date" class="block text-sm font-medium text-gray-700 mb-2">Start Date</label>
+                    <input type="date" name="start_date" id="start_date" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" value="{{ request.GET.start_date }}"/>
+                </div>
+                <div class="flex-1 min-w-[200px]">
+                    <label for="end_date" class="block text-sm font-medium text-gray-700 mb-2">End Date</label>
+                    <input type="date" name="end_date" id="end_date" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" value="{{ request.GET.end_date }}"/>
+                </div>
+                <button type="submit" class="px-6 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    Filter
+                </button>
+            </div>
+            {% if form.errors %}
+                {% for field, errors in form.errors.items %}
+                    {% for error in errors %}
+                        <p class="text-red-600 text-sm italic mt-2">{{ error }}</p>
+                    {% endfor %}
+                {% endfor %}
+            {% endif %}
         </div>
-        {% if form.daterange.errors %}
-            {% for error in form.daterange.errors %}
-                <p class="text-red-600 text-sm italic">{{ error }}</p>
-            {% endfor %}
-        {% endif %}
     </form>
     <table class="table-auto mx-auto w-full mt-8">
         <thead class="bg-gray-800 text-white">
@@ -51,25 +53,4 @@
         </tr>
         </tbody>
     </table>
-{% endblock %}
-
-{% block footer_extra %}
-    <script type="text/javascript">
-        $(function () {
-            $('input[name="daterange"]').daterangepicker({
-                autoUpdateInput: false,
-                locale: {
-                    cancelLabel: "Clear",
-                },
-            });
-
-            $('input[name="daterange"]').on("apply.daterangepicker", function (ev, picker) {
-                $(this).val(picker.startDate.format("YYYY-MM-DD") + " - " + picker.endDate.format("YYYY-MM-DD"));
-            });
-
-            $('input[name="daterange"]').on("cancel.daterangepicker", function (ev, picker) {
-                $(this).val("");
-            });
-        });
-    </script>
 {% endblock %}

@@ -118,3 +118,22 @@ ENV/
 
 # mypy
 .mypy_cache/
+
+# Node.js
+node_modules/
+package-lock.json
+
+# Tailwind CSS
+static/css/output.css
+
+# Django static files
+staticfiles/
+
+# Environment variables
+.env
+
+# Database backups
+data_backup.json
+
+# SQLite (migrated to PostgreSQL)
+db.sqlite3
