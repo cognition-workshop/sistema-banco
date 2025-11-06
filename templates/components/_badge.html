@@ -1,0 +1,22 @@
+{% comment %}
+Usage: {% include 'components/_badge.html' with status='ativo' label='Active' %}
+Status options: ativo, pendente, suspenso
+{% endcomment %}
+
+{% if status == 'ativo' %}
+<span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-green-100 text-green-800">
+  {{ label|default:'Ativo' }}
+</span>
+{% elif status == 'pendente' %}
+<span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-yellow-100 text-yellow-800">
+  {{ label|default:'Pendente' }}
+</span>
+{% elif status == 'suspenso' %}
+<span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-red-100 text-red-800">
+  {{ label|default:'Suspenso' }}
+</span>
+{% else %}
+<span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-gray-100 text-gray-800">
+  {{ label }}
+</span>
+{% endif %}

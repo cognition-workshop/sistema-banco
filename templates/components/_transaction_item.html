@@ -1,0 +1,31 @@
+{% comment %}
+Usage: {% include 'components/_transaction_item.html' with transaction=transaction %}
+{% endcomment %}
+
+<div class="flex items-center gap-4 p-4 hover:bg-gray-50 rounded-lg transition-all duration-200">
+  <div class="flex-shrink-0">
+    <div class="w-12 h-12 rounded-full flex items-center justify-center {% if transaction.transaction_type == 'DEPOSIT' %}bg-green-100{% else %}bg-red-100{% endif %}">
+      {% if transaction.transaction_type == 'DEPOSIT' %}
+      <svg class="w-6 h-6 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+      </svg>
+      {% else %}
+      <svg class="w-6 h-6 text-red-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
+      </svg>
+      {% endif %}
+    </div>
+  </div>
+  
+  <div class="flex-1">
+    <p class="font-semibold text-gray-800">{{ transaction.get_transaction_type_display }}</p>
+    <p class="text-sm text-gray-500">{{ transaction.timestamp|date:"d/m/Y H:i" }}</p>
+  </div>
+  
+  <div class="text-right">
+    <p class="font-bold {% if transaction.amount > 0 %}text-green-600{% else %}text-red-600{% endif %}">
+      {% if transaction.amount > 0 %}+{% endif %}R$ {{ transaction.amount|floatformat:2 }}
+    </p>
+    <p class="text-sm text-gray-500">Saldo: R$ {{ transaction.balance_after_transaction|floatformat:2 }}</p>
+  </div>
+</div>

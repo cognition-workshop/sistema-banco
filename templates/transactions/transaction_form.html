@@ -1,28 +1,139 @@
 {% extends 'core/base.html' %}
 
-{% block head_title %}{{ title }}{% endblock %}
-
 {% block content %}
-<h1 class="font-mono font-bold text-3xl text-center pb-5 pt-10">{{ title }}</h1>
-<hr />
-<div class="w-full mt-5">
-    <form method="post" class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
-        {% csrf_token %}
-
-        <div class="mb-4">
-            <label class="block text-gray-700 text-sm font-bold mb-2" for="amount">
-                Amount
-            </label>
-            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight border rounded-md border-gray-500 focus:outline-none focus:shadow-outline" name="amount" id="amount" type="number" required placeholder="Amount">
+<div class="max-w-2xl mx-auto py-8">
+  <div class="mb-6">
+    <a href="{% url 'dashboard' %}" class="text-blue-600 hover:text-blue-800 font-medium transition-colors flex items-center">
+      <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+      </svg>
+      Voltar ao Dashboard
+    </a>
+  </div>
+  
+  <div class="card">
+    <h2 class="text-2xl font-bold mb-6 font-[Poppins]">{{ title }}</h2>
+    
+    <form method="post" id="transaction-form">
+      {% csrf_token %}
+      
+      <div class="mb-6">
+        <label for="amount" class="block text-sm font-semibold text-gray-700 mb-2">
+          Valor <span class="text-red-500">*</span>
+        </label>
+        <div class="relative">
+          <input 
+            type="text" 
+            id="amount" 
+            name="amount" 
+            class="block w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+            placeholder="R$ 0,00"
+            required
+          >
         </div>
-        {% if form.amount.errors %}
-            {% for error in form.amount.errors %}
-                <p class="text-red-600 text-sm italic pb-2">{{ error }}</p>
-            {% endfor %}
-        {% endif %}
-        <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit">
-            Submit
-        </button>
+        <div id="amount-feedback" class="mt-2"></div>
+      </div>
+      
+      <input type="hidden" name="transaction_type" value="{{ form.transaction_type.value }}">
+      
+      <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+        <h3 class="text-sm font-semibold text-blue-800 mb-2">Visualização</h3>
+        <div class="space-y-1 text-sm">
+          <div class="flex justify-between">
+            <span class="text-gray-600">Saldo atual:</span>
+            <span class="font-semibold text-gray-900" id="current-balance">R$ {{ account.balance|floatformat:2 }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-gray-600">Valor da transação:</span>
+            <span class="font-semibold text-gray-900" id="transaction-amount">R$ 0,00</span>
+          </div>
+          <div class="flex justify-between pt-2 border-t border-blue-300">
+            <span class="text-blue-700 font-semibold">Saldo após transação:</span>
+            <span class="font-bold text-blue-700 text-lg" id="new-balance">R$ {{ account.balance|floatformat:2 }}</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="flex gap-4">
+        {% include 'components/_button.html' with variant='primary' label='Confirmar' type='submit' %}
+        <a href="{% url 'dashboard' %}" class="btn bg-gray-300 hover:bg-gray-400 text-gray-700 font-semibold px-6 py-3 rounded-lg inline-block text-center">
+          Cancelar
+        </a>
+      </div>
     </form>
+  </div>
 </div>
+
+<script>
+  const amountInput = document.getElementById('amount');
+  const currentBalance = {{ account.balance|default:0 }};
+  const isDeposit = '{{ form.transaction_type.value }}' === '1';
+  
+  const maskOptions = {
+    mask: 'R$ num',
+    blocks: {
+      num: {
+        mask: Number,
+        scale: 2,
+        thousandsSeparator: '.',
+        radix: ',',
+        mapToRadix: ['.'],
+        min: 0,
+        max: 999999
+      }
+    }
+  };
+  
+  const mask = IMask(amountInput, maskOptions);
+  
+  amountInput.addEventListener('input', function() {
+    const value = mask.unmaskedValue;
+    const amount = parseFloat(value) || 0;
+    
+    document.getElementById('transaction-amount').textContent = 'R$ ' + amount.toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    
+    let newBalance = currentBalance;
+    if (isDeposit) {
+      newBalance += amount;
+    } else {
+      newBalance -= amount;
+    }
+    
+    document.getElementById('new-balance').textContent = 'R$ ' + newBalance.toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    
+    if (amount < 100 && amount > 0) {
+      document.getElementById('amount-feedback').innerHTML = '<p class="text-sm text-yellow-600">⚠️ O valor mínimo recomendado é R$ 100,00</p>';
+    } else if (!isDeposit && amount > currentBalance) {
+      document.getElementById('amount-feedback').innerHTML = '<p class="text-sm text-red-600">❌ Saldo insuficiente</p>';
+    } else if (amount > 0) {
+      document.getElementById('amount-feedback').innerHTML = '<p class="text-sm text-green-600">✓ Valor válido</p>';
+    } else {
+      document.getElementById('amount-feedback').innerHTML = '';
+    }
+  });
+  
+  document.getElementById('transaction-form').addEventListener('submit', function(e) {
+    const amount = parseFloat(mask.unmaskedValue) || 0;
+    
+    if (amount <= 0) {
+      e.preventDefault();
+      alert('Por favor, insira um valor maior que zero');
+      return;
+    }
+    
+    if (!isDeposit && amount > currentBalance) {
+      e.preventDefault();
+      alert('Saldo insuficiente para realizar esta transação');
+      return;
+    }
+    
+    const hiddenInput = document.createElement('input');
+    hiddenInput.type = 'hidden';
+    hiddenInput.name = 'amount';
+    hiddenInput.value = amount;
+    this.appendChild(hiddenInput);
+    
+    amountInput.disabled = true;
+  });
+</script>
 {% endblock %}
