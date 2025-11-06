@@ -29,11 +29,39 @@ Be sure you have the following installed on your development machine:
 
 ## Requirements
 
-+ celery==4.4.7
-+ Django==3.2
-+ django-celery-beat==2.0.0
-+ python-dateutil==2.8.1
-+ redis==3.5.3
++ celery==5.5.3
++ Django==5.0
++ django-celery-beat==2.8.1
++ django-redis==5.4.0
++ djangorestframework==3.16.1
++ djangorestframework-simplejwt==5.5.1
++ drf-spectacular==0.29.0
++ psycopg2-binary
++ python-dateutil==2.9.0.post0
++ redis==7.0.1
+
+## Install PostgreSQL
+
+### On Ubuntu/Debian:
+```bash
+sudo apt-get update
+sudo apt-get install postgresql postgresql-contrib
+```
+
+### On macOS:
+```bash
+brew install postgresql
+brew services start postgresql
+```
+
+### Setup Database:
+```bash
+# Create database
+sudo -u postgres createdb banking_system_db
+
+# Set password for postgres user (optional for local dev)
+sudo -u postgres psql -c "ALTER USER postgres PASSWORD 'postgres';"
+```
 
 ## Install Redis Server
 
@@ -76,6 +104,21 @@ Migrate Database,
 ```bash
 python manage.py migrate
 ```
+
+## Migrate from SQLite to PostgreSQL
+
+If you have existing data in SQLite (`db.sqlite3`), run the migration script to transfer your data to PostgreSQL:
+```bash
+python migrate_sqlite_to_postgres.py
+```
+
+This script will:
+- Create the PostgreSQL database if it doesn't exist
+- Export all data from SQLite
+- Import data to PostgreSQL preserving foreign key relationships
+- Verify data integrity after migration
+
+If you're starting fresh, the migration script will simply set up an empty PostgreSQL database.
 
 Run the web application locally,
 ```bash

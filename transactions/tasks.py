@@ -1,13 +1,14 @@
 from django.utils import timezone
+from django.core.cache import cache
 
-from celery.decorators import task
+from celery import shared_task
 
 from accounts.models import UserBankAccount
 from transactions.constants import INTEREST
 from transactions.models import Transaction
 
 
-@task(name="calculate_interest")
+@shared_task(name="calculate_interest")
 def calculate_interest():
     accounts = UserBankAccount.objects.filter(
         balance__gt=0,
@@ -43,3 +44,7 @@ def calculate_interest():
         UserBankAccount.objects.bulk_update(
             updated_accounts, ['balance']
         )
+
+        for account in updated_accounts:
+            cache_key = f'transactions:{account.account_no}*'
+            cache.delete_pattern(cache_key)
