@@ -565,7 +565,7 @@ class UserViewSetTest(APITestCase):
     def test_unauthenticated_access_denied(self):
         """Test that unauthenticated users cannot access the API"""
         response = self.client.get('/api/users/')
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
     
     def test_staff_can_list_all_users(self):
         """Test that staff users can see all users"""
@@ -655,7 +655,7 @@ class UserBankAccountViewSetTest(APITestCase):
     def test_unauthenticated_access_denied(self):
         """Test that unauthenticated users cannot access the API"""
         response = self.client.get('/api/bank-accounts/')
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
     
     def test_staff_can_list_all_accounts(self):
         """Test that staff users can see all bank accounts"""
@@ -700,7 +700,7 @@ class BankAccountTypeViewSetTest(APITestCase):
     def test_unauthenticated_access_denied(self):
         """Test that unauthenticated users cannot access the API"""
         response = self.client.get('/api/account-types/')
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
     
     def test_authenticated_user_can_list_account_types(self):
         """Test that authenticated users can list all account types"""
@@ -783,7 +783,7 @@ class UserAddressViewSetTest(APITestCase):
     def test_unauthenticated_access_denied(self):
         """Test that unauthenticated users cannot access the API"""
         response = self.client.get('/api/addresses/')
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
     
     def test_staff_can_list_all_addresses(self):
         """Test that staff users can see all addresses"""

@@ -1,6 +1,7 @@
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from django.db import transaction
 
 from .models import PixKey
@@ -13,6 +14,7 @@ class PixKeyViewSet(viewsets.ModelViewSet):
     queryset = PixKey.objects.select_related('account__user').all()
     serializer_class = PixKeySerializer
     permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [SessionAuthentication, BasicAuthentication]
 
     def get_queryset(self):
         if self.request.user.is_staff:
@@ -31,6 +33,7 @@ class PixKeyViewSet(viewsets.ModelViewSet):
 
 class PixTransferViewSet(viewsets.ViewSet):
     permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [SessionAuthentication, BasicAuthentication]
 
     @action(detail=False, methods=['post'])
     def transfer(self, request):

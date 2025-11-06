@@ -1,4 +1,5 @@
 from rest_framework import viewsets, permissions, filters
+from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from .models import Transaction
 from .serializers import TransactionSerializer
 
@@ -7,6 +8,7 @@ class TransactionViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Transaction.objects.select_related('account__user').all()
     serializer_class = TransactionSerializer
     permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [SessionAuthentication, BasicAuthentication]
     filter_backends = [filters.OrderingFilter, filters.SearchFilter]
     ordering_fields = ['timestamp', 'amount']
     ordering = ['-timestamp']

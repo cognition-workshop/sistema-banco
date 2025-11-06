@@ -62,7 +62,7 @@ class TransactionForm(forms.ModelForm):
         failed_trans = FailedTransaction(
             account=self.account,
             attempted_amount=self.cleaned_data.get('amount', 0),
-            attempted_transaction_type=self.cleaned_data.get('transaction_type'),
+            attempted_transaction_type=self.data.get('transaction_type') or self.initial.get('transaction_type'),
             failure_reason=failure_reason,
         )
         

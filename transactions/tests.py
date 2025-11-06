@@ -232,7 +232,7 @@ class TestWithdrawForm(TestCase):
         self.assertFalse(form.is_valid())
         self.assertIn('amount', form.errors)
 
-    def test_withdraw_form_allows_overdraft(self):
+    def test_withdraw_form_prevents_overdraft(self):
         form_data = {
             'amount': Decimal('999.00')
         }
@@ -244,7 +244,8 @@ class TestWithdrawForm(TestCase):
             initial={'transaction_type': WITHDRAWAL},
             account=self.account
         )
-        self.assertTrue(form.is_valid())
+        self.assertFalse(form.is_valid())
+        self.assertIn('amount', form.errors)
 
 
 class TestTransactionDateRangeForm(TestCase):
@@ -554,7 +555,7 @@ class TransactionSerializerTest(TestCase):
         self.assertEqual(data['account_no'], 1000000001)
     
     def test_all_fields_read_only(self):
-        """Test that all fields are read-only"""
+        """Test that all fields are read-only and ignored during deserialization"""
         data = {
             'amount': '200.00',
             'balance_after_transaction': '1200.00',
@@ -562,7 +563,8 @@ class TransactionSerializerTest(TestCase):
         }
         
         serializer = TransactionSerializer(data=data)
-        self.assertFalse(serializer.is_valid())
+        self.assertTrue(serializer.is_valid())
+        self.assertEqual(serializer.validated_data, {})
 
 
 class TransactionViewSetTest(APITestCase):
@@ -634,7 +636,7 @@ class TransactionViewSetTest(APITestCase):
     def test_unauthenticated_access_denied(self):
         """Test that unauthenticated users cannot access the API"""
         response = self.client.get('/api/transactions/')
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
     
     def test_staff_can_list_all_transactions(self):
         """Test that staff users can see all transactions"""

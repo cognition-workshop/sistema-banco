@@ -18,4 +18,5 @@ class TransactionSerializer(serializers.ModelSerializer):
         fields = ['id', 'account', 'account_no', 'amount', 'balance_after_transaction',
                  'transaction_type', 'transaction_type_display', 'timestamp']
         read_only_fields = ['id', 'account', 'account_no', 'amount', 
-                           'balance_after_transaction', 'transaction_type', 'timestamp']
+                           'balance_after_transaction', 'transaction_type', 
+                           'transaction_type_display', 'timestamp']

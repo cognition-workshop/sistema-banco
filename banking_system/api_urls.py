@@ -12,7 +12,7 @@ from pix.api_views import PixKeyViewSet, PixTransferViewSet
 
 router = DefaultRouter()
 router.register(r'users', UserViewSet, basename='user')
-router.register(r'accounts', UserBankAccountViewSet, basename='account')
+router.register(r'bank-accounts', UserBankAccountViewSet, basename='account')
 router.register(r'account-types', BankAccountTypeViewSet, basename='accounttype')
 router.register(r'addresses', UserAddressViewSet, basename='address')
 router.register(r'transactions', TransactionViewSet, basename='transaction')

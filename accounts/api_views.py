@@ -1,4 +1,5 @@
 from rest_framework import viewsets, permissions
+from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from django.contrib.auth import get_user_model
 from .models import UserBankAccount, BankAccountType, UserAddress
 from .serializers import (
@@ -15,6 +16,7 @@ class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [SessionAuthentication, BasicAuthentication]
     
     def get_queryset(self):
         if self.request.user.is_staff:
@@ -26,6 +28,7 @@ class UserBankAccountViewSet(viewsets.ModelViewSet):
     queryset = UserBankAccount.objects.select_related('user', 'account_type').all()
     serializer_class = UserBankAccountSerializer
     permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [SessionAuthentication, BasicAuthentication]
     
     def get_queryset(self):
         if self.request.user.is_staff:
@@ -37,12 +40,14 @@ class BankAccountTypeViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = BankAccountType.objects.all()
     serializer_class = BankAccountTypeSerializer
     permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [SessionAuthentication, BasicAuthentication]
 
 
 class UserAddressViewSet(viewsets.ModelViewSet):
     queryset = UserAddress.objects.select_related('user').all()
     serializer_class = UserAddressSerializer
     permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [SessionAuthentication, BasicAuthentication]
     
     def get_queryset(self):
         if self.request.user.is_staff:
