@@ -1,19 +1,24 @@
 {% extends 'core/base.html' %}
+{% load static %}
 
 {% block head_title %}{{ title }}{% endblock %}
+
+{% block head_extra %}
+<script src="{% static 'js/form-validation.js' %}"></script>
+{% endblock %}
 
 {% block content %}
 <h1 class="font-mono font-bold text-3xl text-center pb-5 pt-10">{{ title }}</h1>
 <hr />
 <div class="w-full mt-5">
-    <form method="post" class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+    <form method="post" class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4" id="transaction-form">
         {% csrf_token %}
 
         <div class="mb-4">
             <label class="block text-gray-700 text-sm font-bold mb-2" for="amount">
-                Amount
+                Valor ($)
             </label>
-            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight border rounded-md border-gray-500 focus:outline-none focus:shadow-outline" name="amount" id="amount" type="number" required placeholder="Amount">
+            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight border rounded-md border-gray-500 focus:outline-none focus:shadow-outline" name="amount" id="amount" type="number" required placeholder="Valor">
         </div>
         {% if form.amount.errors %}
             {% for error in form.amount.errors %}
@@ -21,8 +26,19 @@
             {% endfor %}
         {% endif %}
         <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit">
-            Submit
+            Confirmar
         </button>
     </form>
 </div>
+{% endblock %}
+
+{% block footer_extra %}
+<script>
+    document.getElementById('transaction-form').addEventListener('submit', function(e) {
+        const amountInput = document.getElementById('amount');
+        if (!window.FormValidation.validateAmount(amountInput, 10, null)) {
+            e.preventDefault();
+        }
+    });
+</script>
 {% endblock %}

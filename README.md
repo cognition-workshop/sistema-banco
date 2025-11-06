@@ -16,6 +16,22 @@ This is an Online Banking Concept created using Django Web Framework.
 * Ability to add Minimum and Maximum Transaction amount restriction
 * Modern UI with Tailwind CSS
 
+### Enterprise Features
+
+* Environment-based configuration with `.env` support
+* Structured JSON logging for production
+* Custom error handling middleware
+* User-friendly error pages in Portuguese (404, 500, 403)
+* Comprehensive input validation (client and server-side)
+* Health check endpoints (`/health/`, `/health/db/`, `/health/redis/`)
+* Performance monitoring with system metrics
+* CI/CD pipeline with GitHub Actions
+* Automated linting (flake8, black)
+* Security checks (bandit, safety)
+* Automated testing with pytest
+* Migration management documentation
+* Database backup scripts
+
 
 ## Prerequisites
 
@@ -30,10 +46,20 @@ Be sure you have the following installed on your development machine:
 ## Requirements
 
 + celery==4.4.7
-+ Django==3.2
-+ django-celery-beat==2.0.0
-+ python-dateutil==2.8.1
++ Django==3.2.9
++ django-celery-beat==2.1.0
++ djangorestframework==3.14.0
++ python-dateutil==2.8.2
 + redis==3.5.3
++ python-decouple==3.8
++ python-json-logger==2.0.7
++ psutil==5.9.5
++ pytest==7.4.3
++ pytest-django==4.7.0
++ flake8==6.1.0
++ black==23.12.0
++ bandit==1.7.5
++ safety==2.3.5
 
 ## Install Redis Server
 
@@ -43,6 +69,20 @@ Run Redis server
 ```bash
 redis-server
 ```
+
+## Environment Configuration
+
+Create a `.env` file in the project root (copy from `.env.example`):
+
+```bash
+cp .env.example .env
+```
+
+Edit the `.env` file with your configuration:
+- `SECRET_KEY`: Django secret key (generate a new one for production)
+- `DEBUG`: Set to `False` in production
+- `ALLOWED_HOSTS`: Comma-separated list of allowed hosts
+- `REDIS_URL`: Redis server URL
 
 ## Project Installation
 

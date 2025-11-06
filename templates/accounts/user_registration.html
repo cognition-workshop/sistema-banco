@@ -183,3 +183,34 @@
     </form>
 </div>
 {% endblock %}
+
+{% block footer_extra %}
+{% load static %}
+<script src="{% static 'js/form-validation.js' %}"></script>
+<script>
+    document.querySelector('form').addEventListener('submit', function(e) {
+        let isValid = true;
+        
+        const emailInput = document.getElementById('{{ registration_form.email.id_for_label }}');
+        if (!window.FormValidation.validateEmail(emailInput)) {
+            isValid = false;
+        }
+        
+        const requiredFields = [
+            'first_name', 'last_name', 'password1', 'password2',
+            'street_address', 'city', 'postal_code', 'country'
+        ];
+        
+        requiredFields.forEach(fieldName => {
+            const input = document.querySelector(`[name="${fieldName}"]`);
+            if (input && !window.FormValidation.validateRequired(input)) {
+                isValid = false;
+            }
+        });
+        
+        if (!isValid) {
+            e.preventDefault();
+        }
+    });
+</script>
+{% endblock %}
