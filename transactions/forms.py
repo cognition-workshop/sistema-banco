@@ -64,8 +64,54 @@ class WithdrawForm(TransactionForm):
                 f'You can withdraw at most {max_withdraw_amount} $'
             )
 
-        # TODO: Add validation to prevent negative balances
-        # Bug: Users can currently withdraw more than their balance
+        if amount > balance:
+            raise forms.ValidationError(
+                f'Insufficient balance. Your current balance is {balance} $'
+            )
+
+        return amount
+
+
+class TransferForm(TransactionForm):
+    recipient_account_number = forms.IntegerField(
+        label='Recipient Account Number',
+        help_text='Enter the account number of the recipient'
+    )
+
+    def clean_recipient_account_number(self):
+        from accounts.models import UserBankAccount
+        recipient_account_number = self.cleaned_data.get('recipient_account_number')
+        
+        try:
+            recipient_account = UserBankAccount.objects.get(
+                account_no=recipient_account_number
+            )
+        except UserBankAccount.DoesNotExist:
+            raise forms.ValidationError(
+                f'Account number {recipient_account_number} does not exist'
+            )
+        
+        if recipient_account == self.account:
+            raise forms.ValidationError(
+                'You cannot transfer money to your own account'
+            )
+        
+        return recipient_account_number
+
+    def clean_amount(self):
+        min_transfer_amount = settings.MINIMUM_WITHDRAWAL_AMOUNT
+        balance = self.account.balance
+        amount = self.cleaned_data.get('amount')
+
+        if amount < min_transfer_amount:
+            raise forms.ValidationError(
+                f'You can transfer at least {min_transfer_amount} $'
+            )
+
+        if amount > balance:
+            raise forms.ValidationError(
+                f'Insufficient balance. Your current balance is {balance} $'
+            )
 
         return amount
 
