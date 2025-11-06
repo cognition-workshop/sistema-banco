@@ -2,6 +2,8 @@ import datetime
 
 from django import forms
 from django.conf import settings
+from django.utils import timezone
+import pytz
 
 from .models import Transaction
 
@@ -75,15 +77,17 @@ class TransactionDateRangeForm(forms.Form):
 
     def clean_daterange(self):
         daterange = self.cleaned_data.get("daterange")
-        print(daterange)
 
         try:
             daterange = daterange.split(' - ')
-            print(daterange)
             if len(daterange) == 2:
-                for date in daterange:
-                    datetime.datetime.strptime(date, '%Y-%m-%d')
-                return daterange
+                tz = pytz.timezone(settings.TIME_ZONE)
+                dates = []
+                for date_str in daterange:
+                    naive_date = datetime.datetime.strptime(date_str, '%Y-%m-%d')
+                    aware_datetime = tz.localize(naive_date)
+                    dates.append(aware_datetime.date())
+                return dates
             else:
                 raise forms.ValidationError("Please select a date range.")
         except (ValueError, AttributeError):
