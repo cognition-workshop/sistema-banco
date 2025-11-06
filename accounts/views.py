@@ -4,8 +4,12 @@ from django.contrib.auth.views import LoginView
 from django.shortcuts import HttpResponseRedirect
 from django.urls import reverse_lazy
 from django.views.generic import TemplateView, RedirectView
+from rest_framework import generics
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.exceptions import NotFound
 
 from .forms import UserRegistrationForm, UserAddressForm
+from .serializers import AccountBalanceSerializer
 
 
 User = get_user_model()
@@ -73,3 +77,14 @@ class LogoutView(RedirectView):
         if self.request.user.is_authenticated:
             logout(self.request)
         return super().get_redirect_url(*args, **kwargs)
+
+
+class AccountBalanceAPIView(generics.RetrieveAPIView):
+    serializer_class = AccountBalanceSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_object(self):
+        try:
+            return self.request.user.account
+        except:
+            raise NotFound('Account not found for this user')
