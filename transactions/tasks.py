@@ -5,6 +5,7 @@ from celery.decorators import task
 from accounts.models import UserBankAccount
 from transactions.constants import INTEREST
 from transactions.models import Transaction
+from transactions.utils import process_account_interest
 
 
 @task(name="calculate_interest")
@@ -21,17 +22,17 @@ def calculate_interest():
     updated_accounts = []
 
     for account in accounts:
-        if this_month in account.get_interest_calculation_months():
-            interest = account.account_type.calculate_interest(
-                account.balance
-            )
-            account.balance += interest
-            account.save()
-
+        result = process_account_interest(account, this_month)
+        
+        if result is not None:
+            interest, new_balance = result
+            account.balance = new_balance
+            
             transaction_obj = Transaction(
                 account=account,
                 transaction_type=INTEREST,
-                amount=interest
+                amount=interest,
+                balance_after_transaction=new_balance
             )
             created_transactions.append(transaction_obj)
             updated_accounts.append(account)
