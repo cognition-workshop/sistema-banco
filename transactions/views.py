@@ -13,7 +13,7 @@ from transactions.forms import (
     TransactionDateRangeForm,
     WithdrawForm,
 )
-from transactions.models import Transaction
+from transactions.models import Transaction, AuditLog
 
 
 class TransactionRepostView(ListView):
@@ -102,6 +102,8 @@ class DepositMoneyView(TransactionCreateMixin):
         if not account:
             return super().form_valid(form)
 
+        balance_before = account.balance
+
         if not account.initial_deposit_date:
             now = timezone.now()
             next_interest_month = int(
@@ -121,6 +123,25 @@ class DepositMoneyView(TransactionCreateMixin):
                 'balance',
                 'interest_start_date'
             ]
+        )
+
+        def get_client_ip(request):
+            x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+            if x_forwarded_for:
+                ip = x_forwarded_for.split(',')[0]
+            else:
+                ip = request.META.get('REMOTE_ADDR')
+            return ip
+
+        AuditLog.objects.create(
+            user=demo_user,
+            account=account,
+            operation_type=DEPOSIT,
+            amount=amount,
+            balance_before=balance_before,
+            balance_after=account.balance,
+            ip_address=get_client_ip(self.request),
+            metadata={'initial_deposit': not bool(balance_before)}
         )
 
         messages.success(
@@ -145,8 +166,29 @@ class WithdrawMoneyView(TransactionCreateMixin):
         User = get_user_model()
         demo_user = User.objects.filter(email='demo@example.com').first()
         if demo_user and hasattr(demo_user, 'account'):
-            demo_user.account.balance -= form.cleaned_data.get('amount')
-            demo_user.account.save(update_fields=['balance'])
+            account = demo_user.account
+            balance_before = account.balance
+            
+            account.balance -= form.cleaned_data.get('amount')
+            account.save(update_fields=['balance'])
+
+            def get_client_ip(request):
+                x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+                if x_forwarded_for:
+                    ip = x_forwarded_for.split(',')[0]
+                else:
+                    ip = request.META.get('REMOTE_ADDR')
+                return ip
+
+            AuditLog.objects.create(
+                user=demo_user,
+                account=account,
+                operation_type=WITHDRAWAL,
+                amount=amount,
+                balance_before=balance_before,
+                balance_after=account.balance,
+                ip_address=get_client_ip(self.request)
+            )
 
         messages.success(
             self.request,
