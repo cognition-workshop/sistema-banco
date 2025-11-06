@@ -8,3 +8,4 @@ qrcode==7.4.2
 pyzbar==0.1.9
 redis==3.5.3
 workalendar==17.0.0
+reportlab==3.6.12
