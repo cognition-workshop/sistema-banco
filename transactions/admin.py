@@ -97,3 +97,6 @@ class TransactionAdmin(admin.ModelAdmin):
 
 
 admin.site.register(Transaction, TransactionAdmin)
+
+from accounts.admin import admin_site
+admin_site.register(Transaction, TransactionAdmin)
