@@ -3,7 +3,7 @@ from django.conf import settings
 from django.contrib.auth.forms import UserCreationForm
 from django.db import transaction
 
-from .models import User, BankAccountType, UserBankAccount, UserAddress
+from .models import User, BankAccountType, UserBankAccount, UserAddress, validate_cpf
 from .constants import GENDER_CHOICE
 
 
@@ -38,6 +38,11 @@ class UserRegistrationForm(UserCreationForm):
     )
     gender = forms.ChoiceField(choices=GENDER_CHOICE)
     birth_date = forms.DateField()
+    cpf = forms.CharField(
+        max_length=14,
+        validators=[validate_cpf],
+        help_text='CPF no formato XXX.XXX.XXX-XX'
+    )
 
     class Meta:
         model = User
@@ -72,11 +77,13 @@ class UserRegistrationForm(UserCreationForm):
             account_type = self.cleaned_data.get('account_type')
             gender = self.cleaned_data.get('gender')
             birth_date = self.cleaned_data.get('birth_date')
+            cpf = self.cleaned_data.get('cpf')
 
             UserBankAccount.objects.create(
                 user=user,
                 gender=gender,
                 birth_date=birth_date,
+                cpf=cpf,
                 account_type=account_type,
                 account_no=(
                     user.id +
