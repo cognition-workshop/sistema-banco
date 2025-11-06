@@ -78,7 +78,7 @@ class UserBankAccount(models.Model):
         on_delete=models.CASCADE
     )
     account_no = models.PositiveIntegerField(unique=True)
-    gender = models.CharField(max_length=1, choices=GENDER_CHOICE)
+    gender = models.CharField(max_length=1, choices=GENDER_CHOICE, null=True, blank=True)
     birth_date = models.DateField(null=True, blank=True)
     balance = models.DecimalField(
         default=0,
