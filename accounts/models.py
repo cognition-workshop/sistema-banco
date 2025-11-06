@@ -9,11 +9,21 @@ from django.db import models
 
 from .constants import GENDER_CHOICE
 from .managers import UserManager
+from localization.validators import validate_cpf
 
 
 class User(AbstractUser):
     username = None
     email = models.EmailField(unique=True, null=False, blank=False)
+    cpf = models.CharField(
+        max_length=14,
+        unique=True,
+        null=True,
+        blank=True,
+        validators=[validate_cpf],
+        help_text='CPF no formato XXX.XXX.XXX-XX'
+    )
+    cpf_encrypted = models.BinaryField(null=True, blank=True)
 
     objects = UserManager()
 
@@ -78,6 +88,18 @@ class UserBankAccount(models.Model):
         on_delete=models.CASCADE
     )
     account_no = models.PositiveIntegerField(unique=True)
+    agencia = models.CharField(
+        max_length=4,
+        null=True,
+        blank=True,
+        help_text='Número da agência (4 dígitos)'
+    )
+    conta = models.CharField(
+        max_length=7,
+        null=True,
+        blank=True,
+        help_text='Número da conta com dígito verificador (6 dígitos + 1 DV)'
+    )
     gender = models.CharField(max_length=1, choices=GENDER_CHOICE)
     birth_date = models.DateField(null=True, blank=True)
     balance = models.DecimalField(

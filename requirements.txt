@@ -1,6 +1,11 @@
-celery==4.4.7
+celery==5.2.7
 Django==3.2.9
 django-celery-beat==2.1.0
 djangorestframework==3.14.0
 python-dateutil==2.8.2
 redis==3.5.3
+validate-docbr==1.10.0
+qrcode[pil]==7.4.2
+reportlab==4.0.4
+cryptography==41.0.0
+drf-yasg==1.21.7

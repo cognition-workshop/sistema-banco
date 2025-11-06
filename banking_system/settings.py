@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 """
 
 from pathlib import Path
+from decimal import Decimal
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve(strict=True).parent.parent
@@ -39,10 +40,13 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'django_celery_beat',
+    'rest_framework',
+    'drf_yasg',
 
     'accounts',
     'core',
     'transactions',
+    'localization',
 ]
 
 MIDDLEWARE = [
@@ -140,3 +144,17 @@ CELERY_ACCEPT_CONTENT = ['application/json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = TIME_ZONE
+
+import os
+FIELD_ENCRYPTION_KEY = os.environ.get('ENCRYPTION_KEY', 'CHANGE-THIS-IN-PRODUCTION-USE-ENV-VAR')
+AUDIT_LOG_RETENTION_DAYS = 1825
+PIX_TRANSACTION_LIMIT = Decimal('1000.00')
+PIX_DAILY_LIMIT = Decimal('5000.00')
+
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 100
+}
