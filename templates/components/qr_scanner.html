@@ -1,0 +1,31 @@
+{% comment %}
+Usage: {% include 'components/qr_scanner.html' %}
+{% endcomment %}
+<div class="card">
+    <h3 class="text-xl font-bold mb-4">
+        <i class="fas fa-qrcode text-primary"></i> Scanner QR Code PIX
+    </h3>
+    <div class="bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg p-8 text-center">
+        <div class="bg-white rounded-lg p-6 inline-block shadow-inner">
+            <i class="fas fa-camera text-6xl text-gray-400 mb-4"></i>
+        </div>
+        <p class="text-gray-700 font-medium mt-6">Funcionalidade em breve</p>
+        <p class="text-sm text-gray-500 mt-2">
+            Integração PIX será adicionada pela Iniciativa 3
+        </p>
+        <div class="mt-6 space-y-2">
+            <button class="w-full bg-gray-300 text-gray-600 px-6 py-3 rounded-lg font-medium cursor-not-allowed" disabled>
+                <i class="fas fa-camera mr-2"></i>Ativar Câmera
+            </button>
+            <p class="text-xs text-gray-500">
+                <i class="fas fa-info-circle"></i> Aguardando integração com sistema PIX
+            </p>
+        </div>
+    </div>
+    <div class="mt-4 bg-blue-50 border-l-4 border-blue-400 p-4 rounded">
+        <p class="text-sm text-blue-800">
+            <i class="fas fa-lightbulb text-blue-600"></i>
+            <strong class="ml-1">Dica:</strong> Esta funcionalidade permitirá pagamentos instantâneos via QR Code PIX.
+        </p>
+    </div>
+</div>

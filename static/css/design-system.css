@@ -94,3 +94,332 @@
 * {
   transition: background-color var(--transition-fast), color var(--transition-fast);
 }
+
+.perspective-1000 {
+  perspective: 1000px;
+}
+
+.virtual-card {
+  width: 100%;
+  max-width: 350px;
+  height: 220px;
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.6s;
+  cursor: pointer;
+  margin: 0 auto;
+}
+
+.card-face {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  background: linear-gradient(135deg, var(--primary-blue-dark), var(--primary-blue));
+  color: white;
+  box-shadow: var(--shadow-xl);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.card-front {
+  z-index: 2;
+}
+
+.card-back {
+  transform: rotateY(180deg);
+  background: linear-gradient(135deg, var(--primary-blue), var(--primary-blue-dark));
+}
+
+.virtual-card.flipped {
+  transform: rotateY(180deg);
+}
+
+.card-logo {
+  display: flex;
+  align-items: center;
+  font-size: 0.875rem;
+  margin-bottom: var(--spacing-md);
+}
+
+.card-chip {
+  width: 50px;
+  height: 40px;
+  background: linear-gradient(135deg, #FFD700, #FFA500);
+  border-radius: 8px;
+  margin-bottom: var(--spacing-lg);
+}
+
+.card-number {
+  font-size: 1.375rem;
+  letter-spacing: 3px;
+  font-weight: 600;
+  margin-bottom: var(--spacing-md);
+}
+
+.card-holder-section {
+  display: inline-block;
+}
+
+.card-holder {
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+
+.card-validity {
+  position: absolute;
+  bottom: var(--spacing-lg);
+  right: var(--spacing-lg);
+  text-align: right;
+}
+
+.card-strip {
+  width: 100%;
+  height: 50px;
+  background: #000;
+  margin: -1.5rem -1.5rem 1.5rem -1.5rem;
+}
+
+.card-signature {
+  background: white;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  padding: var(--spacing-sm);
+  margin-bottom: var(--spacing-md);
+}
+
+.signature-line {
+  background: repeating-linear-gradient(
+    to right,
+    transparent,
+    transparent 10px,
+    #ccc 10px,
+    #ccc 11px
+  );
+  height: 100%;
+}
+
+.card-cvv-section {
+  background: white;
+  color: black;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--radius-sm);
+  display: inline-block;
+  margin-bottom: var(--spacing-md);
+}
+
+.card-cvv {
+  font-size: 1.25rem;
+  font-weight: bold;
+  letter-spacing: 3px;
+}
+
+.card-info {
+  font-size: 0.75rem;
+  opacity: 0.9;
+  text-align: center;
+}
+
+@media (max-width: 640px) {
+  .virtual-card {
+    max-width: 300px;
+    height: 190px;
+  }
+  
+  .card-number {
+    font-size: 1.125rem;
+  }
+  
+  .card-holder {
+    font-size: 0.875rem;
+  }
+}
+
+*:focus-visible {
+  outline: 2px solid var(--primary-blue);
+  outline-offset: 2px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+button, a, input[type="button"], input[type="submit"], .btn {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  button:hover, a:hover {
+    transform: translateY(-1px);
+  }
+}
+
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 8px;
+  background: var(--gray-200);
+  border-radius: 5px;
+  outline: none;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  background: var(--primary-blue);
+  cursor: pointer;
+  border-radius: 50%;
+  box-shadow: var(--shadow-md);
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  background: var(--primary-blue);
+  cursor: pointer;
+  border-radius: 50%;
+  box-shadow: var(--shadow-md);
+  border: none;
+}
+
+input[type="range"]:focus::-webkit-slider-thumb {
+  box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.3);
+}
+
+input[type="range"]:focus::-moz-range-thumb {
+  box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.3);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.slide-in-up {
+  animation: slideInUp 0.4s ease-out;
+}
+
+.btn-primary::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.btn-primary:active::before {
+  width: 300px;
+  height: 300px;
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-color: var(--gray-200);
+  }
+  50% {
+    background-color: var(--gray-300);
+  }
+  100% {
+    background-color: var(--gray-200);
+  }
+}
+
+.skeleton {
+  animation: skeleton-loading 1.5s infinite;
+  border-radius: var(--radius-md);
+}
+
+kbd {
+  background-color: var(--gray-100);
+  border: 1px solid var(--gray-300);
+  border-radius: var(--radius-sm);
+  padding: 2px 8px;
+  font-family: monospace;
+  font-size: 0.875rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  display: inline-block;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(-25%);
+    animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+  }
+  50% {
+    transform: translateY(0);
+    animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+  }
+}
+
+.bounce {
+  animation: bounce 1s infinite;
+}
+
+.transition-all {
+  transition: all var(--transition-base);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

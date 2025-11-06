@@ -1,0 +1,56 @@
+{% comment %}
+Usage: {% include 'components/notifications.html' %}
+{% endcomment %}
+<div class="relative" id="notificationCenter">
+    <button id="notificationButton" class="relative text-gray-300 hover:text-white transition p-2 rounded-lg hover:bg-white hover:bg-opacity-10" aria-label="Ver notificações">
+        <i class="fas fa-bell text-xl"></i>
+        <span class="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">3</span>
+    </button>
+    <div id="notificationPanel" class="hidden absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-lg shadow-xl z-50 border border-gray-200">
+        <div class="p-4 border-b flex items-center justify-between">
+            <h4 class="font-bold text-gray-900">Notificações</h4>
+            <button class="text-xs text-primary hover:underline">Marcar todas como lidas</button>
+        </div>
+        <div class="max-h-96 overflow-y-auto">
+            <div class="p-4 border-b hover:bg-gray-50 cursor-pointer transition">
+                <div class="flex items-start">
+                    <div class="flex-shrink-0 w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                        <i class="fas fa-check-circle text-green-600"></i>
+                    </div>
+                    <div class="ml-3 flex-1">
+                        <p class="text-sm font-medium text-gray-900">Depósito realizado</p>
+                        <p class="text-sm text-gray-600">R$ 1.000,00 creditado em sua conta</p>
+                        <p class="text-xs text-gray-500 mt-1">há 2 horas</p>
+                    </div>
+                </div>
+            </div>
+            <div class="p-4 border-b hover:bg-gray-50 cursor-pointer transition">
+                <div class="flex items-start">
+                    <div class="flex-shrink-0 w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                        <i class="fas fa-info-circle text-blue-600"></i>
+                    </div>
+                    <div class="ml-3 flex-1">
+                        <p class="text-sm font-medium text-gray-900">Novos recursos disponíveis</p>
+                        <p class="text-sm text-gray-600">Confira as novas funcionalidades do sistema</p>
+                        <p class="text-xs text-gray-500 mt-1">há 5 horas</p>
+                    </div>
+                </div>
+            </div>
+            <div class="p-4 hover:bg-gray-50 cursor-pointer transition">
+                <div class="flex items-start">
+                    <div class="flex-shrink-0 w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center">
+                        <i class="fas fa-exclamation-triangle text-yellow-600"></i>
+                    </div>
+                    <div class="ml-3 flex-1">
+                        <p class="text-sm font-medium text-gray-900">Limite de saque próximo</p>
+                        <p class="text-sm text-gray-600">Você atingiu 80% do seu limite mensal</p>
+                        <p class="text-xs text-gray-500 mt-1">há 1 dia</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="p-3 border-t text-center">
+            <a href="#" class="text-sm text-primary hover:underline font-medium">Ver todas as notificações</a>
+        </div>
+    </div>
+</div>

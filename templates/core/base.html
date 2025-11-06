@@ -5,6 +5,12 @@
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
         <meta name="description" content="Sistema Bancário Profissional" />
+        <meta name="theme-color" content="#0066CC">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+        <meta name="apple-mobile-web-app-title" content="Banco Sistema">
+        <link rel="manifest" href="{% static 'manifest.json' %}">
+        <link rel="apple-touch-icon" href="{% static 'images/icon-192x192.png' %}">
         <title>
             {% block head_title %}Sistema Bancário{% endblock %}
         </title>
@@ -39,8 +45,31 @@
 
         {% endblock %}
         
+        {% include 'components/chat_widget.html' %}
+        {% include 'components/onboarding.html' %}
+        {% include 'components/shortcuts_help.html' %}
+        
         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <script src="{% static 'js/calculators.js' %}"></script>
+        <script src="{% static 'js/gestures.js' %}"></script>
+        <script src="{% static 'js/onboarding.js' %}"></script>
+        <script src="{% static 'js/shortcuts.js' %}"></script>
+        <script src="{% static 'js/search.js' %}"></script>
         
         {% block footer_extra %}{% endblock %}
+        
+        <script>
+            if ('serviceWorker' in navigator) {
+                window.addEventListener('load', function() {
+                    navigator.serviceWorker.register('/static/sw.js')
+                        .then(function(registration) {
+                            console.log('ServiceWorker registration successful');
+                        })
+                        .catch(function(err) {
+                            console.log('ServiceWorker registration failed: ', err);
+                        });
+                });
+            }
+        </script>
     </body>
 </html>

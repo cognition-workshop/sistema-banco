@@ -1,0 +1,55 @@
+{% comment %}
+Usage: {% include 'components/shortcuts_help.html' %}
+{% endcomment %}
+<div id="shortcutsModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-lg max-w-md w-full p-6 shadow-2xl">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-xl font-bold text-gray-900">
+                <i class="fas fa-keyboard text-primary mr-2"></i>Atalhos de Teclado
+            </h3>
+            <button onclick="closeShortcutsModal()" class="text-gray-400 hover:text-gray-600 transition" aria-label="Fechar">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+        
+        <p class="text-sm text-gray-600 mb-4">Use estes atalhos para navegar mais rapidamente:</p>
+        
+        <div class="space-y-3 mb-6">
+            <div class="flex justify-between items-center py-2 border-b border-gray-100">
+                <span class="text-sm text-gray-700">Fazer Depósito</span>
+                <kbd>Ctrl+D</kbd>
+            </div>
+            <div class="flex justify-between items-center py-2 border-b border-gray-100">
+                <span class="text-sm text-gray-700">Fazer Saque</span>
+                <kbd>Ctrl+W</kbd>
+            </div>
+            <div class="flex justify-between items-center py-2 border-b border-gray-100">
+                <span class="text-sm text-gray-700">Ver Extrato</span>
+                <kbd>Ctrl+E</kbd>
+            </div>
+            <div class="flex justify-between items-center py-2 border-b border-gray-100">
+                <span class="text-sm text-gray-700">Ir para Home</span>
+                <kbd>Ctrl+H</kbd>
+            </div>
+            <div class="flex justify-between items-center py-2 border-b border-gray-100">
+                <span class="text-sm text-gray-700">Buscar</span>
+                <kbd>Ctrl+K</kbd>
+            </div>
+            <div class="flex justify-between items-center py-2">
+                <span class="text-sm text-gray-700">Mostrar Atalhos</span>
+                <kbd>?</kbd>
+            </div>
+        </div>
+        
+        <div class="bg-blue-50 border-l-4 border-blue-400 p-3 mb-4">
+            <p class="text-xs text-blue-800">
+                <i class="fas fa-lightbulb text-blue-600"></i>
+                <strong class="ml-1">Dica:</strong> No Mac, use <kbd>Cmd</kbd> ao invés de <kbd>Ctrl</kbd>
+            </p>
+        </div>
+        
+        <button onclick="closeShortcutsModal()" class="w-full bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-lg font-medium transition">
+            Entendi
+        </button>
+    </div>
+</div>

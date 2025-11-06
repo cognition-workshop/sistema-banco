@@ -128,5 +128,20 @@
         <p class="text-gray-500 text-center py-8">Nenhuma transação encontrada</p>
         {% endif %}
     </div>
+    
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8 mb-8">
+        <div>
+            {% include 'components/virtual_card.html' with account=account %}
+        </div>
+        
+        <div class="space-y-6">
+            {% include 'components/loan_calculator.html' %}
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {% include 'components/investment_calculator.html' %}
+        {% include 'components/qr_scanner.html' %}
+    </div>
 </div>
 {% endblock %}

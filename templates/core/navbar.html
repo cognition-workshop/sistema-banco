@@ -6,6 +6,15 @@
                 <span class="text-white font-bold text-xl">Sistema Bancário</span>
             </div>
             
+            <div class="hidden md:flex items-center flex-1 max-w-md mx-6">
+                <div class="relative w-full">
+                    <input type="search" id="globalSearch" placeholder="Buscar transações... (Ctrl+K)" 
+                           class="w-full bg-white bg-opacity-20 text-white placeholder-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-white focus:bg-opacity-30 transition"
+                           aria-label="Buscar transações">
+                    <i class="fas fa-search absolute right-3 top-3 text-gray-300"></i>
+                </div>
+            </div>
+            
             <div class="hidden md:block">
                 <div class="ml-10 flex items-baseline space-x-4">
                     <a href="{% url 'transactions:transaction_report' %}" 
@@ -24,7 +33,8 @@
             </div>
             
             <div class="hidden md:block">
-                <div class="ml-4 flex items-center">
+                <div class="ml-4 flex items-center space-x-4">
+                    {% include 'components/notifications.html' %}
                     <span class="text-gray-300 text-sm mr-2">
                         <i class="fas fa-user-circle mr-1"></i>
                         Demo User: John Doe
@@ -37,7 +47,8 @@
             
             <div class="md:hidden">
                 <button id="mobile-menu-button" type="button" 
-                        class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-white hover:bg-primary focus:outline-none">
+                        class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-white hover:bg-primary focus:outline-none"
+                        aria-label="Abrir menu">
                     <i class="fas fa-bars text-xl"></i>
                 </button>
             </div>
@@ -46,7 +57,12 @@
     
     <div id="mobile-menu" class="hidden md:hidden">
         <div class="px-2 pt-2 pb-3 space-y-1">
-            <a href="{% url 'transactions:transaction_report' %}" 
+            <div class="px-3 py-2">
+                <input type="search" placeholder="Buscar..." 
+                       class="w-full bg-white bg-opacity-20 text-white placeholder-gray-300 rounded-lg px-4 py-2 focus:outline-none"
+                       aria-label="Buscar transações">
+            </div>
+            <a href="{% url 'transactions:transaction_report' %}"
                class="text-gray-300 hover:bg-primary hover:text-white block px-3 py-2 rounded-md text-base font-medium">
                 <i class="fas fa-chart-line mr-2"></i> Extrato
             </a>

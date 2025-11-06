@@ -1,0 +1,38 @@
+{% comment %}
+Usage: {% include 'components/virtual_card.html' with account=account %}
+{% endcomment %}
+<div class="card-container perspective-1000 mb-6">
+    <div class="virtual-card" id="virtualCard">
+        <div class="card-face card-front">
+            <div class="card-logo">
+                <i class="fas fa-university text-2xl"></i>
+                <span class="ml-2 font-bold">BANCO SISTEMA</span>
+            </div>
+            <div class="card-chip"></div>
+            <div class="card-number">{{ account.account_no|default:"**** **** **** 1234" }}</div>
+            <div class="card-holder-section">
+                <div class="text-xs opacity-75">TITULAR</div>
+                <div class="card-holder">{{ account.user.get_full_name|upper|default:"NOME DO TITULAR" }}</div>
+            </div>
+            <div class="card-validity">
+                <div class="text-xs opacity-75">VALIDADE</div>
+                <div>12/28</div>
+            </div>
+        </div>
+        <div class="card-face card-back">
+            <div class="card-strip"></div>
+            <div class="card-signature">
+                <div class="text-xs mb-1">Assinatura</div>
+                <div class="signature-line"></div>
+            </div>
+            <div class="card-cvv-section">
+                <div class="text-xs">CVV</div>
+                <div class="card-cvv">***</div>
+            </div>
+            <div class="card-info">Para sua segurança, não compartilhe seus dados do cartão</div>
+        </div>
+    </div>
+    <p class="text-center text-sm text-gray-600 mt-4">
+        <i class="fas fa-hand-pointer"></i> Clique no cartão para virar
+    </p>
+</div>

@@ -1,0 +1,112 @@
+{% comment %}
+Usage: {% include 'components/onboarding.html' %}
+{% endcomment %}
+<div id="onboardingModal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-90 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-lg max-w-2xl w-full p-8 shadow-2xl">
+        <div id="onboardingStep1" class="onboarding-step">
+            <div class="text-center">
+                <div class="inline-block bg-primary-light p-4 rounded-full mb-4">
+                    <i class="fas fa-hand-wave text-4xl text-primary"></i>
+                </div>
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">Bem-vindo ao Sistema Bancário!</h2>
+                <p class="text-gray-600 mb-8 text-lg">Vamos fazer um tour rápido pelas funcionalidades principais do sistema.</p>
+                <button onclick="nextOnboardingStep()" class="bg-primary hover:bg-primary-dark text-white px-8 py-3 rounded-lg font-medium transition text-lg">
+                    Começar Tour <i class="fas fa-arrow-right ml-2"></i>
+                </button>
+                <button onclick="skipOnboarding()" class="block mx-auto mt-4 text-gray-500 hover:text-gray-700 text-sm">
+                    Pular tour
+                </button>
+            </div>
+        </div>
+        
+        <div id="onboardingStep2" class="onboarding-step hidden">
+            <div class="text-center">
+                <div class="inline-block bg-blue-100 p-4 rounded-full mb-4">
+                    <i class="fas fa-chart-line text-4xl text-blue-600"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-gray-900 mb-4">Dashboard Inteligente</h2>
+                <p class="text-gray-600 mb-6">Acompanhe seu saldo, visualize transações recentes e veja estatísticas financeiras em tempo real.</p>
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <i class="fas fa-wallet text-primary text-2xl mb-2"></i>
+                        <p class="text-sm text-gray-600">Saldo em tempo real</p>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <i class="fas fa-chart-bar text-accent text-2xl mb-2"></i>
+                        <p class="text-sm text-gray-600">Gráficos e análises</p>
+                    </div>
+                </div>
+                <div class="flex gap-3 justify-center">
+                    <button onclick="previousOnboardingStep()" class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-6 py-3 rounded-lg font-medium transition">
+                        <i class="fas fa-arrow-left mr-2"></i> Voltar
+                    </button>
+                    <button onclick="nextOnboardingStep()" class="bg-primary hover:bg-primary-dark text-white px-6 py-3 rounded-lg font-medium transition">
+                        Próximo <i class="fas fa-arrow-right ml-2"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div id="onboardingStep3" class="onboarding-step hidden">
+            <div class="text-center">
+                <div class="inline-block bg-green-100 p-4 rounded-full mb-4">
+                    <i class="fas fa-exchange-alt text-4xl text-green-600"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-gray-900 mb-4">Transações Simples</h2>
+                <p class="text-gray-600 mb-6">Realize depósitos e saques de forma rápida e segura. Visualize seu histórico completo de transações.</p>
+                <div class="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6 text-left">
+                    <p class="text-sm text-blue-800">
+                        <i class="fas fa-keyboard text-blue-600"></i>
+                        <strong class="ml-1">Dica:</strong> Use atalhos de teclado para ações rápidas! Pressione <kbd class="bg-white px-2 py-1 rounded border">?</kbd> para ver todos.
+                    </p>
+                </div>
+                <div class="flex gap-3 justify-center">
+                    <button onclick="previousOnboardingStep()" class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-6 py-3 rounded-lg font-medium transition">
+                        <i class="fas fa-arrow-left mr-2"></i> Voltar
+                    </button>
+                    <button onclick="nextOnboardingStep()" class="bg-primary hover:bg-primary-dark text-white px-6 py-3 rounded-lg font-medium transition">
+                        Próximo <i class="fas fa-arrow-right ml-2"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div id="onboardingStep4" class="onboarding-step hidden">
+            <div class="text-center">
+                <div class="inline-block bg-accent-green-light p-4 rounded-full mb-4">
+                    <i class="fas fa-check-circle text-4xl text-accent"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-gray-900 mb-4">Tudo Pronto!</h2>
+                <p class="text-gray-600 mb-6">Você está pronto para começar a usar o sistema bancário. Aproveite todas as funcionalidades!</p>
+                <ul class="text-left space-y-2 mb-8 max-w-md mx-auto">
+                    <li class="flex items-center text-gray-700">
+                        <i class="fas fa-check text-accent mr-3"></i>
+                        Dashboard personalizado configurado
+                    </li>
+                    <li class="flex items-center text-gray-700">
+                        <i class="fas fa-check text-accent mr-3"></i>
+                        Calculadoras financeiras disponíveis
+                    </li>
+                    <li class="flex items-center text-gray-700">
+                        <i class="fas fa-check text-accent mr-3"></i>
+                        Atendimento via chat pronto
+                    </li>
+                    <li class="flex items-center text-gray-700">
+                        <i class="fas fa-check text-accent mr-3"></i>
+                        Notificações ativadas
+                    </li>
+                </ul>
+                <button onclick="completeOnboarding()" class="bg-accent hover:bg-green-700 text-white px-8 py-3 rounded-lg font-medium transition text-lg">
+                    <i class="fas fa-rocket mr-2"></i> Começar a Usar
+                </button>
+            </div>
+        </div>
+        
+        <div class="mt-6 flex justify-center space-x-2">
+            <div class="step-indicator w-2 h-2 rounded-full bg-primary" data-step="1"></div>
+            <div class="step-indicator w-2 h-2 rounded-full bg-gray-300" data-step="2"></div>
+            <div class="step-indicator w-2 h-2 rounded-full bg-gray-300" data-step="3"></div>
+            <div class="step-indicator w-2 h-2 rounded-full bg-gray-300" data-step="4"></div>
+        </div>
+    </div>
+</div>
