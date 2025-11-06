@@ -39,8 +39,8 @@ class UserRegistrationView(TemplateView):
             messages.success(
                 self.request,
                 (
-                    f'Thank You For Creating A Bank Account. '
-                    f'Your Account Number is {user.account.account_no}. '
+                    f'Obrigado por criar uma conta bancária. '
+                    f'Seu número de conta é {user.account.get_account_number()}. '
                 )
             )
             return HttpResponseRedirect(

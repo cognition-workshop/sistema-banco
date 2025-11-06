@@ -7,8 +7,11 @@ from django.contrib.auth import get_user_model
 from django.urls import reverse_lazy
 from django.utils import timezone
 from django.views.generic import CreateView, ListView
+from django.views.decorators.cache import cache_page
+from django.utils.decorators import method_decorator
+from django.conf import settings
 
-from transactions.constants import DEPOSIT, WITHDRAWAL
+from transactions.constants import DEPOSIT, WITHDRAWAL, INTEREST
 from transactions.forms import (
     DepositForm,
     TransactionDateRangeForm,
@@ -19,6 +22,7 @@ from transactions.models import Transaction
 logger = logging.getLogger('security')
 
 
+@method_decorator(cache_page(settings.CACHE_TTL), name='dispatch')
 class TransactionRepostView(LoginRequiredMixin, ListView):
     template_name = 'transactions/transaction_report.html'
     model = Transaction
@@ -217,4 +221,39 @@ class FraudDashboardView(LoginRequiredMixin, ListView):
         context['total_alerts'] = queryset.count()
         context['unresolved_alerts'] = queryset.filter(is_resolved=False).count()
         context['high_severity'] = queryset.filter(severity='HIGH', is_resolved=False).count()
+        return context
+
+
+class IRPFReportView(LoginRequiredMixin, ListView):
+    template_name = 'transactions/irpf_report.html'
+    model = Transaction
+    context_object_name = 'transactions'
+    
+    def get_queryset(self):
+        if not self.request.user.is_authenticated or not hasattr(self.request.user, 'account'):
+            return Transaction.objects.none()
+        
+        year = self.request.GET.get('year', timezone.now().year)
+        
+        return Transaction.objects.filter(
+            account=self.request.user.account,
+            timestamp__year=year,
+            transaction_type=INTEREST
+        ).order_by('timestamp')
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        year = self.request.GET.get('year', timezone.now().year)
+        transactions = context['transactions']
+        
+        total_rendimentos = sum(t.amount for t in transactions)
+        
+        context.update({
+            'account': self.request.user.account if hasattr(self.request.user, 'account') else None,
+            'year': year,
+            'total_rendimentos_tributaveis': total_rendimentos,
+            'available_years': range(2020, timezone.now().year + 1),
+        })
+        
         return context

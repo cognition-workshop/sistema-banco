@@ -1,21 +1,27 @@
 from django.utils import timezone
 
-from celery.decorators import task
+from celery import shared_task
 
 from accounts.models import UserBankAccount
+from accounts.utils import is_banking_day
 from transactions.constants import INTEREST
 from transactions.models import Transaction
 
 
-@task(name="calculate_interest")
+@shared_task(name="calculate_interest")
 def calculate_interest():
+    today = timezone.now().date()
+    
+    if not is_banking_day(today):
+        return "Not a banking business day"
+    
     accounts = UserBankAccount.objects.filter(
         balance__gt=0,
-        interest_start_date__gte=timezone.now(),
+        interest_start_date__lte=today,
         initial_deposit_date__isnull=False
     ).select_related('account_type')
 
-    this_month = timezone.now().month
+    this_month = today.month
 
     created_transactions = []
     updated_accounts = []
@@ -26,12 +32,12 @@ def calculate_interest():
                 account.balance
             )
             account.balance += interest
-            account.save()
 
             transaction_obj = Transaction(
                 account=account,
                 transaction_type=INTEREST,
-                amount=interest
+                amount=interest,
+                balance_after_transaction=account.balance,
             )
             created_transactions.append(transaction_obj)
             updated_accounts.append(account)
@@ -43,3 +49,5 @@ def calculate_interest():
         UserBankAccount.objects.bulk_update(
             updated_accounts, ['balance']
         )
+    
+    return f"Interest calculated for {len(updated_accounts)} accounts"

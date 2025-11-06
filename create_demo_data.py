@@ -4,13 +4,14 @@ import os
 import sys
 import django
 
-# Setup Django
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'banking_system.settings')
 django.setup()
 
 from django.utils import timezone
+from django.db import models
 from dateutil.relativedelta import relativedelta
 from accounts.models import User, BankAccountType, UserBankAccount, UserAddress
+from accounts.utils import validate_brazilian_account
 from transactions.models import Transaction
 from transactions.constants import DEPOSIT, WITHDRAWAL
 
@@ -46,12 +47,19 @@ if created:
     demo_user.set_password('demo123')
     demo_user.save()
 
-# Create Bank Account
+agencia = 1
+conta = 1001
+agencia_digito, conta_digito = validate_brazilian_account(agencia, conta)
+
 account, _ = UserBankAccount.objects.get_or_create(
     user=demo_user,
     defaults={
         'account_type': savings_type,
-        'account_no': 1001,
+        'cpf': '123.456.789-09',
+        'agencia': str(agencia).zfill(4),
+        'agencia_digito': str(agencia_digito),
+        'conta': str(conta).zfill(8),
+        'conta_digito': str(conta_digito),
         'gender': 'M',
         'birth_date': '1990-01-01',
         'balance': 5000.00,
@@ -82,8 +90,10 @@ transactions_data = [
     (WITHDRAWAL, 300.00, timezone.now() - relativedelta(days=2)),
 ]
 
-# Delete old transactions for demo user
-Transaction.objects.filter(account=account).delete()
+try:
+    Transaction.objects.filter(account=account).delete()
+except models.ProtectedError:
+    pass
 
 balance = 0
 for trans_type, amount, timestamp in transactions_data:
@@ -106,6 +116,7 @@ account.save()
 
 print("✅ Demo data created successfully!")
 print(f"Demo User: demo@example.com / demo123")
-print(f"Account Number: {account.account_no}")
+print(f"Account Number: {account.get_account_number()}")
+print(f"CPF: {account.cpf}")
 print(f"Balance: ${account.balance}")
 print(f"Transactions: {Transaction.objects.filter(account=account).count()}")

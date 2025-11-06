@@ -1,0 +1,93 @@
+{% extends 'core/base.html' %}
+
+{% block head_title %}Informe de Rendimentos - IRPF{% endblock %}
+
+{% block content %}
+    <h1 class="font-mono font-bold text-3xl text-center pb-5 pt-10">
+        Informe de Rendimentos para IRPF - Ano {{ year }}
+    </h1>
+    <hr />
+    
+    <div class="mt-6 mb-6">
+        <form method="get" class="flex items-center gap-4">
+            <label for="year" class="font-semibold">Ano Base:</label>
+            <select name="year" id="year" class="border rounded px-3 py-2">
+                {% for y in available_years %}
+                    <option value="{{ y }}" {% if y == year %}selected{% endif %}>{{ y }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                Consultar
+            </button>
+        </form>
+    </div>
+
+    <div class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+        <h2 class="text-xl font-bold mb-4">Dados do Titular</h2>
+        {% if account %}
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                <p class="font-semibold">Nome:</p>
+                <p>{{ account.user.get_full_name }}</p>
+            </div>
+            <div>
+                <p class="font-semibold">CPF:</p>
+                <p>{{ account.cpf }}</p>
+            </div>
+            <div>
+                <p class="font-semibold">Conta:</p>
+                <p>{{ account.get_account_number }}</p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+        <h2 class="text-xl font-bold mb-4">Rendimentos Tributáveis</h2>
+        
+        <table class="table-auto w-full mt-4">
+            <thead class="bg-gray-800 text-white">
+                <tr class="uppercase font-semibold text-sm">
+                    <th class="px-4 py-2">Data</th>
+                    <th class="px-4 py-2">Descrição</th>
+                    <th class="px-4 py-2">Valor (R$)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for transaction in transactions %}
+                <tr class="{% cycle 'bg-gray-100' 'bg-white' %}">
+                    <td class="border px-4 py-2 text-center">{{ transaction.timestamp|date:"d/m/Y" }}</td>
+                    <td class="border px-4 py-2">{{ transaction.get_transaction_type_display }}</td>
+                    <td class="border px-4 py-2 text-right">{{ transaction.amount|floatformat:2 }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="3" class="border px-4 py-2 text-center text-gray-500">
+                        Nenhum rendimento tributável neste ano
+                    </td>
+                </tr>
+                {% endfor %}
+                <tr class="bg-gray-600 text-white font-bold">
+                    <th class="px-4 py-2 text-right" colspan="2">Total de Rendimentos Tributáveis:</th>
+                    <th class="px-4 py-2 text-right">R$ {{ total_rendimentos_tributaveis|floatformat:2 }}</th>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="mt-6 flex gap-4">
+        <a href="?year={{ year }}&format=pdf" class="bg-red-600 text-white px-6 py-2 rounded hover:bg-red-700">
+            Exportar PDF
+        </a>
+        <a href="?year={{ year }}&format=csv" class="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700">
+            Exportar CSV
+        </a>
+    </div>
+
+    <div class="mt-8 p-4 bg-yellow-100 border border-yellow-400 rounded">
+        <p class="text-sm">
+            <strong>Nota:</strong> Este informe é para fins de declaração do Imposto de Renda Pessoa Física (IRPF).
+            Os valores aqui apresentados devem ser informados na declaração anual.
+        </p>
+    </div>
+{% endblock %}

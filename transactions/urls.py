@@ -1,6 +1,6 @@
 from django.urls import path
 
-from .views import DepositMoneyView, WithdrawMoneyView, TransactionRepostView, FraudDashboardView
+from .views import DepositMoneyView, WithdrawMoneyView, TransactionRepostView, FraudDashboardView, IRPFReportView
 
 
 app_name = 'transactions'
@@ -11,4 +11,5 @@ urlpatterns = [
     path("report/", TransactionRepostView.as_view(), name="transaction_report"),
     path("withdraw/", WithdrawMoneyView.as_view(), name="withdraw_money"),
     path("fraud/", FraudDashboardView.as_view(), name="fraud_dashboard"),
+    path("irpf/", IRPFReportView.as_view(), name="irpf_report"),
 ]
