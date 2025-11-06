@@ -1,17 +1,20 @@
 from dateutil.relativedelta import relativedelta
 
 from django.contrib import messages
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db import models
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth import get_user_model
 from django.urls import reverse_lazy
 from django.utils import timezone
 from django.views.generic import CreateView, ListView
+from django.db.models import Q
 
-from transactions.constants import DEPOSIT, WITHDRAWAL
+from transactions.constants import DEPOSIT, WITHDRAWAL, INTEREST
 from transactions.forms import (
     DepositForm,
     TransactionDateRangeForm,
     WithdrawForm,
+    IRPFYearForm,
 )
 from transactions.models import Transaction
 
@@ -58,6 +61,126 @@ class TransactionRepostView(ListView):
 
         return context
 
+class AdminTransactionListView(UserPassesTestMixin, ListView):
+    template_name = 'transactions/admin_transaction_list.html'
+    model = Transaction
+    context_object_name = 'transactions'
+    paginate_by = 20
+    form_data = {}
+    
+    def test_func(self):
+        return self.request.user.is_authenticated and self.request.user.is_staff
+    
+    def get(self, request, *args, **kwargs):
+        from transactions.forms import AdminTransactionFilterForm
+        form = AdminTransactionFilterForm(request.GET or None)
+        if form.is_valid():
+            self.form_data = form.cleaned_data
+        return super().get(request, *args, **kwargs)
+    
+    def get_queryset(self):
+        queryset = super().get_queryset().select_related(
+            'account__user'
+        ).order_by('-timestamp')
+        
+        transaction_type = self.form_data.get('transaction_type')
+        if transaction_type:
+            queryset = queryset.filter(transaction_type=transaction_type)
+        
+        amount_min = self.form_data.get('amount_min')
+        if amount_min is not None:
+            queryset = queryset.filter(amount__gte=amount_min)
+        
+        amount_max = self.form_data.get('amount_max')
+        if amount_max is not None:
+            queryset = queryset.filter(amount__lte=amount_max)
+        
+        user_email = self.form_data.get('user_email')
+        if user_email:
+            queryset = queryset.filter(
+                account__user__email__icontains=user_email
+            )
+        
+        account_no_search = self.form_data.get('account_no_search')
+        if account_no_search:
+            queryset = queryset.filter(
+                account__account_no__icontains=account_no_search
+            )
+        
+        daterange = self.form_data.get('daterange')
+        if daterange:
+            queryset = queryset.filter(timestamp__date__range=daterange)
+        
+        return queryset.distinct()
+    
+    def get_context_data(self, **kwargs):
+        from transactions.forms import AdminTransactionFilterForm
+        context = super().get_context_data(**kwargs)
+        context['form'] = AdminTransactionFilterForm(self.request.GET or None)
+        context['filter_active'] = bool(self.request.GET)
+        return context
+
+
+
+
+class IRPFReportView(ListView):
+    template_name = 'transactions/irpf_report.html'
+    model = Transaction
+    form_data = {}
+
+    def get(self, request, *args, **kwargs):
+        form = IRPFYearForm(request.GET or None)
+        if form.is_valid():
+            self.form_data = form.cleaned_data
+
+        return super().get(request, *args, **kwargs)
+
+    def get_queryset(self):
+        User = get_user_model()
+        demo_user = User.objects.filter(email='demo@example.com').first()
+        if not demo_user or not hasattr(demo_user, 'account'):
+            return super().get_queryset().none()
+        
+        queryset = super().get_queryset().filter(
+            account=demo_user.account
+        )
+
+        year = self.form_data.get("year")
+
+        if year:
+            queryset = queryset.filter(timestamp__year=year)
+
+        return queryset.distinct()
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        User = get_user_model()
+        demo_user = User.objects.filter(email='demo@example.com').first()
+        account = demo_user.account if demo_user and hasattr(demo_user, 'account') else None
+        
+        transactions = self.get_queryset()
+        interest_income = transactions.filter(transaction_type=INTEREST).aggregate(
+            total=models.Sum('amount')
+        )['total'] or 0
+        
+        total_deposits = transactions.filter(transaction_type=DEPOSIT).aggregate(
+            total=models.Sum('amount')
+        )['total'] or 0
+        
+        total_withdrawals = transactions.filter(transaction_type=WITHDRAWAL).aggregate(
+            total=models.Sum('amount')
+        )['total'] or 0
+        
+        context.update({
+            'account': account,
+            'form': IRPFYearForm(self.request.GET or None),
+            'interest_income': interest_income,
+            'total_deposits': total_deposits,
+            'total_withdrawals': total_withdrawals,
+        })
+
+        return context
+
 
 class TransactionCreateMixin(CreateView):
     template_name = 'transactions/transaction_form.html'
@@ -72,7 +195,8 @@ class TransactionCreateMixin(CreateView):
         demo_user = User.objects.filter(email='demo@example.com').first()
         if demo_user and hasattr(demo_user, 'account'):
             kwargs.update({
-                'account': demo_user.account
+                'account': demo_user.account,
+                'request': self.request
             })
         return kwargs
 
