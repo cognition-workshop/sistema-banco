@@ -51,10 +51,9 @@ def rate_limit_login(max_attempts=5, window=300):
                 attempts = cache.get(cache_key, 0)
                 
                 if attempts >= max_attempts:
-                    remaining_time = cache.ttl(cache_key)
                     messages.error(
                         request,
-                        f'Too many login attempts. Please try again in {remaining_time // 60} minutes.'
+                        f'Too many login attempts. Please try again in {window // 60} minutes.'
                     )
                     return HttpResponse('Too many login attempts', status=429)
                 
