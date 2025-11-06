@@ -13,9 +13,21 @@
     <h1 class="font-mono font-bold text-3xl text-center pb-5 pt-10">Transaction Report</h1>
     <hr />
     <form method="get">
-        <div class="mt-10 h-10 pl-3 pr-2 bg-white border rounded-md border-gray-500 flex justify-between items-center relative">
-            <input type="search" name="daterange" id="search" placeholder="Filter using date range" value="{{ request.GET.daterange }}" class="appearance-none w-full outline-none focus:outline-none active:outline-none" />
-            <button type="submit" class="ml-1 outline-none focus:outline-none active:outline-none">
+        <div class="mt-10 flex gap-4">
+            <div class="flex-1 h-10 pl-3 pr-2 bg-white border rounded-md border-gray-500 flex justify-between items-center relative">
+                <input type="search" name="daterange" id="search" placeholder="Filter using date range" value="{{ request.GET.daterange }}" class="appearance-none w-full outline-none focus:outline-none active:outline-none" />
+            </div>
+            <div class="w-64">
+                <select name="transaction_type" class="h-10 w-full pl-3 pr-8 bg-white border rounded-md border-gray-500 outline-none focus:border-blue-500">
+                    <option value="">Todas</option>
+                    {% for value, label in form.fields.transaction_type.choices %}
+                        {% if value %}
+                            <option value="{{ value }}" {% if request.GET.transaction_type == value|stringformat:"s" %}selected{% endif %}>{{ label }}</option>
+                        {% endif %}
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" class="h-10 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700 outline-none focus:outline-none active:outline-none">
                 <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" class="w-6 h-6">
                     <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                 </svg>
@@ -23,6 +35,11 @@
         </div>
         {% if form.daterange.errors %}
             {% for error in form.daterange.errors %}
+                <p class="text-red-600 text-sm italic">{{ error }}</p>
+            {% endfor %}
+        {% endif %}
+        {% if form.transaction_type.errors %}
+            {% for error in form.transaction_type.errors %}
                 <p class="text-red-600 text-sm italic">{{ error }}</p>
             {% endfor %}
         {% endif %}
