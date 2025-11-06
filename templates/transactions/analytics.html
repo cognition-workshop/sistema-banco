@@ -1,0 +1,196 @@
+{% extends 'core/base.html' %}
+
+{% block head_title %}Analytics & Reports{% endblock %}
+
+{% block head_extra %}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+{% endblock %}
+
+{% block content %}
+    <h1 class="font-mono font-bold text-3xl text-center pb-5 pt-10">Analytics & Reports</h1>
+    <hr />
+    
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8 mb-8">
+        <div class="bg-white rounded-lg shadow p-6">
+            <h3 class="text-gray-600 text-sm font-semibold uppercase">Total Transactions</h3>
+            <p class="text-3xl font-bold text-gray-800 mt-2">{{ transaction_stats.total_transactions }}</p>
+            <p class="text-gray-500 text-sm mt-1">Volume: ${{ transaction_stats.total_volume|floatformat:2 }}</p>
+        </div>
+        <div class="bg-white rounded-lg shadow p-6">
+            <h3 class="text-gray-600 text-sm font-semibold uppercase">Total System Balance</h3>
+            <p class="text-3xl font-bold text-green-600 mt-2">${{ balance_stats.total_balance|floatformat:2 }}</p>
+            <p class="text-gray-500 text-sm mt-1">Across {{ balance_stats.account_count }} accounts</p>
+        </div>
+        <div class="bg-white rounded-lg shadow p-6">
+            <h3 class="text-gray-600 text-sm font-semibold uppercase">Active Users</h3>
+            <p class="text-3xl font-bold text-blue-600 mt-2">{{ balance_stats.account_count }}</p>
+        </div>
+    </div>
+    
+    <div class="bg-white rounded-lg shadow p-6 mb-8">
+        <h2 class="text-xl font-semibold mb-4">Transaction Breakdown by Type</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="border-l-4 border-green-500 pl-4">
+                <p class="text-gray-600 text-sm">Deposits</p>
+                <p class="text-2xl font-bold">{{ transaction_stats.deposit_count }}</p>
+                <p class="text-gray-500 text-sm">${{ transaction_stats.deposit_volume|floatformat:2 }}</p>
+            </div>
+            <div class="border-l-4 border-red-500 pl-4">
+                <p class="text-gray-600 text-sm">Withdrawals</p>
+                <p class="text-2xl font-bold">{{ transaction_stats.withdrawal_count }}</p>
+                <p class="text-gray-500 text-sm">${{ transaction_stats.withdrawal_volume|floatformat:2 }}</p>
+            </div>
+            <div class="border-l-4 border-blue-500 pl-4">
+                <p class="text-gray-600 text-sm">Interest</p>
+                <p class="text-2xl font-bold">{{ transaction_stats.interest_count }}</p>
+                <p class="text-gray-500 text-sm">${{ transaction_stats.interest_volume|floatformat:2 }}</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+        <div class="bg-white rounded-lg shadow p-6">
+            <h2 class="text-xl font-semibold mb-4">Daily Transaction Volume (Last 30 Days)</h2>
+            <canvas id="dailyTransactionsChart"></canvas>
+        </div>
+        
+        <div class="bg-white rounded-lg shadow p-6">
+            <h2 class="text-xl font-semibold mb-4">User Growth (Last 30 Days)</h2>
+            <canvas id="userGrowthChart"></canvas>
+        </div>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+        <div class="bg-white rounded-lg shadow p-6">
+            <h2 class="text-xl font-semibold mb-4">Transaction Type Distribution</h2>
+            <canvas id="transactionTypeChart"></canvas>
+        </div>
+        
+        <div class="bg-white rounded-lg shadow p-6">
+            <h2 class="text-xl font-semibold mb-4">Monthly User Growth</h2>
+            <canvas id="monthlyUserGrowthChart"></canvas>
+        </div>
+    </div>
+    
+    <div class="bg-white rounded-lg shadow p-6 mb-8">
+        <h2 class="text-xl font-semibold mb-4">Export Data</h2>
+        <div class="flex gap-4">
+            <a href="{% url 'transactions:export_transactions' %}?format=csv" 
+               class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                Export to CSV
+            </a>
+            <a href="{% url 'transactions:export_transactions' %}?format=xlsx" 
+               class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
+                Export to Excel
+            </a>
+        </div>
+    </div>
+{% endblock %}
+
+{% block footer_extra %}
+    <script>
+        const dailyTransactionsCtx = document.getElementById('dailyTransactionsChart').getContext('2d');
+        const dailyTransactionsData = {{ daily_transactions|safe }};
+        new Chart(dailyTransactionsCtx, {
+            type: 'line',
+            data: {
+                labels: dailyTransactionsData.map(item => item.day),
+                datasets: [{
+                    label: 'Transaction Volume ($)',
+                    data: dailyTransactionsData.map(item => item.volume || 0),
+                    borderColor: 'rgb(59, 130, 246)',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+        
+        const userGrowthCtx = document.getElementById('userGrowthChart').getContext('2d');
+        const userGrowthData = {{ daily_user_growth|safe }};
+        new Chart(userGrowthCtx, {
+            type: 'bar',
+            data: {
+                labels: userGrowthData.map(item => item.day),
+                datasets: [{
+                    label: 'New Users',
+                    data: userGrowthData.map(item => item.count),
+                    backgroundColor: 'rgba(16, 185, 129, 0.8)',
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
+                }
+            }
+        });
+        
+        const transactionTypeCtx = document.getElementById('transactionTypeChart').getContext('2d');
+        new Chart(transactionTypeCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Deposits', 'Withdrawals', 'Interest'],
+                datasets: [{
+                    data: [
+                        {{ transaction_stats.deposit_count }},
+                        {{ transaction_stats.withdrawal_count }},
+                        {{ transaction_stats.interest_count }}
+                    ],
+                    backgroundColor: [
+                        'rgba(16, 185, 129, 0.8)',
+                        'rgba(239, 68, 68, 0.8)',
+                        'rgba(59, 130, 246, 0.8)'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true
+            }
+        });
+        
+        const monthlyUserGrowthCtx = document.getElementById('monthlyUserGrowthChart').getContext('2d');
+        const monthlyUserGrowthData = {{ monthly_user_growth|safe }};
+        new Chart(monthlyUserGrowthCtx, {
+            type: 'line',
+            data: {
+                labels: monthlyUserGrowthData.map(item => item.month),
+                datasets: [{
+                    label: 'New Users per Month',
+                    data: monthlyUserGrowthData.map(item => item.count),
+                    borderColor: 'rgb(139, 92, 246)',
+                    backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+{% endblock %}
