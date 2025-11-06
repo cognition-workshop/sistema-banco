@@ -11,7 +11,12 @@
                 A modern web application for managing your banking transactions.
             </p>
             <div>
+            {% if user.is_authenticated %}
             <a href="{% url 'transactions:transaction_report' %}" class="bg-transparent hover:bg-gray-800 text-gray-800 hover:text-white rounded shadow hover:shadow-lg py-2 px-4 border border-gray-900 hover:border-transparent">View Transactions</a>
+            {% else %}
+            <a href="{% url 'accounts:user_login' %}" class="bg-transparent hover:bg-gray-800 text-gray-800 hover:text-white rounded shadow hover:shadow-lg py-2 px-4 border border-gray-900 hover:border-transparent mr-2">Login</a>
+            <a href="{% url 'accounts:user_registration' %}" class="bg-transparent hover:bg-gray-800 text-gray-800 hover:text-white rounded shadow hover:shadow-lg py-2 px-4 border border-gray-900 hover:border-transparent">Register</a>
+            {% endif %}
             </div>
         </div>
         <!--Right Col-->
