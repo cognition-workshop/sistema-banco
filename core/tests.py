@@ -21,9 +21,7 @@ class ErrorHandlingMiddlewareTestCase(TestCase):
         self.factory = RequestFactory()
         self.get_response = Mock(return_value=HttpResponse())
         self.middleware = ErrorHandlingMiddleware(self.get_response)
-        self.user = User.objects.create_user(
-            email="test@example.com", password="testpass123"
-        )
+        self.user = User.objects.create_user(email="test@example.com", password="testpass123")
 
     def test_middleware_passes_normal_requests(self):
         """Test that middleware doesn't interfere with normal requests"""

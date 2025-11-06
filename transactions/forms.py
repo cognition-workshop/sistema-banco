@@ -52,7 +52,7 @@ class WithdrawForm(TransactionForm):
 
         if amount > balance:
             raise forms.ValidationError(
-                f'Insufficient balance. Your current balance is {balance} $'
+                f"Insufficient balance. Your current balance is {balance} $"
             )
 
         return amount

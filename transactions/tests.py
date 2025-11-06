@@ -18,9 +18,7 @@ User = get_user_model()
 
 class TransactionModelTest(TestCase):
     def setUp(self):
-        self.user = User.objects.create_user(
-            email="test@example.com", password="testpass123"
-        )
+        self.user = User.objects.create_user(email="test@example.com", password="testpass123")
         self.account_type = BankAccountType.objects.create(
             name="Savings",
             maximum_withdrawal_amount=10000.00,
@@ -56,9 +54,7 @@ class WithdrawFormTestCase(TestCase):
             annual_interest_rate=Decimal("5.00"),
             interest_calculation_per_year=12,
         )
-        self.user = User.objects.create_user(
-            email="test@example.com", password="testpass123"
-        )
+        self.user = User.objects.create_user(email="test@example.com", password="testpass123")
         self.account = UserBankAccount.objects.create(
             user=self.user,
             account_type=self.account_type,
@@ -108,9 +104,7 @@ class DepositViewTestCase(TestCase):
             annual_interest_rate=Decimal("5.00"),
             interest_calculation_per_year=12,
         )
-        self.demo_user = User.objects.create_user(
-            email="demo@example.com", password="demopass123"
-        )
+        self.demo_user = User.objects.create_user(email="demo@example.com", password="demopass123")
         self.account = UserBankAccount.objects.create(
             user=self.demo_user,
             account_type=self.account_type,
@@ -142,9 +136,7 @@ class DepositViewTestCase(TestCase):
     @patch("transactions.views.audit_logger")
     def test_deposit_with_audit_logging(self, mock_audit_logger, mock_logger):
         """Test that successful deposit is logged to audit log"""
-        self.client.post(
-            self.url, {"amount": Decimal("500.00"), "transaction_type": DEPOSIT}
-        )
+        self.client.post(self.url, {"amount": Decimal("500.00"), "transaction_type": DEPOSIT})
 
         mock_audit_logger.info.assert_called()
         call_args = mock_audit_logger.info.call_args
@@ -176,9 +168,7 @@ class WithdrawViewTestCase(TestCase):
             annual_interest_rate=Decimal("5.00"),
             interest_calculation_per_year=12,
         )
-        self.demo_user = User.objects.create_user(
-            email="demo@example.com", password="demopass123"
-        )
+        self.demo_user = User.objects.create_user(email="demo@example.com", password="demopass123")
         self.account = UserBankAccount.objects.create(
             user=self.demo_user,
             account_type=self.account_type,
@@ -223,9 +213,7 @@ class WithdrawViewTestCase(TestCase):
     @patch("transactions.views.audit_logger")
     def test_withdrawal_with_audit_logging(self, mock_audit_logger, mock_logger):
         """Test that successful withdrawal is logged to audit log"""
-        self.client.post(
-            self.url, {"amount": Decimal("500.00"), "transaction_type": WITHDRAWAL}
-        )
+        self.client.post(self.url, {"amount": Decimal("500.00"), "transaction_type": WITHDRAWAL})
 
         mock_audit_logger.info.assert_called()
         call_args = mock_audit_logger.info.call_args
@@ -233,13 +221,9 @@ class WithdrawViewTestCase(TestCase):
 
     @patch("transactions.views.logger")
     @patch("transactions.views.audit_logger")
-    def test_withdrawal_insufficient_balance_audit_log(
-        self, mock_audit_logger, mock_logger
-    ):
+    def test_withdrawal_insufficient_balance_audit_log(self, mock_audit_logger, mock_logger):
         """Test that blocked withdrawals are logged to audit log"""
-        self.client.post(
-            self.url, {"amount": Decimal("1500.00"), "transaction_type": WITHDRAWAL}
-        )
+        self.client.post(self.url, {"amount": Decimal("1500.00"), "transaction_type": WITHDRAWAL})
 
         mock_audit_logger.warning.assert_called()
         call_args = mock_audit_logger.warning.call_args
@@ -270,9 +254,7 @@ class CeleryInterestTaskTestCase(TestCase):
             annual_interest_rate=Decimal("5.00"),
             interest_calculation_per_year=12,
         )
-        self.user = User.objects.create_user(
-            email="test@example.com", password="testpass123"
-        )
+        self.user = User.objects.create_user(email="test@example.com", password="testpass123")
         current_date = timezone.now().date()
         self.account = UserBankAccount.objects.create(
             user=self.user,
@@ -309,25 +291,19 @@ class CeleryInterestTaskTestCase(TestCase):
 
     @patch("transactions.tasks.UserBankAccount.objects.filter")
     @patch("transactions.tasks.logger")
-    def test_calculate_interest_per_account_error_handling(
-        self, mock_logger, mock_filter
-    ):
+    def test_calculate_interest_per_account_error_handling(self, mock_logger, mock_filter):
         """Test that errors in one account don't stop processing of other accounts"""
         mock_queryset = Mock()
         mock_account1 = Mock(spec=UserBankAccount)
         mock_account1.account_no = 111
         mock_account1.balance = Decimal("1000.00")
-        mock_account1.account_type.calculate_interest.side_effect = Exception(
-            "Account error"
-        )
+        mock_account1.account_type.calculate_interest.side_effect = Exception("Account error")
 
         mock_account2 = Mock(spec=UserBankAccount)
         mock_account2.account_no = 222
         mock_account2.balance = Decimal("2000.00")
         mock_account2.account_type.calculate_interest.return_value = Decimal("10.00")
-        mock_account2.get_interest_calculation_months.return_value = [
-            timezone.now().month
-        ]
+        mock_account2.get_interest_calculation_months.return_value = [timezone.now().month]
 
         mock_queryset.__iter__ = Mock(return_value=iter([mock_account1, mock_account2]))
         mock_filter.return_value.select_related.return_value = mock_queryset

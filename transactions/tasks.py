@@ -10,7 +10,7 @@ from transactions.constants import INTEREST
 from transactions.models import Transaction
 
 logger = get_task_logger(__name__)
-audit_logger = logging.getLogger('audit')
+audit_logger = logging.getLogger("audit")
 
 
 @task(name="calculate_interest", bind=True, max_retries=3)
@@ -20,13 +20,13 @@ def calculate_interest(self):
     Includes error handling and retry logic.
     """
     try:
-        logger.info('Starting interest calculation task')
+        logger.info("Starting interest calculation task")
 
         accounts = UserBankAccount.objects.filter(
             balance__gt=0,
             interest_start_date__gte=timezone.now(),
-            initial_deposit_date__isnull=False
-        ).select_related('account_type')
+            initial_deposit_date__isnull=False,
+        ).select_related("account_type")
 
         this_month = timezone.now().month
 
@@ -38,9 +38,7 @@ def calculate_interest(self):
             for account in accounts:
                 try:
                     if this_month in account.get_interest_calculation_months():
-                        interest = account.account_type.calculate_interest(
-                            account.balance
-                        )
+                        interest = account.account_type.calculate_interest(account.balance)
                         account.balance += interest
                         total_interest += interest
 
@@ -48,66 +46,63 @@ def calculate_interest(self):
                             account=account,
                             transaction_type=INTEREST,
                             amount=interest,
-                            balance_after_transaction=account.balance
+                            balance_after_transaction=account.balance,
                         )
                         created_transactions.append(transaction_obj)
                         updated_accounts.append(account)
 
                         logger.info(
-                            f'Interest calculated for account '
-                            f'{account.account_no}: {interest}'
+                            f"Interest calculated for account " f"{account.account_no}: {interest}"
                         )
 
                 except Exception as e:
                     logger.error(
-                        f'Error calculating interest for account {account.account_no}: {str(e)}',
-                        exc_info=True
+                        f"Error calculating interest for account {account.account_no}: {str(e)}",
+                        exc_info=True,
                     )
                     continue
 
             if created_transactions:
                 Transaction.objects.bulk_create(created_transactions)
-                logger.info(f'Created {len(created_transactions)} interest transactions')
+                logger.info(f"Created {len(created_transactions)} interest transactions")
 
             if updated_accounts:
-                UserBankAccount.objects.bulk_update(
-                    updated_accounts, ['balance']
-                )
-                logger.info(f'Updated {len(updated_accounts)} account balances')
+                UserBankAccount.objects.bulk_update(updated_accounts, ["balance"])
+                logger.info(f"Updated {len(updated_accounts)} account balances")
 
         audit_logger.info(
-            'Interest calculation completed',
+            "Interest calculation completed",
             extra={
-                'action': 'INTEREST_CALCULATION',
-                'accounts_processed': len(updated_accounts),
-                'total_interest': str(total_interest),
-            }
+                "action": "INTEREST_CALCULATION",
+                "accounts_processed": len(updated_accounts),
+                "total_interest": str(total_interest),
+            },
         )
 
-        logger.info(f'Interest calculation task completed. Total interest: {total_interest}')
+        logger.info(f"Interest calculation task completed. Total interest: {total_interest}")
         return {
-            'accounts_processed': len(updated_accounts),
-            'total_interest': float(total_interest)
+            "accounts_processed": len(updated_accounts),
+            "total_interest": float(total_interest),
         }
 
     except (OperationalError, IntegrityError) as e:
-        logger.error(f'Database error in interest calculation: {str(e)}', exc_info=True)
+        logger.error(f"Database error in interest calculation: {str(e)}", exc_info=True)
         audit_logger.error(
-            'Interest calculation failed - Database error',
+            "Interest calculation failed - Database error",
             extra={
-                'action': 'INTEREST_CALCULATION_FAILED',
-                'error': str(e),
-            }
+                "action": "INTEREST_CALCULATION_FAILED",
+                "error": str(e),
+            },
         )
         raise self.retry(exc=e, countdown=60)
 
     except Exception as e:
-        logger.error(f'Unexpected error in interest calculation: {str(e)}', exc_info=True)
+        logger.error(f"Unexpected error in interest calculation: {str(e)}", exc_info=True)
         audit_logger.error(
-            'Interest calculation failed - Unexpected error',
+            "Interest calculation failed - Unexpected error",
             extra={
-                'action': 'INTEREST_CALCULATION_FAILED',
-                'error': str(e),
-            }
+                "action": "INTEREST_CALCULATION_FAILED",
+                "error": str(e),
+            },
         )
         raise self.retry(exc=e, countdown=300)
