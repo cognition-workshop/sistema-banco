@@ -7,3 +7,8 @@ TRANSACTION_TYPE_CHOICES = (
     (WITHDRAWAL, 'Withdrawal'),
     (INTEREST, 'Interest'),
 )
+
+AUDIT_DEPOSIT = 'deposit'
+AUDIT_WITHDRAWAL = 'withdrawal'
+AUDIT_INTEREST = 'interest'
+AUDIT_BALANCE_ADJUSTMENT = 'balance_adjustment'
