@@ -1,0 +1,17 @@
+{
+  "name": "banking-system",
+  "version": "2.0.2",
+  "scripts": {
+    "build:css": "postcss static/src/input.css -o static/css/output.css",
+    "watch:css": "postcss static/src/input.css -o static/css/output.css --watch"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.16",
+    "postcss": "^8.4.32",
+    "postcss-cli": "^11.0.0",
+    "tailwindcss": "^3.3.6"
+  },
+  "dependencies": {
+    "chart.js": "^4.4.0"
+  }
+}

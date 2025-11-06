@@ -1,0 +1,39 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --color-primary: #0066cc;
+    --color-primary-dark: #0052a3;
+    --color-success: #28a745;
+    --color-danger: #dc3545;
+    --color-warning: #ffc107;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-bank-blue-600 hover:bg-bank-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg;
+  }
+  
+  .btn-secondary {
+    @apply bg-bank-gray-500 hover:bg-bank-gray-700 text-white font-semibold py-2 px-6 rounded-lg transition-colors duration-200;
+  }
+  
+  .card {
+    @apply bg-white rounded-lg shadow-md p-6 mb-6;
+  }
+  
+  .card-header {
+    @apply text-xl font-bold text-bank-gray-900 mb-4 pb-3 border-b border-bank-gray-200;
+  }
+  
+  .form-input {
+    @apply shadow appearance-none border border-bank-gray-200 rounded-lg w-full py-3 px-4 text-bank-gray-700 leading-tight focus:outline-none focus:border-bank-blue-500 focus:ring-2 focus:ring-bank-blue-200 transition-all;
+  }
+  
+  .form-label {
+    @apply block text-bank-gray-700 text-sm font-bold mb-2;
+  }
+}

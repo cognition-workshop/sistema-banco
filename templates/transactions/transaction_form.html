@@ -3,26 +3,52 @@
 {% block head_title %}{{ title }}{% endblock %}
 
 {% block content %}
-<h1 class="font-mono font-bold text-3xl text-center pb-5 pt-10">{{ title }}</h1>
-<hr />
-<div class="w-full mt-5">
-    <form method="post" class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
-        {% csrf_token %}
+<div class="max-w-2xl mx-auto">
+    <h1 class="text-3xl font-bold text-bank-gray-900 mb-2">{{ title }}</h1>
+    <p class="text-bank-gray-600 mb-8">Preencha o formulário abaixo para realizar a operação</p>
+    
+    <div class="card">
+        <form method="post" id="transactionForm">
+            {% csrf_token %}
 
-        <div class="mb-4">
-            <label class="block text-gray-700 text-sm font-bold mb-2" for="amount">
-                Amount
-            </label>
-            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight border rounded-md border-gray-500 focus:outline-none focus:shadow-outline" name="amount" id="amount" type="number" required placeholder="Amount">
-        </div>
-        {% if form.amount.errors %}
-            {% for error in form.amount.errors %}
-                <p class="text-red-600 text-sm italic pb-2">{{ error }}</p>
-            {% endfor %}
-        {% endif %}
-        <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit">
-            Submit
-        </button>
-    </form>
+            <div class="mb-6">
+                <label class="form-label" for="amount">
+                    Valor (R$)
+                </label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <span class="text-bank-gray-500">R$</span>
+                    </div>
+                    <input 
+                        class="form-input pl-12" 
+                        name="amount" 
+                        id="amount" 
+                        type="number" 
+                        step="0.01" 
+                        min="0.01"
+                        required 
+                        placeholder="0,00"
+                    >
+                </div>
+                {% if form.amount.errors %}
+                    {% for error in form.amount.errors %}
+                        <p class="text-red-600 text-sm italic mt-2">{{ error }}</p>
+                    {% endfor %}
+                {% endif %}
+            </div>
+            
+            <div class="flex flex-col sm:flex-row gap-4">
+                <button class="btn-primary flex-1" type="submit">
+                    <svg class="inline-block w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                    </svg>
+                    Confirmar
+                </button>
+                <a href="{% url 'transactions:transaction_report' %}" class="btn-secondary text-center flex-1">
+                    Cancelar
+                </a>
+            </div>
+        </form>
+    </div>
 </div>
 {% endblock %}

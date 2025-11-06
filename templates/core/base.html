@@ -1,26 +1,28 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
     <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-        <meta name="description" content="Modern Banking System" />
+        <meta name="description" content="Sistema Bancário Moderno" />
         <title>
-            {% block head_title %}Banking System{% endblock %}
+            {% block head_title %}Sistema Bancário{% endblock %}
         </title>
-        <link href="https://unpkg.com/tailwindcss@^1.0/dist/tailwind.min.css" rel="stylesheet">
+        <link href="{% static 'css/output.css' %}" rel="stylesheet">
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
         {% block head_extra %}{% endblock %}
     </head>
-    <body class="bg-gray-100">
+    <body class="bg-bank-gray-50 min-h-screen flex flex-col">
         {% block body %}
             {% include 'core/navbar.html' %}
-            <div class="lg:container lg:mx-auto">
-                {% include 'core/messages.html' %}
-                {% block content %}
-                <!-- Add content here -->
-                {% endblock %}
-            </div>
+            <main class="flex-grow">
+                <div class="container mx-auto px-4 lg:px-8 py-6">
+                    {% include 'core/messages.html' %}
+                    {% block content %}
+                    {% endblock %}
+                </div>
+            </main>
             {% include 'core/footer.html' %}
 
         {% endblock %}
