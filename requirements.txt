@@ -1,6 +1,8 @@
 celery==5.3.*
 Django==5.0.*
 django-celery-beat==2.6.*
+django-htmx==1.17.*
+django-redis==5.4.*
 djangorestframework==3.14.*
 djangorestframework-simplejwt==5.3.*
 drf-spectacular==0.27.*

@@ -1,5 +1,7 @@
 {% extends 'core/base.html' %}
 
+{% block head_title %}Transaction Report{% endblock %}
+
 {% block content %}
 <div class="max-w-7xl mx-auto py-8 px-4">
   <div class="mb-6">
@@ -27,35 +29,38 @@
       </div>
     </div>
     
-    <form id="filter-form" class="mb-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+    <form method="get" hx-get="{% url 'transactions:transaction_report' %}" hx-target="#transaction-list" hx-swap="outerHTML" class="mb-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       <div>
-        <label for="data_inicio" class="block text-sm font-semibold text-gray-700 mb-2">Data Início</label>
-        <input type="text" id="data_inicio" name="data_inicio" class="flatpickr block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Selecione a data">
+        <label for="start_date" class="block text-sm font-semibold text-gray-700 mb-2">Data Início</label>
+        <input type="date" id="start_date" name="start_date" value="{{ request.GET.start_date }}" class="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
       </div>
       
       <div>
-        <label for="data_fim" class="block text-sm font-semibold text-gray-700 mb-2">Data Fim</label>
-        <input type="text" id="data_fim" name="data_fim" class="flatpickr block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Selecione a data">
+        <label for="end_date" class="block text-sm font-semibold text-gray-700 mb-2">Data Fim</label>
+        <input type="date" id="end_date" name="end_date" value="{{ request.GET.end_date }}" class="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
       </div>
       
-      <div>
-        <label for="tipo" class="block text-sm font-semibold text-gray-700 mb-2">Tipo</label>
-        <select name="tipo" id="tipo" class="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-          <option value="">Todos os tipos</option>
-          <option value="DEPOSIT">Depósitos</option>
-          <option value="WITHDRAWAL">Saques</option>
-        </select>
+      <div class="flex items-end">
+        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-lg transition-colors">
+          Filtrar Transações
+        </button>
       </div>
       
-      <div>
-        <label for="valor_min" class="block text-sm font-semibold text-gray-700 mb-2">Valor Mínimo</label>
-        <input type="number" id="valor_min" name="valor_min" class="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="R$ 0,00" step="0.01" min="0">
-      </div>
-      
-      <div>
-        <label for="valor_max" class="block text-sm font-semibold text-gray-700 mb-2">Valor Máximo</label>
-        <input type="number" id="valor_max" name="valor_max" class="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="R$ 999.999,99" step="0.01" min="0">
-      </div>
+      {% if form.non_field_errors %}
+        {% for error in form.non_field_errors %}
+          <p class="text-red-600 text-sm italic mt-2 col-span-full">{{ error }}</p>
+        {% endfor %}
+      {% endif %}
+      {% if form.start_date.errors %}
+        {% for error in form.start_date.errors %}
+          <p class="text-red-600 text-sm italic mt-2 col-span-full">{{ error }}</p>
+        {% endfor %}
+      {% endif %}
+      {% if form.end_date.errors %}
+        {% for error in form.end_date.errors %}
+          <p class="text-red-600 text-sm italic mt-2 col-span-full">{{ error }}</p>
+        {% endfor %}
+      {% endif %}
     </form>
     
     <div id="transaction-list" class="space-y-2">
@@ -82,21 +87,4 @@
     {% endif %}
   </div>
 </div>
-
-<script>
-  flatpickr('.flatpickr', {
-    dateFormat: 'Y-m-d',
-    locale: {
-      firstDayOfWeek: 0,
-      weekdays: {
-        shorthand: ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'],
-        longhand: ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'],
-      },
-      months: {
-        shorthand: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'],
-        longhand: ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'],
-      },
-    },
-  });
-</script>
 {% endblock %}
