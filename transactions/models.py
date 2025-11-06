@@ -28,3 +28,7 @@ class Transaction(models.Model):
 
     class Meta:
         ordering = ['timestamp']
+        indexes = [
+            models.Index(fields=['account', '-timestamp']),
+            models.Index(fields=['transaction_type']),
+        ]
