@@ -1,0 +1,72 @@
+{% extends "admin/base_site.html" %}
+{% block title %}Fraud Detection Dashboard{% endblock %}
+
+{% block content %}
+<h1>Fraud Detection Dashboard</h1>
+
+<div style="background: #fff3cd; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+    <h2 style="margin: 0 0 10px 0;">⚠️ Suspicious Transactions Detected</h2>
+    <p style="margin: 0; font-size: 18px;"><strong>{{ total_suspicious }}</strong> transactions flagged for review</p>
+</div>
+
+{% if suspicious_transactions %}
+<table style="width: 100%; border-collapse: collapse; background: #fff; border: 1px solid #ddd;">
+    <thead>
+        <tr style="background: #f8f9fa;">
+            <th style="padding: 12px; text-align: left;">Severity</th>
+            <th style="padding: 12px; text-align: left;">Transaction ID</th>
+            <th style="padding: 12px; text-align: left;">Account</th>
+            <th style="padding: 12px; text-align: left;">User</th>
+            <th style="padding: 12px; text-align: left;">Type</th>
+            <th style="padding: 12px; text-align: right;">Amount</th>
+            <th style="padding: 12px; text-align: left;">Date</th>
+            <th style="padding: 12px; text-align: left;">Reason</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in suspicious_transactions %}
+        <tr style="border-bottom: 1px solid #eee;">
+            <td style="padding: 12px;">
+                {% if item.severity == 'high' %}
+                    <span style="background: #dc3545; color: white; padding: 4px 8px; border-radius: 4px; font-weight: bold;">HIGH</span>
+                {% elif item.severity == 'medium' %}
+                    <span style="background: #ffc107; color: black; padding: 4px 8px; border-radius: 4px; font-weight: bold;">MEDIUM</span>
+                {% else %}
+                    <span style="background: #6c757d; color: white; padding: 4px 8px; border-radius: 4px; font-weight: bold;">LOW</span>
+                {% endif %}
+            </td>
+            <td style="padding: 12px;">{{ item.transaction.id }}</td>
+            <td style="padding: 12px;">{{ item.transaction.account.account_no }}</td>
+            <td style="padding: 12px;">{{ item.transaction.account.user.email }}</td>
+            <td style="padding: 12px;">
+                {% if item.transaction.transaction_type == 1 %}
+                    <span style="color: green;">Deposit</span>
+                {% elif item.transaction.transaction_type == 2 %}
+                    <span style="color: red;">Withdrawal</span>
+                {% else %}
+                    <span style="color: blue;">Interest</span>
+                {% endif %}
+            </td>
+            <td style="padding: 12px; text-align: right;">${{ item.transaction.amount|floatformat:2 }}</td>
+            <td style="padding: 12px;">{{ item.transaction.timestamp|date:"Y-m-d H:i" }}</td>
+            <td style="padding: 12px;">{{ item.reason }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<div style="background: #d4edda; padding: 20px; border-radius: 8px; text-align: center;">
+    <h3 style="margin: 0 0 10px 0; color: #155724;">✓ No Suspicious Activity</h3>
+    <p style="margin: 0; color: #155724;">All transactions appear normal.</p>
+</div>
+{% endif %}
+
+<div style="margin-top: 30px; padding: 20px; background: #f8f9fa; border-radius: 8px;">
+    <h3>Fraud Detection Rules</h3>
+    <ul>
+        <li><strong>High Severity:</strong> Withdrawals exceeding account type limits</li>
+        <li><strong>High Severity:</strong> Multiple transactions (5+) within 1 hour from same account</li>
+        <li><strong>Medium Severity:</strong> Single transactions over $50,000</li>
+    </ul>
+</div>
+{% endblock %}
