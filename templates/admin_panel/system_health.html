@@ -1,0 +1,90 @@
+{% extends 'admin_panel/base.html' %}
+
+{% block title %}System Health{% endblock %}
+
+{% block content %}
+<h1 class="text-3xl font-bold mb-6">System Health Dashboard</h1>
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+    <div class="bg-white p-6 rounded-lg shadow">
+        <h3 class="text-gray-500 text-sm font-semibold mb-2">Celery Status</h3>
+        <p class="text-2xl font-bold {% if celery_status == 'healthy' %}text-green-600{% else %}text-red-600{% endif %}">
+            {{ celery_status|upper }}
+        </p>
+        <p class="text-sm mt-2">Active Workers: {{ active_workers }}</p>
+        {% if celery_error %}
+        <p class="text-sm text-red-600 mt-2">{{ celery_error }}</p>
+        {% endif %}
+    </div>
+    
+    <div class="bg-white p-6 rounded-lg shadow">
+        <h3 class="text-gray-500 text-sm font-semibold mb-2">Redis Status</h3>
+        <p class="text-2xl font-bold {% if redis_status == 'healthy' %}text-green-600{% else %}text-red-600{% endif %}">
+            {{ redis_status|upper }}
+        </p>
+        {% if redis_error %}
+        <p class="text-sm text-red-600 mt-2">{{ redis_error }}</p>
+        {% endif %}
+    </div>
+    
+    <div class="bg-white p-6 rounded-lg shadow">
+        <h3 class="text-gray-500 text-sm font-semibold mb-2">Database</h3>
+        <p class="text-sm">Users: {{ total_users }}</p>
+        <p class="text-sm">Transactions: {{ total_transactions }}</p>
+        <p class="text-sm">Recent (1h): {{ recent_transactions }}</p>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+    <div class="bg-white p-6 rounded-lg shadow">
+        <h3 class="text-gray-500 text-sm font-semibold mb-2">CPU Usage</h3>
+        <p class="text-3xl font-bold">{{ cpu_usage|floatformat:1 }}%</p>
+    </div>
+    
+    <div class="bg-white p-6 rounded-lg shadow">
+        <h3 class="text-gray-500 text-sm font-semibold mb-2">Memory Usage</h3>
+        <p class="text-3xl font-bold">{{ memory_usage|floatformat:1 }}%</p>
+    </div>
+    
+    <div class="bg-white p-6 rounded-lg shadow">
+        <h3 class="text-gray-500 text-sm font-semibold mb-2">Disk Usage</h3>
+        <p class="text-3xl font-bold">{{ disk_usage|floatformat:1 }}%</p>
+    </div>
+</div>
+
+<div class="bg-white rounded-lg shadow p-6 mb-6">
+    <div class="flex justify-between items-center mb-4">
+        <h2 class="text-xl font-bold">Health Logs</h2>
+        <a href="{% url 'admin_panel:log_system_health' %}" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
+            Log Current State
+        </a>
+    </div>
+    
+    <table class="min-w-full">
+        <thead>
+            <tr class="border-b">
+                <th class="text-left py-2">Timestamp</th>
+                <th class="text-left py-2">Workers</th>
+                <th class="text-left py-2">Redis</th>
+                <th class="text-left py-2">CPU</th>
+                <th class="text-left py-2">Memory</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for log in health_logs %}
+            <tr class="border-b hover:bg-gray-50">
+                <td class="py-2">{{ log.timestamp|date:"Y-m-d H:i:s" }}</td>
+                <td class="py-2">{{ log.celery_workers_active }}</td>
+                <td class="py-2">
+                    <span class="{% if log.redis_connected %}text-green-600{% else %}text-red-600{% endif %}">
+                        {% if log.redis_connected %}Connected{% else %}Disconnected{% endif %}
+                    </span>
+                </td>
+                <td class="py-2">{{ log.cpu_usage|floatformat:1 }}%</td>
+                <td class="py-2">{{ log.memory_usage|floatformat:1 }}%</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
