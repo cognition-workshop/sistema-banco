@@ -32,6 +32,7 @@ Be sure you have the following installed on your development machine:
 + celery==4.4.7
 + Django==3.2
 + django-celery-beat==2.0.0
++ django-redis==5.2.0
 + python-dateutil==2.8.1
 + redis==3.5.3
 
@@ -43,6 +44,22 @@ Run Redis server
 ```bash
 redis-server
 ```
+
+## Redis Configuration
+
+Redis is used for two purposes in this application:
+1. **Celery Broker/Backend**: Task queue for scheduled interest calculations
+2. **Django Cache**: Application-level caching for improved performance
+
+Redis databases:
+- DB 0: Celery broker and result backend
+- DB 1: Django cache backend
+
+Cache implementation includes:
+- Balance queries (5 minute TTL)
+- Transaction lists (1 minute TTL)
+- Account type data (1 hour TTL)
+- Automatic cache invalidation on deposits, withdrawals, and interest calculations
 
 ## Project Installation
 
