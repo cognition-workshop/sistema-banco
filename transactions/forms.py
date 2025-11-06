@@ -24,8 +24,7 @@ class TransactionForm(forms.ModelForm):
 
     def save(self, commit=True):
         self.instance.account = self.account
-        self.instance.balance_after_transaction = self.account.balance
-        return super().save()
+        return super().save(commit=commit)
 
 
 class DepositForm(TransactionForm):
