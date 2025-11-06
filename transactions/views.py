@@ -6,6 +6,7 @@ from django.contrib.auth import get_user_model
 from django.urls import reverse_lazy
 from django.utils import timezone
 from django.views.generic import CreateView, ListView
+from django.core.paginator import Paginator
 
 from transactions.constants import DEPOSIT, WITHDRAWAL
 from transactions.forms import (
@@ -20,6 +21,7 @@ class TransactionRepostView(ListView):
     template_name = 'transactions/transaction_report.html'
     model = Transaction
     form_data = {}
+    paginate_by = 10
 
     def get(self, request, *args, **kwargs):
         form = TransactionDateRangeForm(request.GET or None)
@@ -29,7 +31,6 @@ class TransactionRepostView(ListView):
         return super().get(request, *args, **kwargs)
 
     def get_queryset(self):
-        # Bypass login - use demo user
         User = get_user_model()
         demo_user = User.objects.filter(email='demo@example.com').first()
         if not demo_user or not hasattr(demo_user, 'account'):
@@ -40,9 +41,12 @@ class TransactionRepostView(ListView):
         )
 
         daterange = self.form_data.get("daterange")
-
         if daterange:
             queryset = queryset.filter(timestamp__date__range=daterange)
+        
+        order_by = self.request.GET.get('order_by', '-timestamp')
+        if order_by in ['timestamp', '-timestamp', 'amount', '-amount', 'transaction_type', '-transaction_type']:
+            queryset = queryset.order_by(order_by)
 
         return queryset.distinct()
 
