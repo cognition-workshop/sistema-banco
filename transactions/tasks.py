@@ -22,6 +22,7 @@ def calculate_interest():
 
     for account in accounts:
         if this_month in account.get_interest_calculation_months():
+            balance_before = account.balance
             interest = account.account_type.calculate_interest(
                 account.balance
             )
@@ -31,7 +32,11 @@ def calculate_interest():
             transaction_obj = Transaction(
                 account=account,
                 transaction_type=INTEREST,
-                amount=interest
+                amount=interest,
+                balance_before_transaction=balance_before,
+                balance_after_transaction=account.balance,
+                user=None,
+                ip_address=None
             )
             created_transactions.append(transaction_obj)
             updated_accounts.append(account)

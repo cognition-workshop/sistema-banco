@@ -67,12 +67,21 @@ class TransactionCreateMixin(CreateView):
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
-        # Bypass login - use demo user
+        
         User = get_user_model()
         demo_user = User.objects.filter(email='demo@example.com').first()
+        
+        x_forwarded_for = self.request.META.get('HTTP_X_FORWARDED_FOR')
+        if x_forwarded_for:
+            ip_address = x_forwarded_for.split(',')[0]
+        else:
+            ip_address = self.request.META.get('REMOTE_ADDR')
+        
         if demo_user and hasattr(demo_user, 'account'):
             kwargs.update({
-                'account': demo_user.account
+                'account': demo_user.account,
+                'user': demo_user,
+                'ip_address': ip_address,
             })
         return kwargs
 
