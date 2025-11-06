@@ -2,12 +2,14 @@ from django import forms
 from django.conf import settings
 from django.contrib.auth.forms import UserCreationForm
 from django.db import transaction
+from localflavor.br.forms import BRCPFField, BRPostalCodeField
 
 from .models import User, BankAccountType, UserBankAccount, UserAddress
 from .constants import GENDER_CHOICE
 
 
 class UserAddressForm(forms.ModelForm):
+    postal_code = BRPostalCodeField(label='CEP')
 
     class Meta:
         model = UserAddress
@@ -33,11 +35,16 @@ class UserAddressForm(forms.ModelForm):
 
 
 class UserRegistrationForm(UserCreationForm):
+    cpf = BRCPFField(label='CPF', help_text='Digite apenas os números', required=False)
     account_type = forms.ModelChoiceField(
-        queryset=BankAccountType.objects.all()
+        queryset=BankAccountType.objects.all(),
+        label='Tipo de Conta'
     )
-    gender = forms.ChoiceField(choices=GENDER_CHOICE)
-    birth_date = forms.DateField()
+    gender = forms.ChoiceField(choices=GENDER_CHOICE, label='Gênero')
+    birth_date = forms.DateField(
+        label='Data de Nascimento',
+        widget=forms.DateInput(attrs={'type': 'date'})
+    )
 
     class Meta:
         model = User

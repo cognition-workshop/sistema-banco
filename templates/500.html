@@ -1,0 +1,12 @@
+{% extends 'core/base.html' %}
+{% block head_title %}Erro no Servidor{% endblock %}
+{% block content %}
+<div class="container mx-auto px-4 py-16 text-center">
+    <h1 class="text-6xl font-bold text-red-600 mb-4">500</h1>
+    <h2 class="text-3xl font-semibold mb-4">Erro Interno do Servidor</h2>
+    <p class="text-gray-600 mb-8">{{ error_message|default:"Ocorreu um erro inesperado. Nossa equipe foi notificada e está trabalhando na solução." }}</p>
+    <a href="{% url 'home' %}" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+        Voltar ao Início
+    </a>
+</div>
+{% endblock %}

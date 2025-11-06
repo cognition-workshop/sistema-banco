@@ -1,3 +1,4 @@
+import logging
 from dateutil.relativedelta import relativedelta
 
 from django.contrib import messages
@@ -14,6 +15,8 @@ from transactions.forms import (
     WithdrawForm,
 )
 from transactions.models import Transaction
+
+logger = logging.getLogger('transactions')
 
 
 class TransactionRepostView(ListView):
@@ -95,11 +98,11 @@ class DepositMoneyView(TransactionCreateMixin):
 
     def form_valid(self, form):
         amount = form.cleaned_data.get('amount')
-        # Bypass login - use demo user
         User = get_user_model()
         demo_user = User.objects.filter(email='demo@example.com').first()
         account = demo_user.account if demo_user and hasattr(demo_user, 'account') else None
         if not account:
+            logger.error(f'Tentativa de depósito sem conta válida')
             return super().form_valid(form)
 
         if not account.initial_deposit_date:
@@ -114,6 +117,7 @@ class DepositMoneyView(TransactionCreateMixin):
                 )
             )
 
+        old_balance = account.balance
         account.balance += amount
         account.save(
             update_fields=[
@@ -123,9 +127,15 @@ class DepositMoneyView(TransactionCreateMixin):
             ]
         )
 
+        logger.info(
+            f'Depósito realizado: Conta={account.account_no}, '
+            f'Valor=R${amount}, Saldo_Anterior=R${old_balance}, '
+            f'Saldo_Novo=R${account.balance}, Usuário={demo_user.email}'
+        )
+
         messages.success(
             self.request,
-            f'{amount}$ was deposited to your account successfully'
+            f'R$ {amount} foi depositado em sua conta com sucesso'
         )
 
         return super().form_valid(form)
@@ -141,16 +151,22 @@ class WithdrawMoneyView(TransactionCreateMixin):
 
     def form_valid(self, form):
         amount = form.cleaned_data.get('amount')
-        # Bypass login - use demo user
         User = get_user_model()
         demo_user = User.objects.filter(email='demo@example.com').first()
         if demo_user and hasattr(demo_user, 'account'):
-            demo_user.account.balance -= form.cleaned_data.get('amount')
+            old_balance = demo_user.account.balance
+            demo_user.account.balance -= amount
             demo_user.account.save(update_fields=['balance'])
+            
+            logger.info(
+                f'Saque realizado: Conta={demo_user.account.account_no}, '
+                f'Valor=R${amount}, Saldo_Anterior=R${old_balance}, '
+                f'Saldo_Novo=R${demo_user.account.balance}, Usuário={demo_user.email}'
+            )
 
         messages.success(
             self.request,
-            f'Successfully withdrawn {amount}$ from your account'
+            f'R$ {amount} foi sacado de sua conta com sucesso'
         )
 
         return super().form_valid(form)

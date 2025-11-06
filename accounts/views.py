@@ -1,3 +1,4 @@
+import logging
 from django.contrib import messages
 from django.contrib.auth import get_user_model, login, logout
 from django.contrib.auth.views import LoginView
@@ -9,6 +10,8 @@ from .forms import UserRegistrationForm, UserAddressForm
 
 
 User = get_user_model()
+
+logger = logging.getLogger('accounts')
 
 
 class UserRegistrationView(TemplateView):
@@ -34,11 +37,18 @@ class UserRegistrationView(TemplateView):
             address.save()
 
             login(self.request, user)
+            
+            logger.info(
+                f'Nova conta criada: Usuário={user.email}, '
+                f'Conta={user.account.account_no}, '
+                f'Tipo={user.account.account_type.name}'
+            )
+            
             messages.success(
                 self.request,
                 (
-                    f'Thank You For Creating A Bank Account. '
-                    f'Your Account Number is {user.account.account_no}. '
+                    f'Obrigado por criar uma conta bancária. '
+                    f'Seu número de conta é {user.account.account_no}. '
                 )
             )
             return HttpResponseRedirect(

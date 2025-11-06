@@ -1,0 +1,49 @@
+name: Deploy
+
+on:
+  push:
+    branches: [ master, main ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy para Produção
+    runs-on: ubuntu-latest
+    environment: production
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+        cache: 'pip'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    
+    - name: Run tests
+      env:
+        SECRET_KEY: ${{ secrets.SECRET_KEY }}
+        DEBUG: False
+      run: |
+        python manage.py test
+    
+    - name: Create migration backup
+      run: |
+        python scripts/manage_migrations.py backup
+    
+    - name: Apply migrations
+      run: |
+        python scripts/manage_migrations.py apply
+    
+    - name: Collect static files
+      run: |
+        python manage.py collectstatic --noinput
+    
+    - name: Deploy notification
+      run: |
+        echo "Deploy concluído com sucesso!"

@@ -14,6 +14,7 @@ from .managers import UserManager
 class User(AbstractUser):
     username = None
     email = models.EmailField(unique=True, null=False, blank=False)
+    cpf = models.CharField(max_length=14, unique=True, null=True, blank=True)
 
     objects = UserManager()
 
