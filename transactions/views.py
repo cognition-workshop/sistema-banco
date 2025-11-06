@@ -1,8 +1,10 @@
+import logging
 from dateutil.relativedelta import relativedelta
 
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth import get_user_model
+from django.db import transaction, OperationalError, IntegrityError
 from django.urls import reverse_lazy
 from django.utils import timezone
 from django.views.generic import CreateView, ListView
@@ -14,6 +16,9 @@ from transactions.forms import (
     WithdrawForm,
 )
 from transactions.models import Transaction
+
+logger = logging.getLogger('transactions')
+audit_logger = logging.getLogger('audit')
 
 
 class TransactionRepostView(ListView):
@@ -95,40 +100,90 @@ class DepositMoneyView(TransactionCreateMixin):
 
     def form_valid(self, form):
         amount = form.cleaned_data.get('amount')
-        # Bypass login - use demo user
         User = get_user_model()
         demo_user = User.objects.filter(email='demo@example.com').first()
         account = demo_user.account if demo_user and hasattr(demo_user, 'account') else None
+        
         if not account:
-            return super().form_valid(form)
-
-        if not account.initial_deposit_date:
-            now = timezone.now()
-            next_interest_month = int(
-                12 / account.account_type.interest_calculation_per_year
+            logger.error('Demo user account not found for deposit operation')
+            messages.error(
+                self.request,
+                'Account not found. Please contact support.'
             )
-            account.initial_deposit_date = now
-            account.interest_start_date = (
-                now + relativedelta(
-                    months=+next_interest_month
+            return super().form_invalid(form)
+
+        try:
+            with transaction.atomic():
+                if not account.initial_deposit_date:
+                    now = timezone.now()
+                    next_interest_month = int(
+                        12 / account.account_type.interest_calculation_per_year
+                    )
+                    account.initial_deposit_date = now
+                    account.interest_start_date = (
+                        now + relativedelta(
+                            months=+next_interest_month
+                        )
+                    )
+
+                account.balance += amount
+                account.save(
+                    update_fields=[
+                        'initial_deposit_date',
+                        'balance',
+                        'interest_start_date'
+                    ]
                 )
+
+                audit_logger.info(
+                    f'Deposit successful',
+                    extra={
+                        'user': str(demo_user),
+                        'action': 'DEPOSIT',
+                        'amount': str(amount),
+                        'new_balance': str(account.balance),
+                    }
+                )
+
+                messages.success(
+                    self.request,
+                    f'{amount}$ was deposited to your account successfully'
+                )
+
+                return super().form_valid(form)
+
+        except (OperationalError, IntegrityError) as e:
+            logger.error(f'Database error during deposit: {str(e)}', exc_info=True)
+            audit_logger.warning(
+                f'Deposit failed - Database error',
+                extra={
+                    'user': str(demo_user),
+                    'action': 'DEPOSIT_FAILED',
+                    'amount': str(amount),
+                    'error': str(e),
+                }
             )
-
-        account.balance += amount
-        account.save(
-            update_fields=[
-                'initial_deposit_date',
-                'balance',
-                'interest_start_date'
-            ]
-        )
-
-        messages.success(
-            self.request,
-            f'{amount}$ was deposited to your account successfully'
-        )
-
-        return super().form_valid(form)
+            messages.error(
+                self.request,
+                'Transaction failed due to a system error. Please try again later.'
+            )
+            return super().form_invalid(form)
+        except Exception as e:
+            logger.error(f'Unexpected error during deposit: {str(e)}', exc_info=True)
+            audit_logger.warning(
+                f'Deposit failed - Unexpected error',
+                extra={
+                    'user': str(demo_user),
+                    'action': 'DEPOSIT_FAILED',
+                    'amount': str(amount),
+                    'error': str(e),
+                }
+            )
+            messages.error(
+                self.request,
+                'An unexpected error occurred. Please try again later.'
+            )
+            return super().form_invalid(form)
 
 
 class WithdrawMoneyView(TransactionCreateMixin):
@@ -141,16 +196,90 @@ class WithdrawMoneyView(TransactionCreateMixin):
 
     def form_valid(self, form):
         amount = form.cleaned_data.get('amount')
-        # Bypass login - use demo user
         User = get_user_model()
         demo_user = User.objects.filter(email='demo@example.com').first()
-        if demo_user and hasattr(demo_user, 'account'):
-            demo_user.account.balance -= form.cleaned_data.get('amount')
-            demo_user.account.save(update_fields=['balance'])
+        
+        if not demo_user or not hasattr(demo_user, 'account'):
+            logger.error('Demo user account not found for withdrawal operation')
+            messages.error(
+                self.request,
+                'Account not found. Please contact support.'
+            )
+            return super().form_invalid(form)
+        
+        try:
+            with transaction.atomic():
+                account = demo_user.account
+                
+                if account.balance < amount:
+                    logger.warning(
+                        f'Withdrawal attempt with insufficient balance: '
+                        f'User={demo_user}, Amount={amount}, Balance={account.balance}'
+                    )
+                    audit_logger.warning(
+                        f'Withdrawal blocked - Insufficient balance',
+                        extra={
+                            'user': str(demo_user),
+                            'action': 'WITHDRAWAL_BLOCKED',
+                            'amount': str(amount),
+                            'balance': str(account.balance),
+                        }
+                    )
+                    messages.error(
+                        self.request,
+                        f'Insufficient balance. Your current balance is {account.balance} $'
+                    )
+                    return super().form_invalid(form)
+                
+                account.balance -= amount
+                account.save(update_fields=['balance'])
 
-        messages.success(
-            self.request,
-            f'Successfully withdrawn {amount}$ from your account'
-        )
+                audit_logger.info(
+                    f'Withdrawal successful',
+                    extra={
+                        'user': str(demo_user),
+                        'action': 'WITHDRAWAL',
+                        'amount': str(amount),
+                        'new_balance': str(account.balance),
+                    }
+                )
 
-        return super().form_valid(form)
+                messages.success(
+                    self.request,
+                    f'Successfully withdrawn {amount}$ from your account'
+                )
+
+                return super().form_valid(form)
+
+        except (OperationalError, IntegrityError) as e:
+            logger.error(f'Database error during withdrawal: {str(e)}', exc_info=True)
+            audit_logger.warning(
+                f'Withdrawal failed - Database error',
+                extra={
+                    'user': str(demo_user),
+                    'action': 'WITHDRAWAL_FAILED',
+                    'amount': str(amount),
+                    'error': str(e),
+                }
+            )
+            messages.error(
+                self.request,
+                'Transaction failed due to a system error. Please try again later.'
+            )
+            return super().form_invalid(form)
+        except Exception as e:
+            logger.error(f'Unexpected error during withdrawal: {str(e)}', exc_info=True)
+            audit_logger.warning(
+                f'Withdrawal failed - Unexpected error',
+                extra={
+                    'user': str(demo_user),
+                    'action': 'WITHDRAWAL_FAILED',
+                    'amount': str(amount),
+                    'error': str(e),
+                }
+            )
+            messages.error(
+                self.request,
+                'An unexpected error occurred. Please try again later.'
+            )
+            return super().form_invalid(form)
