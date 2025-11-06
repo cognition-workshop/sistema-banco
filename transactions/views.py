@@ -7,13 +7,13 @@ from django.urls import reverse_lazy
 from django.utils import timezone
 from django.views.generic import CreateView, ListView
 
-from transactions.constants import DEPOSIT, WITHDRAWAL
+from transactions.constants import DEPOSIT, WITHDRAWAL, AUDIT_DEPOSIT, AUDIT_WITHDRAWAL
 from transactions.forms import (
     DepositForm,
     TransactionDateRangeForm,
     WithdrawForm,
 )
-from transactions.models import Transaction
+from transactions.models import Transaction, create_audit_log
 
 
 class TransactionRepostView(ListView):
@@ -102,6 +102,8 @@ class DepositMoneyView(TransactionCreateMixin):
         if not account:
             return super().form_valid(form)
 
+        balance_before = account.balance
+
         if not account.initial_deposit_date:
             now = timezone.now()
             next_interest_month = int(
@@ -128,7 +130,18 @@ class DepositMoneyView(TransactionCreateMixin):
             f'{amount}$ was deposited to your account successfully'
         )
 
-        return super().form_valid(form)
+        response = super().form_valid(form)
+        
+        create_audit_log(
+            user=demo_user,
+            transaction=self.object,
+            action_type=AUDIT_DEPOSIT,
+            balance_before=balance_before,
+            balance_after=account.balance,
+            request=self.request
+        )
+
+        return response
 
 
 class WithdrawMoneyView(TransactionCreateMixin):
@@ -145,12 +158,27 @@ class WithdrawMoneyView(TransactionCreateMixin):
         User = get_user_model()
         demo_user = User.objects.filter(email='demo@example.com').first()
         if demo_user and hasattr(demo_user, 'account'):
-            demo_user.account.balance -= form.cleaned_data.get('amount')
-            demo_user.account.save(update_fields=['balance'])
+            account = demo_user.account
+            
+            balance_before = account.balance
+            
+            account.balance -= form.cleaned_data.get('amount')
+            account.save(update_fields=['balance'])
 
         messages.success(
             self.request,
             f'Successfully withdrawn {amount}$ from your account'
         )
 
-        return super().form_valid(form)
+        response = super().form_valid(form)
+        
+        create_audit_log(
+            user=demo_user,
+            transaction=self.object,
+            action_type=AUDIT_WITHDRAWAL,
+            balance_before=balance_before,
+            balance_after=account.balance,
+            request=self.request
+        )
+
+        return response
