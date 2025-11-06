@@ -13,13 +13,23 @@
     <h1 class="font-mono font-bold text-3xl text-center pb-5 pt-10">Transaction Report</h1>
     <hr />
     <form method="get">
-        <div class="mt-10 h-10 pl-3 pr-2 bg-white border rounded-md border-gray-500 flex justify-between items-center relative">
-            <input type="search" name="daterange" id="search" placeholder="Filter using date range" value="{{ request.GET.daterange }}" class="appearance-none w-full outline-none focus:outline-none active:outline-none" />
-            <button type="submit" class="ml-1 outline-none focus:outline-none active:outline-none">
-                <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" class="w-6 h-6">
-                    <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                </svg>
-            </button>
+        <div class="flex gap-4 mt-10">
+            <div class="flex-1 h-10 pl-3 pr-2 bg-white border rounded-md border-gray-500 flex justify-between items-center relative">
+                <input type="search" name="daterange" id="search" placeholder="Filter using date range" value="{{ request.GET.daterange }}" class="appearance-none w-full outline-none focus:outline-none active:outline-none" />
+                <button type="submit" class="ml-1 outline-none focus:outline-none active:outline-none">
+                    <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" class="w-6 h-6">
+                        <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                </button>
+            </div>
+            <div class="h-10 bg-white border rounded-md border-gray-500">
+                <select name="transaction_type" class="h-full px-4 outline-none focus:outline-none active:outline-none rounded-md">
+                    <option value="">All Types</option>
+                    <option value="1" {% if request.GET.transaction_type == "1" %}selected{% endif %}>Deposit</option>
+                    <option value="2" {% if request.GET.transaction_type == "2" %}selected{% endif %}>Withdrawal</option>
+                    <option value="3" {% if request.GET.transaction_type == "3" %}selected{% endif %}>Interest</option>
+                </select>
+            </div>
         </div>
         {% if form.daterange.errors %}
             {% for error in form.daterange.errors %}
