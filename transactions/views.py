@@ -7,7 +7,7 @@ from django.urls import reverse_lazy
 from django.utils import timezone
 from django.views.generic import CreateView, ListView
 
-from transactions.constants import DEPOSIT, WITHDRAWAL
+from transactions.constants import DEPOSIT, WITHDRAWAL, TRANSACTION_TYPE_CHOICES
 from transactions.forms import (
     DepositForm,
     TransactionDateRangeForm,
@@ -25,6 +25,8 @@ class TransactionRepostView(ListView):
         form = TransactionDateRangeForm(request.GET or None)
         if form.is_valid():
             self.form_data = form.cleaned_data
+
+        self.transaction_type_filter = request.GET.get('transaction_type', '')
 
         return super().get(request, *args, **kwargs)
 
@@ -44,6 +46,9 @@ class TransactionRepostView(ListView):
         if daterange:
             queryset = queryset.filter(timestamp__date__range=daterange)
 
+        if hasattr(self, 'transaction_type_filter') and self.transaction_type_filter:
+            queryset = queryset.filter(transaction_type=self.transaction_type_filter)
+
         return queryset.distinct()
 
     def get_context_data(self, **kwargs):
@@ -53,7 +58,9 @@ class TransactionRepostView(ListView):
         demo_user = User.objects.filter(email='demo@example.com').first()
         context.update({
             'account': demo_user.account if demo_user and hasattr(demo_user, 'account') else None,
-            'form': TransactionDateRangeForm(self.request.GET or None)
+            'form': TransactionDateRangeForm(self.request.GET or None),
+            'transaction_types': TRANSACTION_TYPE_CHOICES,
+            'current_transaction_type': self.request.GET.get('transaction_type', ''),
         })
 
         return context
