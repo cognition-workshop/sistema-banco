@@ -1,6 +1,11 @@
 from django.urls import path
 
-from .views import UserRegistrationView, LogoutView, UserLoginView
+from .views import (
+    UserRegistrationView,
+    LogoutView,
+    UserLoginView,
+    AccountBalanceAPIView
+)
 
 
 app_name = 'accounts'
@@ -17,5 +22,9 @@ urlpatterns = [
     path(
         "register/", UserRegistrationView.as_view(),
         name="user_registration"
+    ),
+    path(
+        "api/balance/", AccountBalanceAPIView.as_view(),
+        name="api_account_balance"
     ),
 ]
