@@ -61,6 +61,9 @@ class FraudRule(models.Model):
 
 
 class FraudAlert(models.Model):
+    STATUS_CHOICES = STATUS_CHOICES
+    SEVERITY_CHOICES = SEVERITY_CHOICES
+    
     transaction = models.ForeignKey(
         Transaction,
         related_name='fraud_alerts',
