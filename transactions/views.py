@@ -1,13 +1,20 @@
 from dateutil.relativedelta import relativedelta
+from datetime import timedelta
 
 from django.contrib import messages
 from django.db import models
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth import get_user_model
+from django.db.models import Sum, Count, Q
+from django.db.models.functions import TruncDate, TruncMonth
+from django.http import HttpResponse
 from django.urls import reverse_lazy
 from django.utils import timezone
-from django.views.generic import CreateView, ListView
+from django.views.generic import CreateView, ListView, View
 
+from import_export import resources, fields
+
+from accounts.models import UserBankAccount
 from transactions.constants import DEPOSIT, WITHDRAWAL, INTEREST
 from transactions.forms import (
     DepositForm,
@@ -16,6 +23,7 @@ from transactions.forms import (
     IRPFYearForm,
 )
 from transactions.models import Transaction
+from fraud_detection.tasks import analyze_transaction_for_fraud
 
 
 class TransactionRepostView(ListView):
@@ -63,6 +71,67 @@ class TransactionRepostView(ListView):
         })
 
         return context
+
+class AdminTransactionListView(UserPassesTestMixin, ListView):
+    template_name = 'transactions/admin_transaction_list.html'
+    model = Transaction
+    context_object_name = 'transactions'
+    paginate_by = 20
+    form_data = {}
+    
+    def test_func(self):
+        return self.request.user.is_authenticated and self.request.user.is_staff
+    
+    def get(self, request, *args, **kwargs):
+        from transactions.forms import AdminTransactionFilterForm
+        form = AdminTransactionFilterForm(request.GET or None)
+        if form.is_valid():
+            self.form_data = form.cleaned_data
+        return super().get(request, *args, **kwargs)
+    
+    def get_queryset(self):
+        queryset = super().get_queryset().select_related(
+            'account__user'
+        ).order_by('-timestamp')
+        
+        transaction_type = self.form_data.get('transaction_type')
+        if transaction_type:
+            queryset = queryset.filter(transaction_type=transaction_type)
+        
+        amount_min = self.form_data.get('amount_min')
+        if amount_min is not None:
+            queryset = queryset.filter(amount__gte=amount_min)
+        
+        amount_max = self.form_data.get('amount_max')
+        if amount_max is not None:
+            queryset = queryset.filter(amount__lte=amount_max)
+        
+        user_email = self.form_data.get('user_email')
+        if user_email:
+            queryset = queryset.filter(
+                account__user__email__icontains=user_email
+            )
+        
+        account_no_search = self.form_data.get('account_no_search')
+        if account_no_search:
+            queryset = queryset.filter(
+                account__account_no__icontains=account_no_search
+            )
+        
+        daterange = self.form_data.get('daterange')
+        if daterange:
+            queryset = queryset.filter(timestamp__date__range=daterange)
+        
+        return queryset.distinct()
+    
+    def get_context_data(self, **kwargs):
+        from transactions.forms import AdminTransactionFilterForm
+        context = super().get_context_data(**kwargs)
+        context['form'] = AdminTransactionFilterForm(self.request.GET or None)
+        context['filter_active'] = bool(self.request.GET)
+        return context
+
+
 
 
 class IRPFReportView(ListView):
@@ -203,7 +272,9 @@ class DepositMoneyView(TransactionCreateMixin):
             f'{amount}$ was deposited to your account successfully'
         )
 
-        return super().form_valid(form)
+        response = super().form_valid(form)
+        analyze_transaction_for_fraud.delay(self.object.id)
+        return response
 
 
 class WithdrawMoneyView(TransactionCreateMixin):
@@ -232,4 +303,122 @@ class WithdrawMoneyView(TransactionCreateMixin):
             f'Successfully withdrawn {amount}$ from your account'
         )
 
-        return super().form_valid(form)
+        response = super().form_valid(form)
+        analyze_transaction_for_fraud.delay(self.object.id)
+        return response
+
+
+class AnalyticsView(ListView):
+    template_name = 'transactions/analytics.html'
+    model = Transaction
+    context_object_name = 'transactions'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        transaction_stats = Transaction.objects.aggregate(
+            total_transactions=Count('id'),
+            total_volume=Sum('amount'),
+            deposit_count=Count('id', filter=Q(transaction_type=DEPOSIT)),
+            deposit_volume=Sum('amount', filter=Q(transaction_type=DEPOSIT)),
+            withdrawal_count=Count('id', filter=Q(transaction_type=WITHDRAWAL)),
+            withdrawal_volume=Sum('amount', filter=Q(transaction_type=WITHDRAWAL)),
+            interest_count=Count('id', filter=Q(transaction_type=INTEREST)),
+            interest_volume=Sum('amount', filter=Q(transaction_type=INTEREST)),
+        )
+        
+        balance_stats = UserBankAccount.objects.aggregate(
+            total_balance=Sum('balance'),
+            account_count=Count('id')
+        )
+        
+        User = get_user_model()
+        thirty_days_ago = timezone.now() - timedelta(days=30)
+        
+        daily_user_growth = User.objects.filter(
+            date_joined__gte=thirty_days_ago
+        ).annotate(
+            day=TruncDate('date_joined')
+        ).values('day').annotate(
+            count=Count('id')
+        ).order_by('day')
+        
+        monthly_user_growth = User.objects.annotate(
+            month=TruncMonth('date_joined')
+        ).values('month').annotate(
+            count=Count('id')
+        ).order_by('month')
+        
+        daily_transactions = Transaction.objects.filter(
+            timestamp__gte=thirty_days_ago
+        ).annotate(
+            day=TruncDate('timestamp')
+        ).values('day').annotate(
+            count=Count('id'),
+            volume=Sum('amount')
+        ).order_by('day')
+        
+        transactions_by_type = Transaction.objects.filter(
+            timestamp__gte=thirty_days_ago
+        ).values('transaction_type').annotate(
+            day=TruncDate('timestamp'),
+            count=Count('id'),
+            volume=Sum('amount')
+        ).order_by('day', 'transaction_type')
+        
+        context.update({
+            'transaction_stats': transaction_stats,
+            'balance_stats': balance_stats,
+            'daily_user_growth': list(daily_user_growth),
+            'monthly_user_growth': list(monthly_user_growth),
+            'daily_transactions': list(daily_transactions),
+            'transactions_by_type': list(transactions_by_type),
+        })
+        
+        return context
+
+
+class TransactionResource(resources.ModelResource):
+    account_number = fields.Field(attribute='account__account_no', column_name='Account Number')
+    user_email = fields.Field(attribute='account__user__email', column_name='User Email')
+    transaction_type_display = fields.Field(attribute='get_transaction_type_display', column_name='Transaction Type')
+    
+    class Meta:
+        model = Transaction
+        fields = ('id', 'account_number', 'user_email', 'amount', 
+                 'balance_after_transaction', 'transaction_type_display', 'timestamp')
+        export_order = fields
+
+
+class TransactionExportView(View):
+    def get(self, request, *args, **kwargs):
+        file_format = request.GET.get('format', 'csv')
+        
+        queryset = Transaction.objects.all().select_related('account__user')
+        
+        daterange = request.GET.get('daterange')
+        if daterange:
+            try:
+                dates = daterange.split(' - ')
+                if len(dates) == 2:
+                    queryset = queryset.filter(timestamp__date__range=dates)
+            except ValueError:
+                pass
+        
+        resource = TransactionResource()
+        dataset = resource.export(queryset)
+        
+        if file_format == 'csv':
+            response = HttpResponse(dataset.csv, content_type='text/csv')
+            response['Content-Disposition'] = 'attachment; filename="transactions.csv"'
+        elif file_format == 'xlsx':
+            response = HttpResponse(
+                dataset.xlsx,
+                content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            )
+            response['Content-Disposition'] = 'attachment; filename="transactions.xlsx"'
+        else:
+            response = HttpResponse(dataset.csv, content_type='text/csv')
+            response['Content-Disposition'] = 'attachment; filename="transactions.csv"'
+        
+        return response

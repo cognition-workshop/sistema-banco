@@ -30,6 +30,7 @@ class User(AbstractUser):
         validators=[validate_cpf],
         help_text='CPF do usuário (apenas números)'
     )
+    is_suspended = models.BooleanField(default=False)
 
     objects = UserManager()
 

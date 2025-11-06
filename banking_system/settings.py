@@ -40,11 +40,14 @@ INSTALLED_APPS = [
 
     'django_celery_beat',
     'rest_framework',
+    'import_export',
 
     'accounts',
     'core',
     'transactions',
     'pix',
+    'fraud_detection',
+    'system_health',
 ]
 
 MIDDLEWARE = [
