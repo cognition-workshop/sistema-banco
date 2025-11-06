@@ -70,6 +70,66 @@ class WithdrawForm(TransactionForm):
         return amount
 
 
+class TransferForm(TransactionForm):
+    recipient_account_no = forms.IntegerField(
+        label='Recipient Account Number',
+        min_value=1
+    )
+
+    class Meta(TransactionForm.Meta):
+        fields = ['amount', 'transaction_type', 'recipient_account_no']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['recipient_account_no'].widget.attrs.update({
+            'placeholder': 'Enter recipient account number'
+        })
+
+    def clean(self):
+        cleaned_data = super().clean()
+        amount = cleaned_data.get('amount')
+        recipient_account_no = cleaned_data.get('recipient_account_no')
+        
+        if not amount or not recipient_account_no:
+            return cleaned_data
+
+        sender_account = self.account
+        if amount > sender_account.balance:
+            raise forms.ValidationError(
+                f'Saldo insuficiente. Seu saldo atual é ${sender_account.balance}'
+            )
+
+        from accounts.models import UserBankAccount
+        try:
+            recipient_account = UserBankAccount.objects.get(
+                account_no=recipient_account_no
+            )
+        except UserBankAccount.DoesNotExist:
+            raise forms.ValidationError(
+                f'Conta destinatária {recipient_account_no} não encontrada'
+            )
+
+        if sender_account.account_no == recipient_account_no:
+            raise forms.ValidationError(
+                'Você não pode transferir para sua própria conta'
+            )
+
+        self.recipient_account = recipient_account
+        
+        return cleaned_data
+
+    def clean_amount(self):
+        amount = self.cleaned_data.get('amount')
+        min_transfer_amount = settings.MINIMUM_WITHDRAWAL_AMOUNT
+        
+        if amount < min_transfer_amount:
+            raise forms.ValidationError(
+                f'O valor mínimo para transferência é ${min_transfer_amount}'
+            )
+        
+        return amount
+
+
 class TransactionDateRangeForm(forms.Form):
     daterange = forms.CharField(required=False)
 
