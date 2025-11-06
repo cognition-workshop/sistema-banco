@@ -1,22 +1,71 @@
 {% extends 'core/base.html' %}
 
-{% block head_title %}Banking System{% endblock %}
+{% block head_title %}Sistema Bancário - Página Inicial{% endblock %}
 
 {% block content %}
-    <div class="container mx-auto flex flex-col md:flex-row items-center my-12 md:my-24">
-        <!--Left Col-->
-        <div class="flex flex-col w-full lg:w-1/2 justify-center items-start pt-12 pb-24 px-6">
-            <h1 class="font-bold text-4xl my-4">Banking System</h1>
-            <p class="leading-normal mb-4">
-                A modern web application for managing your banking transactions.
-            </p>
-            <div>
-            <a href="{% url 'transactions:transaction_report' %}" class="bg-transparent hover:bg-gray-800 text-gray-800 hover:text-white rounded shadow hover:shadow-lg py-2 px-4 border border-gray-900 hover:border-transparent">View Transactions</a>
+    <div class="container mx-auto py-12">
+        <div class="grid md:grid-cols-2 gap-12 items-center">
+            <div class="space-y-6">
+                <div class="inline-block bg-blue-100 text-bank-blue px-4 py-2 rounded-full text-sm font-semibold">
+                    <i class="fas fa-shield-alt mr-2"></i>100% Seguro e Confiável
+                </div>
+                <h1 class="text-5xl font-bold text-gray-800 leading-tight">
+                    Seu Sistema Bancário
+                    <span class="text-bank-blue">Moderno</span>
+                </h1>
+                <p class="text-xl text-gray-600">
+                    Gerencie suas transações financeiras com facilidade, segurança e praticidade.
+                </p>
+                <div class="flex gap-4">
+                    <a href="{% url 'transactions:transaction_report' %}" 
+                       class="bg-bank-blue hover:bg-bank-dark text-white font-semibold px-8 py-3 rounded-lg shadow-lg transition duration-200 flex items-center">
+                        <i class="fas fa-chart-line mr-2"></i>
+                        Ver Extrato
+                    </a>
+                    <a href="{% url 'transactions:deposit_money' %}" 
+                       class="bg-white hover:bg-gray-50 text-bank-blue font-semibold px-8 py-3 rounded-lg shadow-lg border-2 border-bank-blue transition duration-200 flex items-center">
+                        <i class="fas fa-plus-circle mr-2"></i>
+                        Fazer Depósito
+                    </a>
+                </div>
+            </div>
+            
+            <div class="relative">
+                <div class="bg-gradient-to-br from-bank-blue to-bank-dark rounded-3xl p-8 shadow-2xl transform hover:scale-105 transition duration-300">
+                    <div class="text-center text-white space-y-4">
+                        <i class="fas fa-university text-8xl opacity-20"></i>
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <i class="fas fa-dollar-sign text-9xl text-white opacity-90"></i>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-        <!--Right Col-->
-        <div class="w-full lg:w-1/2 lg:py-6 text-center">
-            <h1 style="font-size: 12rem" class="font-black text-gray-800">$$$</h1>
+        
+        <div class="grid md:grid-cols-3 gap-8 mt-16">
+            <div class="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition duration-200">
+                <div class="bg-blue-100 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
+                    <i class="fas fa-lock text-bank-blue text-2xl"></i>
+                </div>
+                <h3 class="text-xl font-bold text-gray-800 mb-2">Segurança</h3>
+                <p class="text-gray-600">Suas transações são protegidas com tecnologia de ponta.</p>
+            </div>
+            
+            <div class="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition duration-200">
+                <div class="bg-green-100 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
+                    <i class="fas fa-bolt text-bank-green text-2xl"></i>
+                </div>
+                <h3 class="text-xl font-bold text-gray-800 mb-2">Rapidez</h3>
+                <p class="text-gray-600">Transações instantâneas disponíveis 24/7.</p>
+            </div>
+            
+            <div class="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition duration-200">
+                <div class="bg-purple-100 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
+                    <i class="fas fa-chart-line text-purple-600 text-2xl"></i>
+                </div>
+                <h3 class="text-xl font-bold text-gray-800 mb-2">Controle</h3>
+                <p class="text-gray-600">Acompanhe todas as suas movimentações em tempo real.</p>
+            </div>
         </div>
     </div>
 {% endblock %}

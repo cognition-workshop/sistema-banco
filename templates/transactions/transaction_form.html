@@ -3,26 +3,53 @@
 {% block head_title %}{{ title }}{% endblock %}
 
 {% block content %}
-<h1 class="font-mono font-bold text-3xl text-center pb-5 pt-10">{{ title }}</h1>
-<hr />
-<div class="w-full mt-5">
-    <form method="post" class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
-        {% csrf_token %}
-
-        <div class="mb-4">
-            <label class="block text-gray-700 text-sm font-bold mb-2" for="amount">
-                Amount
-            </label>
-            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight border rounded-md border-gray-500 focus:outline-none focus:shadow-outline" name="amount" id="amount" type="number" required placeholder="Amount">
+<div class="max-w-2xl mx-auto py-8">
+    <div class="text-center mb-8">
+        <div class="inline-block bg-bank-blue p-4 rounded-full mb-4">
+            {% if 'Depósito' in title or 'Deposit' in title %}
+                <i class="fas fa-plus-circle text-white text-3xl"></i>
+            {% else %}
+                <i class="fas fa-minus-circle text-white text-3xl"></i>
+            {% endif %}
         </div>
-        {% if form.amount.errors %}
-            {% for error in form.amount.errors %}
-                <p class="text-red-600 text-sm italic pb-2">{{ error }}</p>
-            {% endfor %}
-        {% endif %}
-        <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit">
-            Submit
-        </button>
-    </form>
+        <h1 class="text-3xl font-bold text-gray-800 mb-2">{{ title }}</h1>
+        <p class="text-gray-600">Digite o valor da transação</p>
+    </div>
+    
+    <div class="bg-white rounded-2xl shadow-xl p-8">
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="mb-6">
+                <label class="block text-gray-700 text-sm font-semibold mb-2" for="amount">
+                    <i class="fas fa-dollar-sign text-bank-blue mr-2"></i>
+                    Valor
+                </label>
+                <div class="relative">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-gray-500 text-lg">$</span>
+                    <input class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-bank-blue focus:border-transparent transition duration-200 text-lg" 
+                           name="amount" 
+                           id="amount" 
+                           type="number" 
+                           step="0.01"
+                           required 
+                           placeholder="0.00">
+                </div>
+                {% if form.amount.errors %}
+                    {% for error in form.amount.errors %}
+                        <p class="text-red-500 text-sm mt-2 flex items-center">
+                            <i class="fas fa-exclamation-circle mr-1"></i>
+                            {{ error }}
+                        </p>
+                    {% endfor %}
+                {% endif %}
+            </div>
+            
+            <button class="w-full bg-bank-blue hover:bg-bank-dark text-white font-bold py-3 px-4 rounded-lg transition duration-200 shadow-lg hover:shadow-xl flex items-center justify-center" type="submit">
+                <i class="fas fa-check-circle mr-2"></i>
+                Confirmar Transação
+            </button>
+        </form>
+    </div>
 </div>
 {% endblock %}
