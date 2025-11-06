@@ -25,6 +25,11 @@ class TransactionRepostView(ListView):
     model = Transaction
     form_data = {}
 
+    def get_template_names(self):
+        if self.request.htmx:
+            return ['transactions/transaction_table_partial.html']
+        return ['transactions/transaction_report.html']
+
     def get(self, request, *args, **kwargs):
         form = TransactionDateRangeForm(request.GET or None)
         if form.is_valid():
@@ -43,10 +48,11 @@ class TransactionRepostView(ListView):
             account=demo_user.account
         )
 
-        daterange = self.form_data.get("daterange")
+        start_date = self.form_data.get("start_date")
+        end_date = self.form_data.get("end_date")
 
-        if daterange:
-            queryset = queryset.filter(timestamp__date__range=daterange)
+        if start_date and end_date:
+            queryset = queryset.filter(timestamp__date__range=[start_date, end_date])
 
         return queryset.distinct()
 

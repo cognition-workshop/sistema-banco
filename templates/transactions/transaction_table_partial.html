@@ -1,0 +1,24 @@
+<table id="transaction-table" class="table-auto mx-auto w-full mt-8">
+    <thead class="bg-gray-800 text-white">
+    <tr class="uppercase font-semibold text-sm">
+        <th class="px-4 py-2">Transaction Type</th>
+        <th class="px-4 py-2">Date</th>
+        <th class="px-4 py-2">Amount</th>
+        <th class="px-4 py-2">Balance After Transaction</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for transaction in object_list %}
+    <tr class="{% cycle 'bg-gray-300' 'bg-white-100' %}">
+        <td class="border px-4 py-2 text-center">{{ transaction.get_transaction_type_display }}</td>
+        <td class="border px-4 py-2 text-center">{{ transaction.timestamp }}</td>
+        <td class="border px-4 py-2 text-center">$ {{ transaction.amount }}</td>
+        <td class="border px-4 py-2 text-center">$ {{ transaction.balance_after_transaction }}</td>
+    </tr>
+    {% endfor %}
+    <tr class="bg-gray-600 text-white">
+        <th class="px-4 py-2 text-right" colspan="3">Final Balance</th>
+        <th class="px-4 py-2 text-center">$ {{ account.balance }}</th>
+    </tr>
+    </tbody>
+</table>
