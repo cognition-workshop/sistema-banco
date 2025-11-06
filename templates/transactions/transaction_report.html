@@ -13,13 +13,25 @@
     <h1 class="font-mono font-bold text-3xl text-center pb-5 pt-10">Transaction Report</h1>
     <hr />
     <form method="get">
-        <div class="mt-10 h-10 pl-3 pr-2 bg-white border rounded-md border-gray-500 flex justify-between items-center relative">
-            <input type="search" name="daterange" id="search" placeholder="Filter using date range" value="{{ request.GET.daterange }}" class="appearance-none w-full outline-none focus:outline-none active:outline-none" />
-            <button type="submit" class="ml-1 outline-none focus:outline-none active:outline-none">
-                <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" class="w-6 h-6">
-                    <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                </svg>
-            </button>
+        <div class="mt-10 space-y-4">
+            <div class="h-10 pl-3 pr-2 bg-white border rounded-md border-gray-500 flex justify-between items-center relative">
+                <select name="transaction_type" class="appearance-none w-full outline-none focus:outline-none active:outline-none">
+                    <option value="">All Transaction Types</option>
+                    {% for value, label in form.fields.transaction_type.choices %}
+                        {% if value %}
+                            <option value="{{ value }}" {% if request.GET.transaction_type == value|stringformat:"s" %}selected{% endif %}>{{ label }}</option>
+                        {% endif %}
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="h-10 pl-3 pr-2 bg-white border rounded-md border-gray-500 flex justify-between items-center relative">
+                <input type="search" name="daterange" id="search" placeholder="Filter using date range" value="{{ request.GET.daterange }}" class="appearance-none w-full outline-none focus:outline-none active:outline-none" />
+                <button type="submit" class="ml-1 outline-none focus:outline-none active:outline-none">
+                    <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" class="w-6 h-6">
+                        <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                </button>
+            </div>
         </div>
         {% if form.daterange.errors %}
             {% for error in form.daterange.errors %}
