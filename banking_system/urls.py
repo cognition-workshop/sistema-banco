@@ -17,11 +17,15 @@ from django.contrib import admin
 from django.urls import include, path
 
 from core.views import HomeView
+from accounts import admin_views
 
 
 urlpatterns = [
     path('', HomeView.as_view(), name='home'),
     path('accounts/', include('accounts.urls', namespace='accounts')),
+    path('admin/analytics/', admin_views.analytics_dashboard, name='admin_analytics'),
+    path('admin/fraud-detection/', admin_views.fraud_detection_dashboard, name='admin_fraud_detection'),
+    path('admin/system-health/', admin_views.system_health_dashboard, name='admin_system_health'),
     path('admin/', admin.site.urls),
     path(
         'transactions/',
