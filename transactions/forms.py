@@ -17,6 +17,8 @@ class TransactionForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         self.account = kwargs.pop('account')
+        self.user = kwargs.pop('user', None)
+        self.ip_address = kwargs.pop('ip_address', None)
         super().__init__(*args, **kwargs)
 
         self.fields['transaction_type'].disabled = True
@@ -24,7 +26,10 @@ class TransactionForm(forms.ModelForm):
 
     def save(self, commit=True):
         self.instance.account = self.account
+        self.instance.balance_before_transaction = self.account.balance
         self.instance.balance_after_transaction = self.account.balance
+        self.instance.user = self.user
+        self.instance.ip_address = self.ip_address
         return super().save()
 
 
