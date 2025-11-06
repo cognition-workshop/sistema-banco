@@ -1,6 +1,6 @@
 from django.urls import path
 
-from .views import UserRegistrationView, LogoutView, UserLoginView
+from .views import UserRegistrationView, LogoutView, UserLoginView, AccountBalanceAPIView
 
 
 app_name = 'accounts'
@@ -17,5 +17,9 @@ urlpatterns = [
     path(
         "register/", UserRegistrationView.as_view(),
         name="user_registration"
+    ),
+    path(
+        "api/balance/<int:account_no>/", AccountBalanceAPIView.as_view(),
+        name="account_balance_api"
     ),
 ]
