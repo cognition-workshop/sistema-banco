@@ -72,6 +72,13 @@ Install development dependencies,
 pip install -r requirements.txt
 ```
 
+Setup environment variables,
+```bash
+cp .env.example .env
+# Edit .env and set your SECRET_KEY and other configuration values
+# Generate a new SECRET_KEY using: python -c 'from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())'
+```
+
 Migrate Database,
 ```bash
 python manage.py migrate
