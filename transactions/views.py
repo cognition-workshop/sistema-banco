@@ -105,6 +105,13 @@ class DepositMoneyView(TransactionCreateMixin):
         account = demo_user.account if demo_user and hasattr(demo_user, 'account') else None
         
         if not account:
+            logger.warning(
+                'Deposit attempt failed - no account found',
+                extra={
+                    'transaction_type': 'DEPOSIT',
+                    'amount': amount,
+                }
+            )
             logger.error('Demo user account not found for deposit operation')
             messages.error(
                 self.request,
@@ -133,6 +140,17 @@ class DepositMoneyView(TransactionCreateMixin):
                         'balance',
                         'interest_start_date'
                     ]
+                )
+
+                logger.info(
+                    'Deposit completed successfully',
+                    extra={
+                        'user_email': demo_user.email,
+                        'account_no': account.account_no,
+                        'amount': amount,
+                        'transaction_type': 'DEPOSIT',
+                        'balance_after': account.balance,
+                    }
                 )
 
                 audit_logger.info(
@@ -200,6 +218,13 @@ class WithdrawMoneyView(TransactionCreateMixin):
         demo_user = User.objects.filter(email='demo@example.com').first()
         
         if not demo_user or not hasattr(demo_user, 'account'):
+            logger.warning(
+                'Withdrawal attempt failed - no account found',
+                extra={
+                    'transaction_type': 'WITHDRAWAL',
+                    'amount': amount,
+                }
+            )
             logger.error('Demo user account not found for withdrawal operation')
             messages.error(
                 self.request,
@@ -233,6 +258,17 @@ class WithdrawMoneyView(TransactionCreateMixin):
                 
                 account.balance -= amount
                 account.save(update_fields=['balance'])
+
+                logger.info(
+                    'Withdrawal completed successfully',
+                    extra={
+                        'user_email': demo_user.email,
+                        'account_no': demo_user.account.account_no,
+                        'amount': amount,
+                        'transaction_type': 'WITHDRAWAL',
+                        'balance_after': demo_user.account.balance,
+                    }
+                )
 
                 audit_logger.info(
                     f'Withdrawal successful',

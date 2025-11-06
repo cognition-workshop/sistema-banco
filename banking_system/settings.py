@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 """
 
 from pathlib import Path
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve(strict=True).parent.parent
@@ -142,16 +143,16 @@ CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = TIME_ZONE
 
-import os
-
 LOGS_DIR = BASE_DIR / 'logs'
-if not os.path.exists(LOGS_DIR):
-    os.makedirs(LOGS_DIR)
+os.makedirs(LOGS_DIR, exist_ok=True)
 
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'formatters': {
+        'json': {
+            '()': 'banking_system.logging_formatter.JsonFormatter',
+        },
         'verbose': {
             'format': '[{levelname}] {asctime} {module} {process:d} {thread:d} {message}',
             'style': '{',
@@ -174,7 +175,7 @@ LOGGING = {
         'console': {
             'level': 'INFO',
             'class': 'logging.StreamHandler',
-            'formatter': 'simple',
+            'formatter': 'json',
         },
         'file_error': {
             'level': 'ERROR',
@@ -182,7 +183,7 @@ LOGGING = {
             'filename': LOGS_DIR / 'error.log',
             'maxBytes': 1024 * 1024 * 10,
             'backupCount': 5,
-            'formatter': 'verbose',
+            'formatter': 'json',
         },
         'file_transactions': {
             'level': 'INFO',
@@ -190,7 +191,15 @@ LOGGING = {
             'filename': LOGS_DIR / 'transactions.log',
             'maxBytes': 1024 * 1024 * 10,
             'backupCount': 5,
-            'formatter': 'verbose',
+            'formatter': 'json',
+        },
+        'file_accounts': {
+            'level': 'INFO',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': LOGS_DIR / 'accounts.log',
+            'maxBytes': 1024 * 1024 * 10,
+            'backupCount': 5,
+            'formatter': 'json',
         },
         'file_celery': {
             'level': 'INFO',
@@ -198,7 +207,7 @@ LOGGING = {
             'filename': LOGS_DIR / 'celery.log',
             'maxBytes': 1024 * 1024 * 10,
             'backupCount': 5,
-            'formatter': 'verbose',
+            'formatter': 'json',
         },
         'file_audit': {
             'level': 'INFO',
@@ -206,7 +215,7 @@ LOGGING = {
             'filename': LOGS_DIR / 'audit.log',
             'maxBytes': 1024 * 1024 * 10,
             'backupCount': 10,
-            'formatter': 'verbose',
+            'formatter': 'json',
         },
     },
     'loggers': {
@@ -215,13 +224,23 @@ LOGGING = {
             'level': 'INFO',
             'propagate': False,
         },
+        'django.request': {
+            'handlers': ['console', 'file_error'],
+            'level': 'WARNING',
+            'propagate': False,
+        },
+        'django.security': {
+            'handlers': ['console', 'file_error'],
+            'level': 'WARNING',
+            'propagate': False,
+        },
         'transactions': {
             'handlers': ['console', 'file_transactions', 'file_error'],
             'level': 'INFO',
             'propagate': False,
         },
         'accounts': {
-            'handlers': ['console', 'file_error'],
+            'handlers': ['console', 'file_accounts', 'file_error'],
             'level': 'INFO',
             'propagate': False,
         },
@@ -235,5 +254,9 @@ LOGGING = {
             'level': 'INFO',
             'propagate': False,
         },
+    },
+    'root': {
+        'handlers': ['console', 'file_error'],
+        'level': 'INFO',
     },
 }

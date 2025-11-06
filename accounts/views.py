@@ -1,3 +1,4 @@
+import logging
 from django.contrib import messages
 from django.contrib.auth import get_user_model, login, logout
 from django.contrib.auth.views import LoginView
@@ -24,6 +25,7 @@ class UserRegistrationView(TemplateView):
         return super().dispatch(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
+        logger = logging.getLogger('accounts')
         registration_form = UserRegistrationForm(self.request.POST)
         address_form = UserAddressForm(self.request.POST)
 
@@ -34,6 +36,15 @@ class UserRegistrationView(TemplateView):
             address.save()
 
             login(self.request, user)
+            
+            logger.info(
+                'New user registered successfully',
+                extra={
+                    'user_email': user.email,
+                    'account_no': user.account.account_no,
+                }
+            )
+            
             messages.success(
                 self.request,
                 (
@@ -44,6 +55,14 @@ class UserRegistrationView(TemplateView):
             return HttpResponseRedirect(
                 reverse_lazy('transactions:deposit_money')
             )
+        
+        logger.warning(
+            'User registration failed - form validation error',
+            extra={
+                'registration_errors': registration_form.errors.as_json() if registration_form.errors else None,
+                'address_errors': address_form.errors.as_json() if address_form.errors else None,
+            }
+        )
 
         return self.render_to_response(
             self.get_context_data(
@@ -64,12 +83,29 @@ class UserRegistrationView(TemplateView):
 class UserLoginView(LoginView):
     template_name='accounts/user_login.html'
     redirect_authenticated_user = True
+    
+    def form_valid(self, form):
+        logger = logging.getLogger('accounts')
+        logger.info(
+            'User logged in successfully',
+            extra={
+                'user_email': form.get_user().email,
+            }
+        )
+        return super().form_valid(form)
 
 
 class LogoutView(RedirectView):
     pattern_name = 'home'
 
     def get_redirect_url(self, *args, **kwargs):
+        logger = logging.getLogger('accounts')
         if self.request.user.is_authenticated:
+            logger.info(
+                'User logged out',
+                extra={
+                    'user_email': self.request.user.email,
+                }
+            )
             logout(self.request)
         return super().get_redirect_url(*args, **kwargs)

@@ -11,16 +11,17 @@ from transactions.models import Transaction
 
 logger = get_task_logger(__name__)
 audit_logger = logging.getLogger('audit')
+transactions_logger = logging.getLogger('transactions')
 
 
 @task(name="calculate_interest", bind=True, max_retries=3)
 def calculate_interest(self):
     """
     Calculate and apply interest to eligible accounts.
-    Includes error handling and retry logic.
+    Includes error handling and retry logic with structured logging.
     """
     try:
-        logger.info('Starting interest calculation task')
+        transactions_logger.info('Starting interest calculation task')
         
         accounts = UserBankAccount.objects.filter(
             balance__gt=0,
@@ -53,7 +54,16 @@ def calculate_interest(self):
                         created_transactions.append(transaction_obj)
                         updated_accounts.append(account)
                         
-                        logger.info(f'Interest calculated for account {account.account_no}: {interest}')
+                        transactions_logger.info(
+                            'Interest calculated and applied',
+                            extra={
+                                'account_no': account.account_no,
+                                'user_email': account.user.email,
+                                'amount': interest,
+                                'transaction_type': 'INTEREST',
+                                'balance_after': account.balance,
+                            }
+                        )
                         
                 except Exception as e:
                     logger.error(
@@ -81,7 +91,14 @@ def calculate_interest(self):
             }
         )
         
-        logger.info(f'Interest calculation task completed. Total interest: {total_interest}')
+        transactions_logger.info(
+            'Interest calculation task completed',
+            extra={
+                'accounts_processed': len(updated_accounts),
+                'total_transactions': len(created_transactions),
+            }
+        )
+        
         return {
             'accounts_processed': len(updated_accounts),
             'total_interest': float(total_interest)
