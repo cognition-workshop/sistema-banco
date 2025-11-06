@@ -28,3 +28,6 @@ class Transaction(models.Model):
 
     class Meta:
         ordering = ['timestamp']
+        indexes = [
+            models.Index(fields=['account', 'timestamp'], name='trans_acc_time_idx'),
+        ]
