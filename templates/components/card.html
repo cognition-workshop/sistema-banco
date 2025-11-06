@@ -1,0 +1,22 @@
+{% comment %}
+Usage: {% include 'components/card.html' with title="Card Title" value="$1,234.56" icon="fa-wallet" trend="+5.2%" %}
+{% endcomment %}
+<div class="card">
+    <div class="flex items-center justify-between">
+        <div>
+            <p class="text-gray-600 text-sm font-medium">{{ title }}</p>
+            <h3 class="text-2xl font-bold text-gray-900 mt-2">{{ value }}</h3>
+            {% if trend %}
+            <p class="text-sm mt-2 {% if '+' in trend %}text-green-600{% else %}text-red-600{% endif %}">
+                <i class="fas fa-arrow-{% if '+' in trend %}up{% else %}down{% endif %}"></i>
+                {{ trend }}
+            </p>
+            {% endif %}
+        </div>
+        {% if icon %}
+        <div class="bg-primary-light rounded-full p-4">
+            <i class="fas {{ icon }} text-primary-blue text-2xl"></i>
+        </div>
+        {% endif %}
+    </div>
+</div>

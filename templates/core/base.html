@@ -1,14 +1,29 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
     <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-        <meta name="description" content="Modern Banking System" />
+        <meta name="description" content="Sistema Bancário Profissional" />
         <title>
-            {% block head_title %}Banking System{% endblock %}
+            {% block head_title %}Sistema Bancário{% endblock %}
         </title>
+        
         <link href="https://unpkg.com/tailwindcss@^1.0/dist/tailwind.min.css" rel="stylesheet">
+        
+        <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+        
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+        
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+        
+        <link rel="stylesheet" href="{% static 'css/design-system.css' %}">
+        
+        <style>
+            body {
+                font-family: 'Open Sans', sans-serif;
+            }
+        </style>
 
         {% block head_extra %}{% endblock %}
     </head>
@@ -18,12 +33,14 @@
             <div class="lg:container lg:mx-auto">
                 {% include 'core/messages.html' %}
                 {% block content %}
-                <!-- Add content here -->
                 {% endblock %}
             </div>
             {% include 'core/footer.html' %}
 
         {% endblock %}
+        
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        
         {% block footer_extra %}{% endblock %}
     </body>
 </html>
