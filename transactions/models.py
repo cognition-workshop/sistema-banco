@@ -21,6 +21,14 @@ class Transaction(models.Model):
     transaction_type = models.PositiveSmallIntegerField(
         choices=TRANSACTION_TYPE_CHOICES
     )
+    related_account = models.ForeignKey(
+        UserBankAccount,
+        related_name='related_transactions',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        help_text='The other account involved in a transfer'
+    )
     timestamp = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
