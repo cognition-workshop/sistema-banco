@@ -41,9 +41,9 @@ class TransactionRepostView(ListView):
         if daterange:
             cache_key += f'_{daterange[0]}_{daterange[1]}'
         
-        cached_queryset = cache.get(cache_key)
-        if cached_queryset is not None:
-            return cached_queryset
+        cached_results = cache.get(cache_key)
+        if cached_results is not None:
+            return cached_results
         
         queryset = super().get_queryset().filter(
             account=demo_user.account
@@ -62,9 +62,10 @@ class TransactionRepostView(ListView):
 
         queryset = queryset.distinct()
         
-        cache.set(cache_key, queryset, 300)
+        results = list(queryset)
+        cache.set(cache_key, results, 300)
         
-        return queryset
+        return results
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
