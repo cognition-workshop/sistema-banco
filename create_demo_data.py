@@ -82,23 +82,32 @@ transactions_data = [
     (WITHDRAWAL, 300.00, timezone.now() - relativedelta(days=2)),
 ]
 
-# Delete old transactions for demo user
-Transaction.objects.filter(account=account).delete()
+# Delete old transactions for demo user using raw SQL to bypass immutability
+from django.db import connection
+with connection.cursor() as cursor:
+    cursor.execute(
+        "DELETE FROM transactions_transaction WHERE account_id = %s",
+        [account.id]
+    )
 
 balance = 0
 for trans_type, amount, timestamp in transactions_data:
+    balance_before = balance
     if trans_type == DEPOSIT:
         balance += amount
     else:
         balance -= amount
     
-    Transaction.objects.create(
+    transaction = Transaction(
         account=account,
         amount=amount,
+        balance_before_transaction=balance_before,
         balance_after_transaction=balance,
         transaction_type=trans_type,
-        timestamp=timestamp
+        user=demo_user,
     )
+    transaction.save()
+    Transaction.objects.filter(pk=transaction.pk).update(timestamp=timestamp)
 
 # Update final balance
 account.balance = balance

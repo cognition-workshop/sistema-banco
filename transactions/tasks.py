@@ -25,13 +25,17 @@ def calculate_interest():
             interest = account.account_type.calculate_interest(
                 account.balance
             )
+            balance_before = account.balance
             account.balance += interest
             account.save()
 
             transaction_obj = Transaction(
                 account=account,
                 transaction_type=INTEREST,
-                amount=interest
+                amount=interest,
+                balance_before_transaction=balance_before,
+                balance_after_transaction=account.balance,
+                user=None
             )
             created_transactions.append(transaction_obj)
             updated_accounts.append(account)

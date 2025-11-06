@@ -114,6 +114,7 @@ class DepositMoneyView(TransactionCreateMixin):
                 )
             )
 
+        balance_before = account.balance
         account.balance += amount
         account.save(
             update_fields=[
@@ -122,6 +123,11 @@ class DepositMoneyView(TransactionCreateMixin):
                 'interest_start_date'
             ]
         )
+
+        transaction = form.save(commit=False)
+        transaction.balance_before_transaction = balance_before
+        transaction.user = demo_user
+        transaction.save()
 
         messages.success(
             self.request,
@@ -145,8 +151,14 @@ class WithdrawMoneyView(TransactionCreateMixin):
         User = get_user_model()
         demo_user = User.objects.filter(email='demo@example.com').first()
         if demo_user and hasattr(demo_user, 'account'):
-            demo_user.account.balance -= form.cleaned_data.get('amount')
+            balance_before = demo_user.account.balance
+            demo_user.account.balance -= amount
             demo_user.account.save(update_fields=['balance'])
+            
+            transaction = form.save(commit=False)
+            transaction.balance_before_transaction = balance_before
+            transaction.user = demo_user
+            transaction.save()
 
         messages.success(
             self.request,
