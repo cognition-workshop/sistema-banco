@@ -87,7 +87,7 @@ class TransactionCreateMixin(CreateView):
 
 class DepositMoneyView(TransactionCreateMixin):
     form_class = DepositForm
-    title = 'Deposit Money to Your Account'
+    title = 'Depositar Dinheiro'
 
     def get_initial(self):
         initial = {'transaction_type': DEPOSIT}
@@ -125,7 +125,7 @@ class DepositMoneyView(TransactionCreateMixin):
 
         messages.success(
             self.request,
-            f'{amount}$ was deposited to your account successfully'
+            f'R$ {amount:.2f} foi depositado em sua conta com sucesso'
         )
 
         return super().form_valid(form)
@@ -133,7 +133,7 @@ class DepositMoneyView(TransactionCreateMixin):
 
 class WithdrawMoneyView(TransactionCreateMixin):
     form_class = WithdrawForm
-    title = 'Withdraw Money from Your Account'
+    title = 'Sacar Dinheiro'
 
     def get_initial(self):
         initial = {'transaction_type': WITHDRAWAL}
@@ -150,7 +150,7 @@ class WithdrawMoneyView(TransactionCreateMixin):
 
         messages.success(
             self.request,
-            f'Successfully withdrawn {amount}$ from your account'
+            f'R$ {amount:.2f} foi sacado de sua conta com sucesso'
         )
 
         return super().form_valid(form)

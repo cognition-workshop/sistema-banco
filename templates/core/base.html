@@ -1,21 +1,65 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR" class="scroll-smooth">
     <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-        <meta name="description" content="Modern Banking System" />
+        <meta name="description" content="Sistema Bancário Moderno - Gestão completa de contas e transações" />
+        <meta name="keywords" content="banco, transações, PIX, sistema bancário" />
+        <meta name="theme-color" content="#1E3A8A" />
         <title>
-            {% block head_title %}Banking System{% endblock %}
+            {% block head_title %}Sistema Bancário{% endblock %}
         </title>
-        <link href="https://unpkg.com/tailwindcss@^1.0/dist/tailwind.min.css" rel="stylesheet">
+        <script src="https://cdn.tailwindcss.com"></script>
+        <script>
+            tailwind.config = {
+                darkMode: 'class',
+                theme: {
+                    extend: {
+                        colors: {
+                            primary: {
+                                DEFAULT: '#1E3A8A',
+                                light: '#3B82F6',
+                                dark: '#1E40AF',
+                            },
+                            success: {
+                                DEFAULT: '#059669',
+                                light: '#10B981',
+                                dark: '#047857',
+                            },
+                            banking: {
+                                blue: '#1E3A8A',
+                                green: '#059669',
+                                gray: '#64748B',
+                            }
+                        },
+                        fontFamily: {
+                            'heading': ['Poppins', 'sans-serif'],
+                            'body': ['Inter', 'system-ui', 'sans-serif'],
+                        }
+                    }
+                }
+            }
+        </script>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
+        <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+        
+        <script>
+            if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark')
+            } else {
+                document.documentElement.classList.remove('dark')
+            }
+        </script>
 
         {% block head_extra %}{% endblock %}
     </head>
-    <body class="bg-gray-100">
+    <body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 font-body min-h-screen flex flex-col transition-colors duration-200">
         {% block body %}
             {% include 'core/navbar.html' %}
-            <div class="lg:container lg:mx-auto">
+            <div class="flex-grow">
                 {% include 'core/messages.html' %}
                 {% block content %}
                 <!-- Add content here -->

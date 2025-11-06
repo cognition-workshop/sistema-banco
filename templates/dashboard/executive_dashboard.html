@@ -1,0 +1,228 @@
+{% extends 'core/base.html' %}
+
+{% block head_title %}Dashboard Executivo{% endblock %}
+
+{% block head_extra %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="mb-8">
+        <h1 class="font-heading text-4xl font-bold text-gray-900 dark:text-white mb-2">Dashboard Executivo</h1>
+        <p class="text-gray-600 dark:text-gray-400">Visão geral completa do sistema bancário</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div class="bg-gradient-to-br from-primary to-primary-light rounded-xl p-6 text-white shadow-lg transform hover:scale-105 transition-transform duration-200">
+            <div class="flex items-center justify-between mb-4">
+                <div class="text-sm font-medium opacity-90">Total de Contas</div>
+                <svg class="w-8 h-8 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                </svg>
+            </div>
+            <div class="text-3xl font-bold mb-1">{{ total_accounts }}</div>
+            <div class="text-sm opacity-80">Usuários ativos</div>
+        </div>
+
+        <div class="bg-gradient-to-br from-success to-success-light rounded-xl p-6 text-white shadow-lg transform hover:scale-105 transition-transform duration-200">
+            <div class="flex items-center justify-between mb-4">
+                <div class="text-sm font-medium opacity-90">Saldo Total</div>
+                <svg class="w-8 h-8 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+            </div>
+            <div class="text-3xl font-bold mb-1">R$ {{ total_balance|floatformat:2 }}</div>
+            <div class="text-sm opacity-80">Em todas as contas</div>
+        </div>
+
+        <div class="bg-gradient-to-br from-purple-500 to-purple-700 rounded-xl p-6 text-white shadow-lg transform hover:scale-105 transition-transform duration-200">
+            <div class="flex items-center justify-between mb-4">
+                <div class="text-sm font-medium opacity-90">Transações</div>
+                <svg class="w-8 h-8 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path>
+                </svg>
+            </div>
+            <div class="text-3xl font-bold mb-1">{{ total_transactions }}</div>
+            <div class="text-sm opacity-80">Total processadas</div>
+        </div>
+
+        <div class="bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-xl p-6 text-white shadow-lg transform hover:scale-105 transition-transform duration-200">
+            <div class="flex items-center justify-between mb-4">
+                <div class="text-sm font-medium opacity-90">Juros Pagos</div>
+                <svg class="w-8 h-8 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                </svg>
+            </div>
+            <div class="text-3xl font-bold mb-1">R$ {{ total_interest|floatformat:2 }}</div>
+            <div class="text-sm opacity-80">Total acumulado</div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+            <h2 class="font-heading text-2xl font-bold text-gray-900 dark:text-white mb-4">Evolução de Saldo</h2>
+            <canvas id="balanceChart" height="300"></canvas>
+        </div>
+
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+            <h2 class="font-heading text-2xl font-bold text-gray-900 dark:text-white mb-4">Transações Diárias</h2>
+            <canvas id="transactionsChart" height="300"></canvas>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+            <h2 class="font-heading text-2xl font-bold text-gray-900 dark:text-white mb-4">Distribuição por Tipo</h2>
+            <canvas id="typeChart" height="300"></canvas>
+        </div>
+
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+            <h2 class="font-heading text-2xl font-bold text-gray-900 dark:text-white mb-4">Transações Recentes</h2>
+            <div class="space-y-3 max-h-96 overflow-y-auto">
+                {% for transaction in recent_transactions %}
+                <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 rounded-full flex items-center justify-center
+                            {% if transaction.transaction_type == 1 %}bg-green-100 dark:bg-green-900{% elif transaction.transaction_type == 2 %}bg-red-100 dark:bg-red-900{% else %}bg-blue-100 dark:bg-blue-900{% endif %}">
+                            <svg class="w-5 h-5 {% if transaction.transaction_type == 1 %}text-success{% elif transaction.transaction_type == 2 %}text-red-600{% else %}text-primary{% endif %}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                {% if transaction.transaction_type == 1 %}
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                                {% elif transaction.transaction_type == 2 %}
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
+                                {% else %}
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                                {% endif %}
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="font-medium text-gray-900 dark:text-white">
+                                {% if transaction.transaction_type == 1 %}Depósito
+                                {% elif transaction.transaction_type == 2 %}Saque
+                                {% else %}Juros{% endif %}
+                            </p>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">{{ transaction.timestamp|date:"d/m/Y H:i" }}</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="font-bold {% if transaction.transaction_type == 1 %}text-success{% elif transaction.transaction_type == 2 %}text-red-600{% else %}text-primary{% endif %}">
+                            {% if transaction.transaction_type == 2 %}-{% else %}+{% endif %} R$ {{ transaction.amount|floatformat:2 }}
+                        </p>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">Saldo: R$ {{ transaction.balance_after_transaction|floatformat:2 }}</p>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-gray-500 dark:text-gray-400 text-center py-8">Nenhuma transação recente</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const balanceData = {{ balance_evolution_json|safe }};
+const transactionsData = {{ daily_transactions_json|safe }};
+
+const isDark = document.documentElement.classList.contains('dark');
+const textColor = isDark ? '#9CA3AF' : '#4B5563';
+const gridColor = isDark ? '#374151' : '#E5E7EB';
+
+const balanceChart = new Chart(document.getElementById('balanceChart'), {
+    type: 'line',
+    data: {
+        labels: balanceData.map(d => d.date),
+        datasets: [{
+            label: 'Saldo Total',
+            data: balanceData.map(d => d.balance),
+            borderColor: '#059669',
+            backgroundColor: 'rgba(5, 150, 105, 0.1)',
+            fill: true,
+            tension: 0.4
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                labels: { color: textColor }
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: { color: textColor },
+                grid: { color: gridColor }
+            },
+            x: {
+                ticks: { color: textColor, maxRotation: 45 },
+                grid: { color: gridColor }
+            }
+        }
+    }
+});
+
+const transactionsChart = new Chart(document.getElementById('transactionsChart'), {
+    type: 'bar',
+    data: {
+        labels: transactionsData.map(d => d.date),
+        datasets: [{
+            label: 'Transações',
+            data: transactionsData.map(d => d.count),
+            backgroundColor: '#3B82F6',
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                labels: { color: textColor }
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: { color: textColor },
+                grid: { color: gridColor }
+            },
+            x: {
+                ticks: { color: textColor, maxRotation: 45 },
+                grid: { color: gridColor }
+            }
+        }
+    }
+});
+
+const typeChart = new Chart(document.getElementById('typeChart'), {
+    type: 'doughnut',
+    data: {
+        labels: ['Depósitos', 'Saques', 'Juros'],
+        datasets: [{
+            data: [
+                {% for item in transactions_by_type %}
+                    {% if item.transaction_type == 1 %}{{ item.count }}{% endif %}
+                {% endfor %} || 0,
+                {% for item in transactions_by_type %}
+                    {% if item.transaction_type == 2 %}{{ item.count }}{% endif %}
+                {% endfor %} || 0,
+                {% for item in transactions_by_type %}
+                    {% if item.transaction_type == 3 %}{{ item.count }}{% endif %}
+                {% endfor %} || 0
+            ],
+            backgroundColor: ['#059669', '#DC2626', '#3B82F6'],
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'bottom',
+                labels: { color: textColor }
+            }
+        }
+    }
+});
+</script>
+{% endblock %}

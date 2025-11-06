@@ -1,0 +1,117 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Painel Administrativo - Sistema Bancário{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="mb-8">
+            <h1 class="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 bg-clip-text text-transparent">
+                Painel Administrativo
+            </h1>
+            <p class="mt-2 text-gray-600 dark:text-gray-400">Visão geral do sistema bancário</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-shadow duration-300">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Total de Usuários</p>
+                        <p class="mt-2 text-3xl font-bold text-gray-900 dark:text-white">{{ total_users }}</p>
+                    </div>
+                    <div class="bg-blue-100 dark:bg-blue-900 rounded-full p-3">
+                        <svg class="w-8 h-8 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-shadow duration-300">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Total de Contas</p>
+                        <p class="mt-2 text-3xl font-bold text-gray-900 dark:text-white">{{ total_accounts }}</p>
+                    </div>
+                    <div class="bg-green-100 dark:bg-green-900 rounded-full p-3">
+                        <svg class="w-8 h-8 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-shadow duration-300">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Contas Suspensas</p>
+                        <p class="mt-2 text-3xl font-bold text-red-600 dark:text-red-400">{{ suspended_count }}</p>
+                    </div>
+                    <div class="bg-red-100 dark:bg-red-900 rounded-full p-3">
+                        <svg class="w-8 h-8 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-shadow duration-300">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Saldo Total</p>
+                        <p class="mt-2 text-3xl font-bold text-gray-900 dark:text-white">R$ {{ total_balance|floatformat:2 }}</p>
+                    </div>
+                    <div class="bg-purple-100 dark:bg-purple-900 rounded-full p-3">
+                        <svg class="w-8 h-8 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700">
+                <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4">Usuários Recentes</h2>
+                <div class="space-y-4">
+                    {% for user in recent_users %}
+                    <div class="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
+                        <div>
+                            <p class="font-medium text-gray-900 dark:text-white">{{ user.get_full_name }}</p>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">{{ user.email }}</p>
+                        </div>
+                        <a href="{% url 'admin_panel:user_detail' user.id %}" class="text-blue-600 dark:text-blue-400 hover:underline">
+                            Ver detalhes
+                        </a>
+                    </div>
+                    {% empty %}
+                    <p class="text-gray-500 dark:text-gray-400">Nenhum usuário encontrado.</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700">
+                <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4">Suspensões Ativas</h2>
+                <div class="space-y-4">
+                    {% for suspension in recent_suspensions %}
+                    <div class="p-4 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
+                        <p class="font-medium text-gray-900 dark:text-white">Conta #{{ suspension.account.account_no }}</p>
+                        <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">{{ suspension.reason|truncatewords:10 }}</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-500 mt-2">{{ suspension.suspended_at|date:"d/m/Y H:i" }}</p>
+                    </div>
+                    {% empty %}
+                    <p class="text-gray-500 dark:text-gray-400">Nenhuma suspensão ativa.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-8 flex justify-center space-x-4">
+            <a href="{% url 'admin_panel:user_list' %}" class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-lg">
+                Gerenciar Usuários
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -23,6 +23,12 @@ urlpatterns = [
     path('', HomeView.as_view(), name='home'),
     path('accounts/', include('accounts.urls', namespace='accounts')),
     path('admin/', admin.site.urls),
+    path('dashboard/', include('dashboard.urls', namespace='dashboard')),
+    path('analytics/', include('analytics.urls', namespace='analytics')),
+    path('health/', include('health.urls', namespace='health')),
+    path('admin-panel/', include('admin_panel.urls', namespace='admin_panel')),
+    path('fraud-detection/', include('fraud_detection.urls', namespace='fraud_detection')),
+    path('api/v1/', include('banking_system.api_urls')),
     path(
         'transactions/',
         include('transactions.urls', namespace='transactions')
