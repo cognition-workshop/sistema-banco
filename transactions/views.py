@@ -1,13 +1,20 @@
 from dateutil.relativedelta import relativedelta
+from datetime import timedelta
 
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth import get_user_model
+from django.db.models import Sum, Count, Q
+from django.db.models.functions import TruncDate, TruncMonth
+from django.http import HttpResponse
 from django.urls import reverse_lazy
 from django.utils import timezone
-from django.views.generic import CreateView, ListView
+from django.views.generic import CreateView, ListView, View
 
-from transactions.constants import DEPOSIT, WITHDRAWAL
+from import_export import resources, fields
+
+from accounts.models import UserBankAccount
+from transactions.constants import DEPOSIT, WITHDRAWAL, INTEREST
 from transactions.forms import (
     DepositForm,
     TransactionDateRangeForm,
@@ -154,3 +161,118 @@ class WithdrawMoneyView(TransactionCreateMixin):
         )
 
         return super().form_valid(form)
+
+class AnalyticsView(ListView):
+    template_name = 'transactions/analytics.html'
+    model = Transaction
+    context_object_name = 'transactions'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        transaction_stats = Transaction.objects.aggregate(
+            total_transactions=Count('id'),
+            total_volume=Sum('amount'),
+            deposit_count=Count('id', filter=Q(transaction_type=DEPOSIT)),
+            deposit_volume=Sum('amount', filter=Q(transaction_type=DEPOSIT)),
+            withdrawal_count=Count('id', filter=Q(transaction_type=WITHDRAWAL)),
+            withdrawal_volume=Sum('amount', filter=Q(transaction_type=WITHDRAWAL)),
+            interest_count=Count('id', filter=Q(transaction_type=INTEREST)),
+            interest_volume=Sum('amount', filter=Q(transaction_type=INTEREST)),
+        )
+        
+        balance_stats = UserBankAccount.objects.aggregate(
+            total_balance=Sum('balance'),
+            account_count=Count('id')
+        )
+        
+        User = get_user_model()
+        thirty_days_ago = timezone.now() - timedelta(days=30)
+        
+        daily_user_growth = User.objects.filter(
+            date_joined__gte=thirty_days_ago
+        ).annotate(
+            day=TruncDate('date_joined')
+        ).values('day').annotate(
+            count=Count('id')
+        ).order_by('day')
+        
+        monthly_user_growth = User.objects.annotate(
+            month=TruncMonth('date_joined')
+        ).values('month').annotate(
+            count=Count('id')
+        ).order_by('month')
+        
+        daily_transactions = Transaction.objects.filter(
+            timestamp__gte=thirty_days_ago
+        ).annotate(
+            day=TruncDate('timestamp')
+        ).values('day').annotate(
+            count=Count('id'),
+            volume=Sum('amount')
+        ).order_by('day')
+        
+        transactions_by_type = Transaction.objects.filter(
+            timestamp__gte=thirty_days_ago
+        ).values('transaction_type').annotate(
+            day=TruncDate('timestamp'),
+            count=Count('id'),
+            volume=Sum('amount')
+        ).order_by('day', 'transaction_type')
+        
+        context.update({
+            'transaction_stats': transaction_stats,
+            'balance_stats': balance_stats,
+            'daily_user_growth': list(daily_user_growth),
+            'monthly_user_growth': list(monthly_user_growth),
+            'daily_transactions': list(daily_transactions),
+            'transactions_by_type': list(transactions_by_type),
+        })
+        
+        return context
+
+
+class TransactionResource(resources.ModelResource):
+    account_number = fields.Field(attribute='account__account_no', column_name='Account Number')
+    user_email = fields.Field(attribute='account__user__email', column_name='User Email')
+    transaction_type_display = fields.Field(attribute='get_transaction_type_display', column_name='Transaction Type')
+    
+    class Meta:
+        model = Transaction
+        fields = ('id', 'account_number', 'user_email', 'amount', 
+                 'balance_after_transaction', 'transaction_type_display', 'timestamp')
+        export_order = fields
+
+
+class TransactionExportView(View):
+    def get(self, request, *args, **kwargs):
+        file_format = request.GET.get('format', 'csv')
+        
+        queryset = Transaction.objects.all().select_related('account__user')
+        
+        daterange = request.GET.get('daterange')
+        if daterange:
+            try:
+                dates = daterange.split(' - ')
+                if len(dates) == 2:
+                    queryset = queryset.filter(timestamp__date__range=dates)
+            except ValueError:
+                pass
+        
+        resource = TransactionResource()
+        dataset = resource.export(queryset)
+        
+        if file_format == 'csv':
+            response = HttpResponse(dataset.csv, content_type='text/csv')
+            response['Content-Disposition'] = 'attachment; filename="transactions.csv"'
+        elif file_format == 'xlsx':
+            response = HttpResponse(
+                dataset.xlsx,
+                content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            )
+            response['Content-Disposition'] = 'attachment; filename="transactions.xlsx"'
+        else:
+            response = HttpResponse(dataset.csv, content_type='text/csv')
+            response['Content-Disposition'] = 'attachment; filename="transactions.csv"'
+        
+        return response
