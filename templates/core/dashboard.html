@@ -1,0 +1,128 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block head_title %}Dashboard - Banking System{% endblock %}
+
+{% block content %}
+<div class="banking-header">
+    <div class="container mx-auto px-4">
+        <h1 class="text-3xl font-bold">Welcome to Your Dashboard</h1>
+        <p class="text-blue-100 mt-2">Manage your account and view transaction insights</p>
+    </div>
+</div>
+
+<div class="container mx-auto px-4 py-8">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div class="metric-card">
+            <div class="metric-label">Current Balance</div>
+            <div class="metric-value text-blue-600">$<span id="currentBalance">{{ account.balance|floatformat:2 }}</span></div>
+            <div class="text-sm text-gray-500 mt-2">Account #{{ account.account_no }}</div>
+        </div>
+
+        <div class="metric-card success">
+            <div class="metric-label">Total Deposits</div>
+            <div class="metric-value text-green-600">{{ stats.deposit_count }}</div>
+            <div class="text-sm text-gray-500 mt-2">${{ stats.deposit_total|floatformat:2 }} total</div>
+        </div>
+
+        <div class="metric-card danger">
+            <div class="metric-label">Total Withdrawals</div>
+            <div class="metric-value text-red-600">{{ stats.withdrawal_count }}</div>
+            <div class="text-sm text-gray-500 mt-2">${{ stats.withdrawal_total|floatformat:2 }} total</div>
+        </div>
+
+        <div class="metric-card warning">
+            <div class="metric-label">All Transactions</div>
+            <div class="metric-value text-orange-600">{{ stats.total_count }}</div>
+            <div class="text-sm text-gray-500 mt-2">Last 30 days</div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <div class="chart-card">
+            <h3 class="chart-title">Balance Trend (Last 30 Days)</h3>
+            <canvas id="balanceTrendChart"></canvas>
+        </div>
+
+        <div class="chart-card">
+            <h3 class="chart-title">Transaction Distribution</h3>
+            <canvas id="transactionTypeChart"></canvas>
+        </div>
+    </div>
+
+    <div class="mb-8">
+        <div class="chart-card">
+            <h3 class="chart-title">Monthly Transaction Volume</h3>
+            <canvas id="monthlyTransactionsChart"></canvas>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-6">
+        <h3 class="text-xl font-semibold mb-4 text-gray-800">Recent Transactions</h3>
+        {% if recent_transactions %}
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                        <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                        <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Balance</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for transaction in recent_transactions %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-4 py-3 whitespace-nowrap">
+                            <span class="transaction-badge {{ transaction.get_transaction_type_display|lower }}">
+                                {{ transaction.get_transaction_type_display }}
+                            </span>
+                        </td>
+                        <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
+                            {{ transaction.timestamp|date:"M d, Y" }}
+                        </td>
+                        <td class="px-4 py-3 whitespace-nowrap text-right text-sm font-medium
+                            {% if transaction.transaction_type == 1 or transaction.transaction_type == 3 %}text-green-600{% else %}text-red-600{% endif %}">
+                            ${{ transaction.amount|floatformat:2 }}
+                        </td>
+                        <td class="px-4 py-3 whitespace-nowrap text-right text-sm text-gray-900">
+                            ${{ transaction.balance_after_transaction|floatformat:2 }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="mt-4 text-center">
+            <a href="{% url 'transactions:transaction_report' %}" class="text-blue-600 hover:text-blue-800 font-medium">
+                View All Transactions →
+            </a>
+        </div>
+        {% else %}
+        <p class="text-gray-500 text-center py-8">No transactions yet. Start by making a deposit!</p>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const transactionData = {
+            deposits: {{ stats.deposit_count }},
+            withdrawals: {{ stats.withdrawal_count }},
+            interest: {{ stats.interest_count }}
+        };
+
+        const balanceHistory = {
+            labels: {{ balance_chart_labels|safe }},
+            values: {{ balance_chart_values|safe }}
+        };
+
+        const monthlyData = {
+            labels: {{ monthly_chart_labels|safe }},
+            values: {{ monthly_chart_values|safe }}
+        };
+
+        initDashboardCharts(transactionData, balanceHistory, monthlyData);
+    });
+</script>
+{% endblock %}
