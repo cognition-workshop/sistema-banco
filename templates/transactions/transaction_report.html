@@ -26,6 +26,18 @@
                 <p class="text-red-600 text-sm italic">{{ error }}</p>
             {% endfor %}
         {% endif %}
+        <div class="mt-4">
+            <select name="transaction_type" class="w-full h-10 pl-3 pr-10 bg-white border rounded-md border-gray-500 outline-none focus:outline-none active:outline-none">
+                {% for value, label in form.transaction_type.field.choices %}
+                    <option value="{{ value }}" {% if request.GET.transaction_type == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+            {% if form.transaction_type.errors %}
+                {% for error in form.transaction_type.errors %}
+                    <p class="text-red-600 text-sm italic">{{ error }}</p>
+                {% endfor %}
+            {% endif %}
+        </div>
     </form>
     <table class="table-auto mx-auto w-full mt-8">
         <thead class="bg-gray-800 text-white">
