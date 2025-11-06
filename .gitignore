@@ -118,3 +118,8 @@ ENV/
 
 # mypy
 .mypy_cache/
+logs/
+*.log
+htmlcov/
+.coverage
+coverage.xml

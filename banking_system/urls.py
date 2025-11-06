@@ -16,7 +16,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import include, path
 
-from core.views import HomeView
+from core.views import HomeView, HealthCheckView, ReadinessCheckView, LivenessCheckView
 
 
 urlpatterns = [
@@ -26,5 +26,9 @@ urlpatterns = [
     path(
         'transactions/',
         include('transactions.urls', namespace='transactions')
-    )
+    ),
+    
+    path('health/', HealthCheckView.as_view(), name='health_check'),
+    path('health/ready/', ReadinessCheckView.as_view(), name='readiness_check'),
+    path('health/live/', LivenessCheckView.as_view(), name='liveness_check'),
 ]

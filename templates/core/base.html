@@ -24,6 +24,17 @@
             {% include 'core/footer.html' %}
 
         {% endblock %}
-        {% block footer_extra %}{% endblock %}
+        {% block footer_extra %}
+        <script>
+        function validateAmount(input) {
+            const value = parseFloat(input.value);
+            if (isNaN(value) || value <= 0) {
+                input.setCustomValidity('Amount must be greater than 0');
+            } else {
+                input.setCustomValidity('');
+            }
+        }
+        </script>
+        {% endblock %}
     </body>
 </html>

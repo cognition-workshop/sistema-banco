@@ -34,6 +34,65 @@ Be sure you have the following installed on your development machine:
 + django-celery-beat==2.0.0
 + python-dateutil==2.8.1
 + redis==3.5.3
++ python-decouple
++ psycopg2-binary
++ django-redis
++ python-json-logger
++ pytest
++ pytest-django
++ pytest-cov
+
+## Production Setup
+
+### Environment Variables
+
+Copy `.env.example` to `.env` and configure:
+
+```bash
+cp .env.example .env
+```
+
+Required variables:
+- `SECRET_KEY`: Django secret key (generate with `python -c 'from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())'`)
+- `DEBUG`: Set to `False` in production
+- `ALLOWED_HOSTS`: Comma-separated list of allowed hosts
+- `DB_*`: PostgreSQL database credentials
+- `REDIS_URL`: Redis connection URL
+
+### PostgreSQL Setup
+
+```bash
+# Install PostgreSQL (important-comment)
+sudo apt-get install postgresql postgresql-contrib
+
+# Create database (important-comment)
+sudo -u postgres createdb banking_system
+
+# Create user (important-comment)
+sudo -u postgres createuser banking_user -P
+
+# Grant privileges (important-comment)
+sudo -u postgres psql
+GRANT ALL PRIVILEGES ON DATABASE banking_system TO banking_user;
+```
+
+### Migration from SQLite to PostgreSQL
+
+```bash
+python scripts/migrate_to_postgresql.py
+```
+
+### Running Tests
+
+```bash
+pytest --cov
+```
+
+### Health Checks
+
+- Full health check: `GET /health/`
+- Readiness check: `GET /health/ready/`
+- Liveness check: `GET /health/live/`
 
 ## Install Redis Server
 
