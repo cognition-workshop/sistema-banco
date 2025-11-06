@@ -1,5 +1,5 @@
 from django import forms
-from .models import FraudRule, FraudAlert
+from .models import FraudRule, FraudAlert, STATUS_CHOICES, SEVERITY_CHOICES
 
 
 class FraudRuleForm(forms.ModelForm):
@@ -40,11 +40,11 @@ class FraudRuleForm(forms.ModelForm):
 
 class FraudAlertFilterForm(forms.Form):
     status = forms.ChoiceField(
-        choices=[('', 'All')] + list(FraudAlert.STATUS_CHOICES),
+        choices=[('', 'All')] + list(STATUS_CHOICES),
         required=False
     )
     severity = forms.ChoiceField(
-        choices=[('', 'All')] + list(FraudAlert.SEVERITY_CHOICES),
+        choices=[('', 'All')] + list(SEVERITY_CHOICES),
         required=False
     )
     date_from = forms.DateField(required=False, widget=forms.DateInput(attrs={'type': 'date'}))

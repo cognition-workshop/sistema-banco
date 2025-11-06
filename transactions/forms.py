@@ -5,7 +5,7 @@ from django import forms
 from django.conf import settings
 
 from .models import Transaction
-from .constants import TRANSACTION_TYPE_CHOICES
+from .constants import TRANSACTION_TYPE_CHOICES, DEPOSIT, WITHDRAWAL
 
 
 class TransactionForm(forms.ModelForm):
@@ -27,7 +27,17 @@ class TransactionForm(forms.ModelForm):
 
     def save(self, commit=True):
         self.instance.account = self.account
-        self.instance.balance_after_transaction = self.account.balance
+        
+        from .constants import DEPOSIT, WITHDRAWAL
+        amount = self.cleaned_data['amount']
+        transaction_type = self.cleaned_data['transaction_type']
+        
+        if transaction_type == DEPOSIT:
+            self.instance.balance_after_transaction = self.account.balance + amount
+        elif transaction_type == WITHDRAWAL:
+            self.instance.balance_after_transaction = self.account.balance - amount
+        else:
+            self.instance.balance_after_transaction = self.account.balance
         
         if self.request:
             self.instance.ip_address = getattr(self.request, 'client_ip', 'unknown')
@@ -77,6 +87,11 @@ class TransactionForm(forms.ModelForm):
 
 
 class DepositForm(TransactionForm):
+    
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault('initial', {})
+        kwargs['initial']['transaction_type'] = DEPOSIT
+        super().__init__(*args, **kwargs)
 
     def clean_amount(self):
         min_deposit_amount = settings.MINIMUM_DEPOSIT_AMOUNT
@@ -91,6 +106,11 @@ class DepositForm(TransactionForm):
 
 
 class WithdrawForm(TransactionForm):
+    
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault('initial', {})
+        kwargs['initial']['transaction_type'] = WITHDRAWAL
+        super().__init__(*args, **kwargs)
 
     def clean_amount(self):
         account = self.account

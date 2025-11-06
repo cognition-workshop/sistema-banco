@@ -421,7 +421,7 @@ class TransactionReportViewFilteringTest(TransactionTestCase):
         from transactions.views import TransactionRepostView
         
         Transaction.objects.filter(account=self.demo_account).update(
-            timestamp=datetime.datetime(2024, 1, 15, 12, 0, 0)
+            timestamp=datetime(2024, 1, 15, 12, 0, 0)
         )
         Transaction.objects.create(
             account=self.demo_account,
@@ -432,7 +432,7 @@ class TransactionReportViewFilteringTest(TransactionTestCase):
         Transaction.objects.filter(
             account=self.demo_account,
             amount=Decimal('75.00')
-        ).update(timestamp=datetime.datetime(2024, 2, 15, 12, 0, 0))
+        ).update(timestamp=datetime(2024, 2, 15, 12, 0, 0))
         
         view = TransactionRepostView()
         view.form_data = {'daterange': ['2024-01-01', '2024-01-31']}
@@ -743,7 +743,7 @@ class DepositMoneyViewTest(TestCase):
             account_no=1000000005,
             gender=MALE,
             birth_date=date(1990, 1, 1),
-            balance=1000.00
+            balance=Decimal('1000.00')
         )
 
     def test_deposit_increases_balance(self):
@@ -813,7 +813,7 @@ class WithdrawMoneyViewTest(TestCase):
             account_no=1000000007,
             gender=MALE,
             birth_date=date(1990, 1, 1),
-            balance=5000.00
+            balance=Decimal('5000.00')
         )
 
     def test_withdraw_decreases_balance(self):
@@ -904,12 +904,12 @@ class CalculateInterestTaskTest(TestCase):
             account_no=1000000009,
             gender=MALE,
             birth_date=date(1990, 1, 1),
-            balance=1000.00,
+            balance=Decimal('1000.00'),
             initial_deposit_date=date(2024, 1, 1),
             interest_start_date=date(2024, 3, 1)
         )
         
-        initial_balance = account.balance
+        initial_balance = Decimal(str(account.balance))
         expected_interest = self.account_type.calculate_interest(initial_balance)
         
         calculate_interest()

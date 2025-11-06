@@ -1,4 +1,4 @@
-from celery.decorators import task
+from celery import shared_task
 from django.utils import timezone
 from django.db.models import Sum, Count
 from datetime import timedelta
@@ -7,7 +7,7 @@ from transactions.models import Transaction
 from .models import FraudRule, FraudAlert
 
 
-@task(name="analyze_transaction_for_fraud")
+@shared_task(name="analyze_transaction_for_fraud")
 def analyze_transaction_for_fraud(transaction_id):
     """
     Analyzes a transaction against all active fraud rules.
