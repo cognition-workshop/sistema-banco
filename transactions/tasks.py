@@ -3,8 +3,8 @@ from django.utils import timezone
 from celery.decorators import task
 
 from accounts.models import UserBankAccount
-from transactions.constants import INTEREST
 from transactions.models import Transaction
+from transactions.utils import process_account_interest
 
 
 @task(name="calculate_interest")
@@ -21,20 +21,14 @@ def calculate_interest():
     updated_accounts = []
 
     for account in accounts:
-        if this_month in account.get_interest_calculation_months():
-            interest = account.account_type.calculate_interest(
-                account.balance
-            )
-            account.balance += interest
+        transaction_obj, updated_account = process_account_interest(
+            account, this_month
+        )
+        
+        if transaction_obj and updated_account:
             account.save()
-
-            transaction_obj = Transaction(
-                account=account,
-                transaction_type=INTEREST,
-                amount=interest
-            )
             created_transactions.append(transaction_obj)
-            updated_accounts.append(account)
+            updated_accounts.append(updated_account)
 
     if created_transactions:
         Transaction.objects.bulk_create(created_transactions)
