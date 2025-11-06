@@ -11,6 +11,7 @@ django.setup()
 from django.utils import timezone
 from dateutil.relativedelta import relativedelta
 from accounts.models import User, BankAccountType, UserBankAccount, UserAddress
+from accounts.utils import calcular_digito_verificador
 from transactions.models import Transaction
 from transactions.constants import DEPOSIT, WITHDRAWAL
 
@@ -47,11 +48,18 @@ if created:
     demo_user.save()
 
 # Create Bank Account
+agencia_demo = "0001"
+conta_demo = "1001"
+digito_demo = calcular_digito_verificador(agencia_demo, conta_demo)
+
 account, _ = UserBankAccount.objects.get_or_create(
     user=demo_user,
     defaults={
         'account_type': savings_type,
         'account_no': 1001,
+        'agencia': agencia_demo,
+        'conta': conta_demo,
+        'conta_digito': digito_demo,
         'gender': 'M',
         'birth_date': '1990-01-01',
         'balance': 5000.00,
@@ -106,6 +114,6 @@ account.save()
 
 print("✅ Demo data created successfully!")
 print(f"Demo User: demo@example.com / demo123")
-print(f"Account Number: {account.account_no}")
+print(f"Account: {account.get_formatted_account()}")
 print(f"Balance: ${account.balance}")
 print(f"Transactions: {Transaction.objects.filter(account=account).count()}")

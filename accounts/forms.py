@@ -5,6 +5,7 @@ from django.db import transaction
 
 from .models import User, BankAccountType, UserBankAccount, UserAddress
 from .constants import GENDER_CHOICE
+from .utils import calcular_digito_verificador
 
 
 class UserAddressForm(forms.ModelForm):
@@ -73,14 +74,20 @@ class UserRegistrationForm(UserCreationForm):
             gender = self.cleaned_data.get('gender')
             birth_date = self.cleaned_data.get('birth_date')
 
+            account_no = user.id + settings.ACCOUNT_NUMBER_START_FROM
+            
+            agencia = "0001"
+            conta = str(account_no)
+            conta_digito = calcular_digito_verificador(agencia, conta)
+
             UserBankAccount.objects.create(
                 user=user,
                 gender=gender,
                 birth_date=birth_date,
                 account_type=account_type,
-                account_no=(
-                    user.id +
-                    settings.ACCOUNT_NUMBER_START_FROM
-                )
+                account_no=account_no,
+                agencia=agencia,
+                conta=conta,
+                conta_digito=conta_digito
             )
         return user
