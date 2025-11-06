@@ -1,5 +1,10 @@
 #!/usr/bin/env python
-"""Create demo data for the banking system"""
+"""Create demo data for the banking system
+
+SECURITY WARNING: This script creates a demo user for development/testing purposes only.
+The demo user should NOT be used in production environments. For production, create users
+through the registration interface or Django admin panel.
+"""
 import os
 import sys
 import django
