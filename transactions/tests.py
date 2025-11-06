@@ -38,7 +38,7 @@ class TransactionModelTest(TestCase):
             gender='M',
             balance=1000
         )
-    
+
     def test_transaction_creation(self):
         transaction = Transaction.objects.create(
             account=self.account,
@@ -77,14 +77,14 @@ class DepositFormTest(TestCase):
             gender='M',
             balance=1000
         )
-    
+
     def test_valid_deposit(self):
         form_data = {
             'amount': 100,
         }
         form = DepositForm(data=form_data, account=self.account, initial={'transaction_type': DEPOSIT})
         self.assertTrue(form.is_valid())
-    
+
     def test_deposit_below_minimum(self):
         form_data = {
             'amount': 5,
@@ -120,28 +120,28 @@ class WithdrawFormTest(TestCase):
             gender='M',
             balance=1000
         )
-    
+
     def test_valid_withdrawal(self):
         form_data = {
             'amount': 100,
         }
         form = WithdrawForm(data=form_data, account=self.account, initial={'transaction_type': WITHDRAWAL})
         self.assertTrue(form.is_valid())
-    
+
     def test_withdrawal_below_minimum(self):
         form_data = {
             'amount': 5,
         }
         form = WithdrawForm(data=form_data, account=self.account, initial={'transaction_type': WITHDRAWAL})
         self.assertFalse(form.is_valid())
-    
+
     def test_withdrawal_above_maximum(self):
         form_data = {
             'amount': 10000,
         }
         form = WithdrawForm(data=form_data, account=self.account, initial={'transaction_type': WITHDRAWAL})
         self.assertFalse(form.is_valid())
-    
+
     def test_withdrawal_allows_negative_balance(self):
         form_data = {
             'amount': 2000,
@@ -158,7 +158,7 @@ class TransactionDateRangeFormTest(TestCase):
         }
         form = TransactionDateRangeForm(data=form_data)
         self.assertTrue(form.is_valid())
-    
+
     def test_invalid_date_range(self):
         form_data = {
             'date_from': '2024-01-31',
@@ -180,11 +180,11 @@ class CalculateInterestTaskTest(TestCase):
             annual_interest_rate=5.0,
             interest_calculation_per_year=12
         )
-    
+
     def test_interest_calculation_task(self):
         from datetime import date
         from dateutil.relativedelta import relativedelta
-        
+
         agencia = 1
         conta = 1004
         agencia_digito, conta_digito = validate_brazilian_account(agencia, conta)
@@ -201,9 +201,9 @@ class CalculateInterestTaskTest(TestCase):
             initial_deposit_date=date.today(),
             interest_start_date=date.today() + relativedelta(months=1)
         )
-        
+
         initial_balance = account.balance
         calculate_interest()
-        
+
         account.refresh_from_db()
         self.assertGreaterEqual(account.balance, initial_balance)
