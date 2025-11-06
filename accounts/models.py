@@ -5,15 +5,49 @@ from django.core.validators import (
     MinValueValidator,
     MaxValueValidator,
 )
+from django.core.exceptions import ValidationError
 from django.db import models
 
 from .constants import GENDER_CHOICE
 from .managers import UserManager
 
 
+def validate_cpf(value):
+    """
+    Validates Brazilian CPF number using check digits algorithm.
+    Expected format: ###.###.###-## or ###########
+    """
+    cpf = ''.join(filter(str.isdigit, value))
+    
+    if len(cpf) != 11:
+        raise ValidationError('CPF deve conter 11 dígitos')
+    
+    if cpf == cpf[0] * 11:
+        raise ValidationError('CPF inválido')
+    
+    def calculate_digit(cpf_partial):
+        total = sum(int(digit) * weight for digit, weight in zip(cpf_partial, range(len(cpf_partial) + 1, 1, -1)))
+        remainder = total % 11
+        return 0 if remainder < 2 else 11 - remainder
+    
+    first_digit = calculate_digit(cpf[:9])
+    second_digit = calculate_digit(cpf[:10])
+    
+    if cpf[9] != str(first_digit) or cpf[10] != str(second_digit):
+        raise ValidationError('CPF inválido')
+    
+    return value
+
+
 class User(AbstractUser):
     username = None
     email = models.EmailField(unique=True, null=False, blank=False)
+    cpf = models.CharField(
+        max_length=14,
+        unique=True,
+        validators=[validate_cpf],
+        help_text='CPF no formato ###.###.###-##'
+    )
 
     objects = UserManager()
 
@@ -22,6 +56,11 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.email
+    
+    def get_formatted_cpf(self):
+        """Returns CPF in formatted ###.###.###-## format"""
+        cpf_digits = ''.join(filter(str.isdigit, self.cpf))
+        return f'{cpf_digits[:3]}.{cpf_digits[3:6]}.{cpf_digits[6:9]}-{cpf_digits[9:]}'
 
     @property
     def balance(self):
@@ -77,7 +116,10 @@ class UserBankAccount(models.Model):
         related_name='accounts',
         on_delete=models.CASCADE
     )
+    bank_code = models.CharField(max_length=3, default='237')
+    branch_code = models.CharField(max_length=4)
     account_no = models.PositiveIntegerField(unique=True)
+    account_check_digit = models.CharField(max_length=2)
     gender = models.CharField(max_length=1, choices=GENDER_CHOICE)
     birth_date = models.DateField(null=True, blank=True)
     balance = models.DecimalField(
@@ -94,7 +136,11 @@ class UserBankAccount(models.Model):
     initial_deposit_date = models.DateField(null=True, blank=True)
 
     def __str__(self):
-        return str(self.account_no)
+        return self.get_formatted_account()
+    
+    def get_formatted_account(self):
+        """Returns account in Brazilian format: ####-#-######-#"""
+        return f'{self.branch_code}-{self.bank_code[-1]}-{str(self.account_no).zfill(6)}-{self.account_check_digit}'
 
     def get_interest_calculation_months(self):
         """

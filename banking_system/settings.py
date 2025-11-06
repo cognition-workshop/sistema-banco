@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'accounts',
     'core',
     'transactions',
+    'compliance',
 ]
 
 MIDDLEWARE = [
@@ -53,6 +54,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'compliance.middleware.AuditMiddleware',
 ]
 
 ROOT_URLCONF = 'banking_system.urls'
@@ -110,15 +112,19 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/3.1/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'pt-br'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'America/Sao_Paulo'
 
 USE_I18N = True
 
 USE_L10N = True
 
 USE_TZ = True
+
+USE_THOUSAND_SEPARATOR = True
+DECIMAL_SEPARATOR = ','
+THOUSAND_SEPARATOR = '.'
 
 
 # Static files (CSS, JavaScript, Images)
@@ -132,6 +138,25 @@ MINIMUM_WITHDRAWAL_AMOUNT = 10
 
 # Login redirect
 LOGIN_REDIRECT_URL = 'home'
+
+REQUIRE_CPF = True
+ALLOW_CNPJ = True
+
+BANK_CODE = '237'
+BRANCH_CODE_DEFAULT = '0001'
+BANKING_HOURS_START = 10
+BANKING_HOURS_END = 16
+
+PIX_ENABLED = True
+PIX_TIMEOUT_SECONDS = 30
+
+AUDIT_LOG_RETENTION_YEARS = 5
+ENABLE_IMMUTABLE_AUDIT = True
+
+IRPF_REPORTS_ENABLED = True
+IRPF_MINIMUM_REPORTABLE_INTEREST = 10.00
+
+RESPECT_BANKING_CALENDAR = True
 
 # Celery Settings
 CELERY_BROKER_URL = 'redis://localhost:6379'

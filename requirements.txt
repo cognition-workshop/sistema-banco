@@ -4,3 +4,14 @@ django-celery-beat==2.1.0
 djangorestframework==3.14.0
 python-dateutil==2.8.2
 redis==3.5.3
+
+validate-docbr==1.10.0
+python-decouple==3.8
+workalendar==17.0.0
+qrcode==7.4.2
+pillow==10.0.0
+reportlab==4.0.4
+xlsxwriter==3.1.2
+cryptography==41.0.3
+django-model-utils==4.3.1
+requests==2.31.0
