@@ -21,7 +21,7 @@ def calculate_interest(self):
     """
     try:
         logger.info('Starting interest calculation task')
-        
+
         accounts = UserBankAccount.objects.filter(
             balance__gt=0,
             interest_start_date__gte=timezone.now(),
@@ -29,7 +29,7 @@ def calculate_interest(self):
         ).select_related('account_type')
 
         this_month = timezone.now().month
-        
+
         created_transactions = []
         updated_accounts = []
         total_interest = 0
@@ -52,9 +52,12 @@ def calculate_interest(self):
                         )
                         created_transactions.append(transaction_obj)
                         updated_accounts.append(account)
-                        
-                        logger.info(f'Interest calculated for account {account.account_no}: {interest}')
-                        
+
+                        logger.info(
+                            f'Interest calculated for account '
+                            f'{account.account_no}: {interest}'
+                        )
+
                 except Exception as e:
                     logger.error(
                         f'Error calculating interest for account {account.account_no}: {str(e)}',
@@ -73,14 +76,14 @@ def calculate_interest(self):
                 logger.info(f'Updated {len(updated_accounts)} account balances')
 
         audit_logger.info(
-            f'Interest calculation completed',
+            'Interest calculation completed',
             extra={
                 'action': 'INTEREST_CALCULATION',
                 'accounts_processed': len(updated_accounts),
                 'total_interest': str(total_interest),
             }
         )
-        
+
         logger.info(f'Interest calculation task completed. Total interest: {total_interest}')
         return {
             'accounts_processed': len(updated_accounts),
@@ -90,18 +93,18 @@ def calculate_interest(self):
     except (OperationalError, IntegrityError) as e:
         logger.error(f'Database error in interest calculation: {str(e)}', exc_info=True)
         audit_logger.error(
-            f'Interest calculation failed - Database error',
+            'Interest calculation failed - Database error',
             extra={
                 'action': 'INTEREST_CALCULATION_FAILED',
                 'error': str(e),
             }
         )
         raise self.retry(exc=e, countdown=60)
-        
+
     except Exception as e:
         logger.error(f'Unexpected error in interest calculation: {str(e)}', exc_info=True)
         audit_logger.error(
-            f'Interest calculation failed - Unexpected error',
+            'Interest calculation failed - Unexpected error',
             extra={
                 'action': 'INTEREST_CALCULATION_FAILED',
                 'error': str(e),

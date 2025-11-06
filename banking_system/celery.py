@@ -31,7 +31,10 @@ def debug_task(self):
 
 
 @task_failure.connect
-def task_failure_handler(sender=None, task_id=None, exception=None, args=None, kwargs=None, traceback=None, einfo=None, **kw):
+def task_failure_handler(
+    sender=None, task_id=None, exception=None, args=None,
+    kwargs=None, traceback=None, einfo=None, **kw
+):
     """Log task failures"""
     logger.error(
         f'Task {sender.name} (ID: {task_id}) failed with exception: {exception}',

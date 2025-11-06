@@ -2,7 +2,6 @@ import logging
 from dateutil.relativedelta import relativedelta
 
 from django.contrib import messages
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth import get_user_model
 from django.db import transaction, OperationalError, IntegrityError
 from django.urls import reverse_lazy
@@ -39,7 +38,7 @@ class TransactionRepostView(ListView):
         demo_user = User.objects.filter(email='demo@example.com').first()
         if not demo_user or not hasattr(demo_user, 'account'):
             return super().get_queryset().none()
-        
+
         queryset = super().get_queryset().filter(
             account=demo_user.account
         )
@@ -103,7 +102,7 @@ class DepositMoneyView(TransactionCreateMixin):
         User = get_user_model()
         demo_user = User.objects.filter(email='demo@example.com').first()
         account = demo_user.account if demo_user and hasattr(demo_user, 'account') else None
-        
+
         if not account:
             logger.error('Demo user account not found for deposit operation')
             messages.error(
@@ -136,7 +135,7 @@ class DepositMoneyView(TransactionCreateMixin):
                 )
 
                 audit_logger.info(
-                    f'Deposit successful',
+                    'Deposit successful',
                     extra={
                         'user': str(demo_user),
                         'action': 'DEPOSIT',
@@ -155,7 +154,7 @@ class DepositMoneyView(TransactionCreateMixin):
         except (OperationalError, IntegrityError) as e:
             logger.error(f'Database error during deposit: {str(e)}', exc_info=True)
             audit_logger.warning(
-                f'Deposit failed - Database error',
+                'Deposit failed - Database error',
                 extra={
                     'user': str(demo_user),
                     'action': 'DEPOSIT_FAILED',
@@ -171,7 +170,7 @@ class DepositMoneyView(TransactionCreateMixin):
         except Exception as e:
             logger.error(f'Unexpected error during deposit: {str(e)}', exc_info=True)
             audit_logger.warning(
-                f'Deposit failed - Unexpected error',
+                'Deposit failed - Unexpected error',
                 extra={
                     'user': str(demo_user),
                     'action': 'DEPOSIT_FAILED',
@@ -198,7 +197,7 @@ class WithdrawMoneyView(TransactionCreateMixin):
         amount = form.cleaned_data.get('amount')
         User = get_user_model()
         demo_user = User.objects.filter(email='demo@example.com').first()
-        
+
         if not demo_user or not hasattr(demo_user, 'account'):
             logger.error('Demo user account not found for withdrawal operation')
             messages.error(
@@ -206,18 +205,18 @@ class WithdrawMoneyView(TransactionCreateMixin):
                 'Account not found. Please contact support.'
             )
             return super().form_invalid(form)
-        
+
         try:
             with transaction.atomic():
                 account = demo_user.account
-                
+
                 if account.balance < amount:
                     logger.warning(
                         f'Withdrawal attempt with insufficient balance: '
                         f'User={demo_user}, Amount={amount}, Balance={account.balance}'
                     )
                     audit_logger.warning(
-                        f'Withdrawal blocked - Insufficient balance',
+                        'Withdrawal blocked - Insufficient balance',
                         extra={
                             'user': str(demo_user),
                             'action': 'WITHDRAWAL_BLOCKED',
@@ -230,12 +229,12 @@ class WithdrawMoneyView(TransactionCreateMixin):
                         f'Insufficient balance. Your current balance is {account.balance} $'
                     )
                     return super().form_invalid(form)
-                
+
                 account.balance -= amount
                 account.save(update_fields=['balance'])
 
                 audit_logger.info(
-                    f'Withdrawal successful',
+                    'Withdrawal successful',
                     extra={
                         'user': str(demo_user),
                         'action': 'WITHDRAWAL',
@@ -254,7 +253,7 @@ class WithdrawMoneyView(TransactionCreateMixin):
         except (OperationalError, IntegrityError) as e:
             logger.error(f'Database error during withdrawal: {str(e)}', exc_info=True)
             audit_logger.warning(
-                f'Withdrawal failed - Database error',
+                'Withdrawal failed - Database error',
                 extra={
                     'user': str(demo_user),
                     'action': 'WITHDRAWAL_FAILED',
@@ -270,7 +269,7 @@ class WithdrawMoneyView(TransactionCreateMixin):
         except Exception as e:
             logger.error(f'Unexpected error during withdrawal: {str(e)}', exc_info=True)
             audit_logger.warning(
-                f'Withdrawal failed - Unexpected error',
+                'Withdrawal failed - Unexpected error',
                 extra={
                     'user': str(demo_user),
                     'action': 'WITHDRAWAL_FAILED',

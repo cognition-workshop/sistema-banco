@@ -1,6 +1,4 @@
 import logging
-import traceback
-from django.http import JsonResponse
 from django.shortcuts import render
 from django.db import OperationalError, IntegrityError
 
@@ -25,7 +23,7 @@ class ErrorHandlingMiddleware:
         """
         user = request.user if hasattr(request, 'user') else 'Anonymous'
         user_info = str(user) if user else 'Anonymous'
-        
+
         logger.error(
             f'Unhandled exception for user {user_info} at {request.path}',
             exc_info=True,
@@ -37,9 +35,9 @@ class ErrorHandlingMiddleware:
                 'post_params': dict(request.POST) if request.method == 'POST' else {},
             }
         )
-        
+
         if isinstance(exception, (OperationalError, IntegrityError)):
             logger.error(f'Database error: {str(exception)}')
             return render(request, '500.html', status=500)
-        
+
         return None

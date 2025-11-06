@@ -1,17 +1,15 @@
 from decimal import Decimal
 from unittest.mock import patch, Mock
-from django.test import TestCase, RequestFactory, Client
+from django.test import TestCase, Client
 from django.contrib.auth import get_user_model
 from django.contrib.messages import get_messages
-from django.core.exceptions import ValidationError
 from django.db import OperationalError, IntegrityError
 from django.urls import reverse
 from django.utils import timezone
 
 from accounts.models import BankAccountType, UserBankAccount
 from transactions.models import Transaction
-from transactions.forms import DepositForm, WithdrawForm
-from transactions.views import DepositMoneyView, WithdrawMoneyView
+from transactions.forms import WithdrawForm
 from transactions.tasks import calculate_interest
 from transactions.constants import DEPOSIT, WITHDRAWAL, INTEREST
 
@@ -290,7 +288,7 @@ class CeleryInterestTaskTestCase(TestCase):
         """Test successful interest calculation"""
         initial_balance = self.account.balance
 
-        result = calculate_interest()
+        calculate_interest()
 
         self.account.refresh_from_db()
         self.assertGreater(self.account.balance, initial_balance)

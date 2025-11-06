@@ -1,7 +1,7 @@
 from unittest.mock import patch, Mock
 from django.test import TestCase, RequestFactory
 from django.http import HttpResponse
-from django.db import OperationalError, IntegrityError
+from django.db import OperationalError
 from django.contrib.auth import get_user_model
 
 from core.middleware import ErrorHandlingMiddleware
@@ -42,7 +42,7 @@ class ErrorHandlingMiddlewareTestCase(TestCase):
         request.user = self.user
 
         test_exception = Exception("Test exception")
-        response = self.middleware.process_exception(request, test_exception)
+        self.middleware.process_exception(request, test_exception)
 
         mock_logger.error.assert_called()
         call_args = str(mock_logger.error.call_args)
@@ -57,7 +57,7 @@ class ErrorHandlingMiddlewareTestCase(TestCase):
         request.user = self.user
 
         db_exception = OperationalError("Database locked")
-        response = self.middleware.process_exception(request, db_exception)
+        self.middleware.process_exception(request, db_exception)
 
         mock_logger.error.assert_called()
         self.assertIn("Database error", str(mock_logger.error.call_args))
