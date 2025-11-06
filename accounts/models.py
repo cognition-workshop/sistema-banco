@@ -1,5 +1,6 @@
 from decimal import Decimal
 
+from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import (
     MinValueValidator,
@@ -9,11 +10,27 @@ from django.db import models
 
 from .constants import GENDER_CHOICE
 from .managers import UserManager
+from .validators import validate_cpf
 
 
 class User(AbstractUser):
     username = None
     email = models.EmailField(unique=True, null=False, blank=False)
+    cpf = models.CharField(
+        max_length=11,
+        unique=True,
+        db_index=True,
+        null=True,
+        blank=True,
+        help_text="CPF stored as digits only (no punctuation).",
+        validators=[validate_cpf]
+    )
+    phone = models.CharField(
+        max_length=15,
+        null=True,
+        blank=True,
+        help_text="E.g., 11999999999 (digits only)."
+    )
 
     objects = UserManager()
 
@@ -122,3 +139,47 @@ class UserAddress(models.Model):
 
     def __str__(self):
         return self.user.email
+
+
+class AuditLog(models.Model):
+    ACTION_EDIT = "EDIT"
+    ACTION_SUSPEND = "SUSPEND"
+    ACTION_REINSTATE = "REINSTATE"
+    ACTION_CHOICES = (
+        (ACTION_EDIT, "Edit"),
+        (ACTION_SUSPEND, "Suspend"),
+        (ACTION_REINSTATE, "Reinstate"),
+    )
+
+    actor = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        related_name="audit_actor_logs",
+        on_delete=models.SET_NULL
+    )
+    target_user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        related_name="audit_target_logs",
+        on_delete=models.SET_NULL
+    )
+    action = models.CharField(max_length=16, choices=ACTION_CHOICES)
+    changes = models.JSONField(
+        null=True,
+        blank=True,
+        help_text="Field diffs for edits"
+    )
+    reason = models.TextField(blank=True, default="")
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-timestamp"]
+        indexes = [
+            models.Index(fields=["timestamp"]),
+            models.Index(fields=["action"]),
+        ]
+
+    def __str__(self):
+        return f"{self.action} by {self.actor_id} on {self.target_user_id} at {self.timestamp}"

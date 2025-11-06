@@ -1,0 +1,88 @@
+{% extends 'core/base.html' %}
+{% block head_title %}Gerenciar Usuários{% endblock %}
+{% block content %}
+<h1 class="font-mono font-bold text-3xl text-center pb-5 pt-10">Gerenciar Usuários</h1>
+<hr />
+<form method="get" class="bg-white shadow-md rounded px-8 pt-6 pb-4 my-4">
+    <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+        <div>
+            <label class="block text-xs font-bold mb-2">Nome ou E-mail</label>
+            {{ search_form.q }}
+        </div>
+        <div>
+            <label class="block text-xs font-bold mb-2">CPF</label>
+            {{ search_form.cpf }}
+        </div>
+        <div>
+            <label class="block text-xs font-bold mb-2">Status</label>
+            {{ search_form.status }}
+        </div>
+        <div>
+            <label class="block text-xs font-bold mb-2">Ordenar por</label>
+            {{ search_form.order_by }}
+        </div>
+        <div>
+            <label class="block text-xs font-bold mb-2">Direção</label>
+            {{ search_form.direction }}
+        </div>
+    </div>
+    <div class="mt-4">
+        <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+            Buscar
+        </button>
+    </div>
+</form>
+
+<div class="bg-white shadow-md rounded mb-4 overflow-x-auto">
+  <table class="min-w-full">
+    <thead class="bg-gray-100">
+      <tr>
+        <th class="px-4 py-2 text-left">Nome</th>
+        <th class="px-4 py-2 text-left">E-mail</th>
+        <th class="px-4 py-2 text-left">CPF</th>
+        <th class="px-4 py-2 text-left">Status</th>
+        <th class="px-4 py-2 text-left">Ações</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for u in users %}
+        <tr class="border-t">
+          <td class="px-4 py-2">{{ u.first_name }} {{ u.last_name }}</td>
+          <td class="px-4 py-2">{{ u.email }}</td>
+          <td class="px-4 py-2">{{ u.cpf|default:"-" }}</td>
+          <td class="px-4 py-2">
+            {% if u.is_active %}
+              <span class="text-green-700 font-semibold">Ativo</span>
+            {% else %}
+              <span class="text-red-700 font-semibold">Suspenso</span>
+            {% endif %}
+          </td>
+          <td class="px-4 py-2">
+            <a class="text-blue-600 hover:underline" href="{% url 'admin_users:user_edit' u.pk %}">Editar</a>
+            {% if request.user.pk != u.pk %}
+              |
+              <a class="text-yellow-700 hover:underline" href="{% url 'admin_users:user_toggle_status' u.pk %}">
+                {% if u.is_active %}Suspender{% else %}Reativar{% endif %}
+              </a>
+            {% endif %}
+          </td>
+        </tr>
+      {% empty %}
+        <tr><td class="px-4 py-4" colspan="5">Sem resultados.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% if is_paginated %}
+  <div class="flex space-x-2">
+    {% if page_obj.has_previous %}
+      <a class="px-3 py-1 rounded bg-gray-200" href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Anterior</a>
+    {% endif %}
+    <span class="px-3 py-1">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}
+      <a class="px-3 py-1 rounded bg-gray-200" href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Próxima</a>
+    {% endif %}
+  </div>
+{% endif %}
+{% endblock %}

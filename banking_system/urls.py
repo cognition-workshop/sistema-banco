@@ -22,6 +22,7 @@ from core.views import HomeView
 urlpatterns = [
     path('', HomeView.as_view(), name='home'),
     path('accounts/', include('accounts.urls', namespace='accounts')),
+    path('admin/users/', include('accounts.admin_urls', namespace='admin_users')),
     path('admin/', admin.site.urls),
     path(
         'transactions/',

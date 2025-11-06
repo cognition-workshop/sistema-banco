@@ -1,0 +1,25 @@
+{% extends 'core/base.html' %}
+{% block head_title %}Editar Usuário{% endblock %}
+{% block content %}
+<h1 class="font-mono font-bold text-3xl text-center pb-5 pt-10">Editar Usuário</h1>
+<hr />
+<form method="post" class="bg-white shadow-md rounded px-8 pt-6 pb-8 my-4">
+  {% csrf_token %}
+  {{ form.non_field_errors }}
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    {% for field in form %}
+      <div>
+        <label class="block text-xs font-bold mb-2" for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {% for error in field.errors %}
+          <p class="text-red-600 text-sm italic pb-2">{{ error }}</p>
+        {% endfor %}
+      </div>
+    {% endfor %}
+  </div>
+  <div class="mt-4 flex space-x-2">
+    <a href="{% url 'admin_users:user_list' %}" class="px-4 py-2 bg-gray-300 rounded">Cancelar</a>
+    <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Salvar</button>
+  </div>
+</form>
+{% endblock %}
