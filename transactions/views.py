@@ -115,6 +115,9 @@ class DepositMoneyView(TransactionCreateMixin):
             )
 
         account.balance += amount
+        
+        response = super().form_valid(form)
+        
         account.save(
             update_fields=[
                 'initial_deposit_date',
@@ -128,7 +131,7 @@ class DepositMoneyView(TransactionCreateMixin):
             f'{amount}$ was deposited to your account successfully'
         )
 
-        return super().form_valid(form)
+        return response
 
 
 class WithdrawMoneyView(TransactionCreateMixin):
@@ -146,6 +149,10 @@ class WithdrawMoneyView(TransactionCreateMixin):
         demo_user = User.objects.filter(email='demo@example.com').first()
         if demo_user and hasattr(demo_user, 'account'):
             demo_user.account.balance -= form.cleaned_data.get('amount')
+            
+        response = super().form_valid(form)
+        
+        if demo_user and hasattr(demo_user, 'account'):
             demo_user.account.save(update_fields=['balance'])
 
         messages.success(
@@ -153,4 +160,4 @@ class WithdrawMoneyView(TransactionCreateMixin):
             f'Successfully withdrawn {amount}$ from your account'
         )
 
-        return super().form_valid(form)
+        return response
