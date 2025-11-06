@@ -1,14 +1,24 @@
 from django.utils import timezone
+from datetime import date
 
 from celery.decorators import task
 
 from accounts.models import UserBankAccount
 from transactions.constants import INTEREST
 from transactions.models import Transaction
+from .banking_calendar import BrazilianBankingCalendar
 
 
 @task(name="calculate_interest")
 def calculate_interest():
+    """
+    Calculate interest only on business days according to BACEN regulations
+    """
+    today = timezone.now().date()
+    
+    if not BrazilianBankingCalendar.is_business_day(today):
+        return
+    
     accounts = UserBankAccount.objects.filter(
         balance__gt=0,
         interest_start_date__gte=timezone.now(),

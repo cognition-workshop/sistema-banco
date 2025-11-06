@@ -9,6 +9,7 @@ from django.db import models
 
 from .constants import GENDER_CHOICE
 from .managers import UserManager
+from .validators import validate_cpf_format, validate_cpf_digits
 
 
 class User(AbstractUser):
@@ -77,7 +78,16 @@ class UserBankAccount(models.Model):
         related_name='accounts',
         on_delete=models.CASCADE
     )
-    account_no = models.PositiveIntegerField(unique=True)
+    account_no = models.PositiveIntegerField(unique=True, null=True, blank=True)
+    cpf = models.CharField(
+        max_length=14,
+        unique=True,
+        validators=[validate_cpf_format, validate_cpf_digits],
+        help_text='CPF no formato XXX.XXX.XXX-XX'
+    )
+    agency = models.CharField(max_length=4, help_text='Agência (4 dígitos)')
+    account_number = models.CharField(max_length=8, help_text='Número da conta (até 8 dígitos)')
+    account_digit = models.CharField(max_length=1, help_text='Dígito verificador')
     gender = models.CharField(max_length=1, choices=GENDER_CHOICE)
     birth_date = models.DateField(null=True, blank=True)
     balance = models.DecimalField(
@@ -94,7 +104,19 @@ class UserBankAccount(models.Model):
     initial_deposit_date = models.DateField(null=True, blank=True)
 
     def __str__(self):
-        return str(self.account_no)
+        return str(self.account_no) if self.account_no else self.get_formatted_account()
+    
+    def get_formatted_account(self):
+        """Returns formatted account: XXXX-XXXXXXXX-X"""
+        return f'{self.agency}-{self.account_number}-{self.account_digit}'
+    
+    def save(self, *args, **kwargs):
+        if self.agency and self.account_number and not self.account_digit:
+            from .validators import calculate_account_digit
+            self.account_digit = str(calculate_account_digit(
+                int(self.agency), int(self.account_number)
+            ))
+        super().save(*args, **kwargs)
 
     def get_interest_calculation_months(self):
         """
