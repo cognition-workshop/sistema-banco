@@ -1,6 +1,6 @@
 {% extends 'core/base.html' %}
 
-{% block head_title %}Transaction Report{% endblock %}
+{% block head_title %}Transaction Report - Banco Digital{% endblock %}
 
 {% block head_extra %}
     <script type="text/javascript" src="https://cdn.jsdelivr.net/jquery/latest/jquery.min.js"></script>
@@ -10,47 +10,205 @@
 {% endblock %}
 
 {% block content %}
-    <h1 class="font-mono font-bold text-3xl text-center pb-5 pt-10">Transaction Report</h1>
-    <hr />
-    <form method="get">
-        <div class="mt-10 h-10 pl-3 pr-2 bg-white border rounded-md border-gray-500 flex justify-between items-center relative">
-            <input type="search" name="daterange" id="search" placeholder="Filter using date range" value="{{ request.GET.daterange }}" class="appearance-none w-full outline-none focus:outline-none active:outline-none" />
-            <button type="submit" class="ml-1 outline-none focus:outline-none active:outline-none">
-                <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" class="w-6 h-6">
-                    <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                </svg>
-            </button>
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="mb-8">
+        <a href="/" class="text-bank-secondary hover:text-bank-primary font-medium text-sm mb-4 inline-block">
+            <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+        </a>
+        <h1 class="text-3xl font-bold text-gray-800 mb-2">Transaction Report</h1>
+        <p class="text-gray-600">View and filter your transaction history</p>
+    </div>
+    
+    <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg p-4 text-white">
+                <p class="text-blue-100 text-sm mb-1">Current Balance</p>
+                <p class="text-2xl font-bold">${{ account.balance|floatformat:2 }}</p>
+            </div>
+            <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-lg p-4 text-white">
+                <p class="text-green-100 text-sm mb-1">Total Transactions</p>
+                <p class="text-2xl font-bold">{{ object_list|length }}</p>
+            </div>
+            <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg p-4 text-white">
+                <p class="text-purple-100 text-sm mb-1">Account Number</p>
+                <p class="text-2xl font-bold">#{{ account.account_no }}</p>
+            </div>
         </div>
-        {% if form.daterange.errors %}
-            {% for error in form.daterange.errors %}
-                <p class="text-red-600 text-sm italic">{{ error }}</p>
-            {% endfor %}
+        
+        <form method="get" class="mb-6">
+            <label class="block text-gray-700 text-sm font-bold mb-2">
+                <i class="fas fa-calendar-alt mr-2 text-bank-secondary"></i>Filter by Date Range
+            </label>
+            <div class="flex flex-col sm:flex-row gap-4">
+                <div class="flex-1 relative">
+                    <input 
+                        type="search" 
+                        name="daterange" 
+                        id="search" 
+                        placeholder="Select date range" 
+                        value="{{ request.GET.daterange }}" 
+                        class="w-full pl-10 pr-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-bank-secondary transition-colors duration-200" />
+                    <i class="fas fa-calendar absolute left-3 top-4 text-gray-400"></i>
+                </div>
+                <button 
+                    type="submit" 
+                    class="bg-gradient-to-r from-bank-primary to-blue-700 hover:from-blue-700 hover:to-bank-primary text-white font-bold py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-105">
+                    <i class="fas fa-filter mr-2"></i>Apply Filter
+                </button>
+                {% if request.GET.daterange %}
+                <a 
+                    href="{% url 'transactions:transaction_report' %}" 
+                    class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-3 px-6 rounded-lg transition-all duration-200 text-center">
+                    <i class="fas fa-times mr-2"></i>Clear
+                </a>
+                {% endif %}
+            </div>
+            {% if form.daterange.errors %}
+                {% for error in form.daterange.errors %}
+                    <p class="text-red-600 text-sm mt-2 flex items-center">
+                        <i class="fas fa-exclamation-circle mr-2"></i>{{ error }}
+                    </p>
+                {% endfor %}
+            {% endif %}
+        </form>
+    </div>
+    
+    {% if object_list %}
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gradient-to-r from-bank-primary to-blue-900">
+                    <tr>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">
+                            <i class="fas fa-tag mr-2"></i>Type
+                        </th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">
+                            <i class="fas fa-calendar mr-2"></i>Date & Time
+                        </th>
+                        <th class="px-6 py-4 text-right text-xs font-bold text-white uppercase tracking-wider">
+                            <i class="fas fa-dollar-sign mr-2"></i>Amount
+                        </th>
+                        <th class="px-6 py-4 text-right text-xs font-bold text-white uppercase tracking-wider">
+                            <i class="fas fa-wallet mr-2"></i>Balance After
+                        </th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for transaction in object_list %}
+                    <tr class="hover:bg-gray-50 transition-colors duration-150">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            {% if transaction.transaction_type == 1 %}
+                            <span class="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-semibold bg-green-100 text-green-800">
+                                <i class="fas fa-arrow-down mr-2"></i>Deposit
+                            </span>
+                            {% elif transaction.transaction_type == 2 %}
+                            <span class="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-semibold bg-red-100 text-red-800">
+                                <i class="fas fa-arrow-up mr-2"></i>Withdrawal
+                            </span>
+                            {% else %}
+                            <span class="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-semibold bg-blue-100 text-blue-800">
+                                <i class="fas fa-percentage mr-2"></i>Interest
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-gray-600">
+                            <div class="text-sm font-medium">{{ transaction.timestamp|date:"M d, Y" }}</div>
+                            <div class="text-xs text-gray-500">{{ transaction.timestamp|date:"H:i" }}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right">
+                            <span class="text-lg font-bold {% if transaction.transaction_type == 1 %}text-green-600{% else %}text-red-600{% endif %}">
+                                {% if transaction.transaction_type == 1 %}+{% else %}-{% endif %}${{ transaction.amount|floatformat:2 }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right">
+                            <span class="text-lg font-semibold text-gray-800">${{ transaction.balance_after_transaction|floatformat:2 }}</span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot class="bg-gradient-to-r from-gray-700 to-gray-800">
+                    <tr>
+                        <td colspan="3" class="px-6 py-4 text-right text-sm font-bold text-white uppercase">
+                            Final Balance
+                        </td>
+                        <td class="px-6 py-4 text-right">
+                            <span class="text-xl font-bold text-white">${{ account.balance|floatformat:2 }}</span>
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+        
+        {% if is_paginated %}
+        <div class="bg-gray-50 px-6 py-4 border-t border-gray-200">
+            <div class="flex flex-col sm:flex-row items-center justify-between">
+                <div class="text-sm text-gray-600 mb-4 sm:mb-0">
+                    Showing {{ page_obj.start_index }} to {{ page_obj.end_index }} of {{ paginator.count }} transactions
+                </div>
+                <div class="flex items-center space-x-2">
+                    {% if page_obj.has_previous %}
+                    <a href="?page=1{% if request.GET.daterange %}&daterange={{ request.GET.daterange }}{% endif %}" class="px-3 py-2 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors duration-200">
+                        <i class="fas fa-angle-double-left"></i>
+                    </a>
+                    <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.daterange %}&daterange={{ request.GET.daterange }}{% endif %}" class="px-3 py-2 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors duration-200">
+                        <i class="fas fa-angle-left"></i>
+                    </a>
+                    {% else %}
+                    <span class="px-3 py-2 bg-gray-100 border border-gray-300 rounded-md text-sm font-medium text-gray-400 cursor-not-allowed">
+                        <i class="fas fa-angle-double-left"></i>
+                    </span>
+                    <span class="px-3 py-2 bg-gray-100 border border-gray-300 rounded-md text-sm font-medium text-gray-400 cursor-not-allowed">
+                        <i class="fas fa-angle-left"></i>
+                    </span>
+                    {% endif %}
+                    
+                    <span class="px-4 py-2 bg-bank-primary text-white rounded-md text-sm font-semibold">
+                        {{ page_obj.number }}
+                    </span>
+                    
+                    {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}{% if request.GET.daterange %}&daterange={{ request.GET.daterange }}{% endif %}" class="px-3 py-2 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors duration-200">
+                        <i class="fas fa-angle-right"></i>
+                    </a>
+                    <a href="?page={{ paginator.num_pages }}{% if request.GET.daterange %}&daterange={{ request.GET.daterange }}{% endif %}" class="px-3 py-2 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors duration-200">
+                        <i class="fas fa-angle-double-right"></i>
+                    </a>
+                    {% else %}
+                    <span class="px-3 py-2 bg-gray-100 border border-gray-300 rounded-md text-sm font-medium text-gray-400 cursor-not-allowed">
+                        <i class="fas fa-angle-right"></i>
+                    </span>
+                    <span class="px-3 py-2 bg-gray-100 border border-gray-300 rounded-md text-sm font-medium text-gray-400 cursor-not-allowed">
+                        <i class="fas fa-angle-double-right"></i>
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
         {% endif %}
-    </form>
-    <table class="table-auto mx-auto w-full mt-8">
-        <thead class="bg-gray-800 text-white">
-        <tr class="uppercase font-semibold text-sm">
-            <th class="px-4 py-2">Transaction Type</th>
-            <th class="px-4 py-2">Date</th>
-            <th class="px-4 py-2">Amount</th>
-            <th class="px-4 py-2">Balance After Transaction</th>
-        </tr>
-        </thead>
-        <tbody>
-        {% for transaction in object_list %}
-        <tr class="{% cycle 'bg-gray-300' 'bg-white-100' %}">
-            <td class="border px-4 py-2 text-center">{{ transaction.get_transaction_type_display }}</td>
-            <td class="border px-4 py-2 text-center">{{ transaction.timestamp }}</td>
-            <td class="border px-4 py-2 text-center">$ {{ transaction.amount }}</td>
-            <td class="border px-4 py-2 text-center">$ {{ transaction.balance_after_transaction }}</td>
-        </tr>
-        {% endfor %}
-        <tr class="bg-gray-600 text-white">
-            <th class="px-4 py-2 text-right" colspan="3">Final Balance</th>
-            <th class="px-4 py-2 text-center">$ {{ account.balance }}</th>
-        </tr>
-        </tbody>
-    </table>
+    </div>
+    {% else %}
+    <div class="bg-white rounded-xl shadow-lg p-12 text-center">
+        <i class="fas fa-receipt text-gray-300 text-6xl mb-4"></i>
+        <h3 class="text-xl font-semibold text-gray-700 mb-2">No Transactions Found</h3>
+        <p class="text-gray-500 mb-6">
+            {% if request.GET.daterange %}
+            No transactions match your filter criteria. Try adjusting your date range.
+            {% else %}
+            You don't have any transactions yet. Start by making a deposit or withdrawal.
+            {% endif %}
+        </p>
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+            <a href="{% url 'transactions:deposit_money' %}" class="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold py-3 px-6 rounded-lg transition-all duration-200">
+                <i class="fas fa-plus-circle mr-2"></i>Make a Deposit
+            </a>
+            <a href="/" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-3 px-6 rounded-lg transition-all duration-200">
+                <i class="fas fa-home mr-2"></i>Go to Dashboard
+            </a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
 {% endblock %}
 
 {% block footer_extra %}
@@ -60,6 +218,7 @@
                 autoUpdateInput: false,
                 locale: {
                     cancelLabel: "Clear",
+                    format: 'YYYY-MM-DD'
                 },
             });
 

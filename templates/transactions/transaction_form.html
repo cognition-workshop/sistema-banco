@@ -1,28 +1,139 @@
 {% extends 'core/base.html' %}
 
-{% block head_title %}{{ title }}{% endblock %}
+{% block head_title %}{{ title }} - Banco Digital{% endblock %}
 
 {% block content %}
-<h1 class="font-mono font-bold text-3xl text-center pb-5 pt-10">{{ title }}</h1>
-<hr />
-<div class="w-full mt-5">
-    <form method="post" class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
-        {% csrf_token %}
-
-        <div class="mb-4">
-            <label class="block text-gray-700 text-sm font-bold mb-2" for="amount">
-                Amount
-            </label>
-            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight border rounded-md border-gray-500 focus:outline-none focus:shadow-outline" name="amount" id="amount" type="number" required placeholder="Amount">
+<div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="mb-8">
+        <a href="/" class="text-bank-secondary hover:text-bank-primary font-medium text-sm mb-4 inline-block">
+            <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+        </a>
+        <h1 class="text-3xl font-bold text-gray-800 mb-2">{{ title }}</h1>
+        <p class="text-gray-600">Enter the amount you wish to transact</p>
+    </div>
+    
+    <div class="bg-white rounded-xl shadow-lg p-8">
+        <form method="post" id="transactionForm">
+            {% csrf_token %}
+            
+            <div class="mb-6">
+                <label class="block text-gray-700 text-sm font-bold mb-3" for="amount">
+                    <i class="fas fa-dollar-sign mr-2 text-bank-secondary"></i>Amount
+                </label>
+                <div class="relative">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-gray-500 text-lg">$</span>
+                    <input 
+                        class="w-full pl-10 pr-4 py-4 text-2xl font-semibold border-2 border-gray-300 rounded-lg focus:outline-none focus:border-bank-secondary transition-colors duration-200" 
+                        name="amount" 
+                        id="amount" 
+                        type="number" 
+                        step="0.01"
+                        min="0.01"
+                        required 
+                        placeholder="0.00"
+                        autocomplete="off">
+                </div>
+                <p class="text-gray-500 text-sm mt-2" id="amountHelper">
+                    <i class="fas fa-info-circle mr-1"></i>Enter the transaction amount
+                </p>
+                {% if form.amount.errors %}
+                    {% for error in form.amount.errors %}
+                        <p class="text-red-600 text-sm mt-2 flex items-center">
+                            <i class="fas fa-exclamation-circle mr-2"></i>{{ error }}
+                        </p>
+                    {% endfor %}
+                {% endif %}
+            </div>
+            
+            <div class="bg-blue-50 border-l-4 border-bank-secondary rounded-lg p-4 mb-6">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-info-circle text-bank-secondary text-xl"></i>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm text-gray-700">
+                            <strong class="font-semibold">Current Balance:</strong> 
+                            <span class="text-bank-primary font-bold">${{ user.account.balance|floatformat:2 }}</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex flex-col sm:flex-row gap-4">
+                <button 
+                    class="flex-1 bg-gradient-to-r from-bank-primary to-blue-700 hover:from-blue-700 hover:to-bank-primary text-white font-bold py-4 px-6 rounded-lg focus:outline-none focus:ring-4 focus:ring-blue-300 transition-all duration-200 transform hover:scale-105 shadow-lg" 
+                    type="submit">
+                    <i class="fas fa-check-circle mr-2"></i>Confirm Transaction
+                </button>
+                <a 
+                    href="/" 
+                    class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-4 px-6 rounded-lg text-center transition-all duration-200">
+                    <i class="fas fa-times-circle mr-2"></i>Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+    
+    <div class="mt-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+        <div class="flex">
+            <div class="flex-shrink-0">
+                <i class="fas fa-shield-alt text-yellow-600 text-xl"></i>
+            </div>
+            <div class="ml-3">
+                <h3 class="text-sm font-semibold text-yellow-800">Secure Transaction</h3>
+                <p class="text-sm text-yellow-700 mt-1">All transactions are encrypted and processed securely.</p>
+            </div>
         </div>
-        {% if form.amount.errors %}
-            {% for error in form.amount.errors %}
-                <p class="text-red-600 text-sm italic pb-2">{{ error }}</p>
-            {% endfor %}
-        {% endif %}
-        <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit">
-            Submit
-        </button>
-    </form>
+    </div>
 </div>
+
+<script>
+    const form = document.getElementById('transactionForm');
+    const amountInput = document.getElementById('amount');
+    const amountHelper = document.getElementById('amountHelper');
+    
+    amountInput.addEventListener('input', function(e) {
+        const value = parseFloat(e.target.value);
+        if (value > 0) {
+            amountHelper.innerHTML = '<i class="fas fa-check-circle mr-1 text-green-600"></i>Amount: $' + value.toFixed(2);
+            amountHelper.classList.remove('text-gray-500');
+            amountHelper.classList.add('text-green-600', 'font-semibold');
+        } else {
+            amountHelper.innerHTML = '<i class="fas fa-info-circle mr-1"></i>Enter the transaction amount';
+            amountHelper.classList.remove('text-green-600', 'font-semibold');
+            amountHelper.classList.add('text-gray-500');
+        }
+    });
+    
+    form.addEventListener('submit', function(e) {
+        const amount = parseFloat(amountInput.value);
+        if (amount <= 0 || isNaN(amount)) {
+            e.preventDefault();
+            alert('Please enter a valid amount greater than 0');
+            return false;
+        }
+        
+        const confirmMessage = 'Are you sure you want to proceed with this transaction?\n\nAmount: $' + amount.toFixed(2);
+        if (!confirm(confirmMessage)) {
+            e.preventDefault();
+            return false;
+        }
+    });
+    
+    amountInput.addEventListener('keypress', function(e) {
+        const charCode = e.which ? e.which : e.keyCode;
+        if (charCode == 46) {
+            if (this.value.indexOf('.') !== -1) {
+                e.preventDefault();
+                return false;
+            }
+            return true;
+        }
+        if (charCode > 31 && (charCode < 48 || charCode > 57)) {
+            e.preventDefault();
+            return false;
+        }
+        return true;
+    });
+</script>
 {% endblock %}
