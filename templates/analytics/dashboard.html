@@ -1,0 +1,214 @@
+{% extends 'core/base.html' %}
+
+{% block head_title %}Analytics Dashboard{% endblock %}
+
+{% block head_extra %}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+{% endblock %}
+
+{% block content %}
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="font-mono font-bold text-4xl text-center pb-5 pt-5">Analytics Dashboard</h1>
+        <hr class="mb-8"/>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="text-gray-500 text-sm font-semibold uppercase">Total Transactions</div>
+                <div class="text-3xl font-bold text-gray-800 mt-2">{{ total_transactions }}</div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="text-gray-500 text-sm font-semibold uppercase">Current Balance</div>
+                <div class="text-3xl font-bold text-green-600 mt-2">${{ total_balance }}</div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="text-gray-500 text-sm font-semibold uppercase">Total Accounts</div>
+                <div class="text-3xl font-bold text-gray-800 mt-2">{{ total_accounts }}</div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="text-gray-500 text-sm font-semibold uppercase">Recent (30 days)</div>
+                <div class="text-3xl font-bold text-gray-800 mt-2">{{ recent_transactions_count }}</div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="text-gray-700 text-lg font-semibold mb-2">Deposits</div>
+                <div class="text-2xl font-bold text-blue-600">{{ total_deposits }}</div>
+                <div class="text-sm text-gray-500 mt-1">Total: ${{ deposit_amount }}</div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="text-gray-700 text-lg font-semibold mb-2">Withdrawals</div>
+                <div class="text-2xl font-bold text-red-600">{{ total_withdrawals }}</div>
+                <div class="text-sm text-gray-500 mt-1">Total: ${{ withdrawal_amount }}</div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="text-gray-700 text-lg font-semibold mb-2">Interest</div>
+                <div class="text-2xl font-bold text-green-600">{{ total_interest }}</div>
+                <div class="text-sm text-gray-500 mt-1">Total: ${{ interest_amount }}</div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Transaction Trends</h2>
+            <canvas id="lineChart" height="100"></canvas>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">Transaction Volume</h2>
+                <canvas id="barChart"></canvas>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">Transaction Distribution</h2>
+                <canvas id="pieChart"></canvas>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Export Reports</h2>
+            <div class="flex flex-wrap gap-4">
+                <a href="{% url 'analytics:export_csv' %}" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 px-6 rounded-lg transition duration-200">
+                    Export to CSV
+                </a>
+                <a href="{% url 'analytics:export_pdf' %}" class="bg-red-500 hover:bg-red-600 text-white font-semibold py-3 px-6 rounded-lg transition duration-200">
+                    Export to PDF
+                </a>
+                <a href="{% url 'analytics:export_excel' %}" class="bg-green-500 hover:bg-green-600 text-white font-semibold py-3 px-6 rounded-lg transition duration-200">
+                    Export to Excel
+                </a>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block footer_extra %}
+    <script>
+        const lineCtx = document.getElementById('lineChart').getContext('2d');
+        const lineChart = new Chart(lineCtx, {
+            type: 'line',
+            data: {
+                labels: {{ chart_dates|safe }},
+                datasets: [
+                    {
+                        label: 'Deposits',
+                        data: {{ chart_deposits|safe }},
+                        borderColor: 'rgb(59, 130, 246)',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        tension: 0.3
+                    },
+                    {
+                        label: 'Withdrawals',
+                        data: {{ chart_withdrawals|safe }},
+                        borderColor: 'rgb(239, 68, 68)',
+                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                        tension: 0.3
+                    },
+                    {
+                        label: 'Interest',
+                        data: {{ chart_interest|safe }},
+                        borderColor: 'rgb(34, 197, 94)',
+                        backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                        tension: 0.3
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    title: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
+                }
+            }
+        });
+
+        const barCtx = document.getElementById('barChart').getContext('2d');
+        const barChart = new Chart(barCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Deposits', 'Withdrawals', 'Interest'],
+                datasets: [{
+                    label: 'Count',
+                    data: [{{ total_deposits }}, {{ total_withdrawals }}, {{ total_interest }}],
+                    backgroundColor: [
+                        'rgba(59, 130, 246, 0.7)',
+                        'rgba(239, 68, 68, 0.7)',
+                        'rgba(34, 197, 94, 0.7)'
+                    ],
+                    borderColor: [
+                        'rgb(59, 130, 246)',
+                        'rgb(239, 68, 68)',
+                        'rgb(34, 197, 94)'
+                    ],
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
+                }
+            }
+        });
+
+        const pieCtx = document.getElementById('pieChart').getContext('2d');
+        const pieChart = new Chart(pieCtx, {
+            type: 'pie',
+            data: {
+                labels: ['Deposits', 'Withdrawals', 'Interest'],
+                datasets: [{
+                    data: [{{ total_deposits }}, {{ total_withdrawals }}, {{ total_interest }}],
+                    backgroundColor: [
+                        'rgba(59, 130, 246, 0.7)',
+                        'rgba(239, 68, 68, 0.7)',
+                        'rgba(34, 197, 94, 0.7)'
+                    ],
+                    borderColor: [
+                        'rgb(59, 130, 246)',
+                        'rgb(239, 68, 68)',
+                        'rgb(34, 197, 94)'
+                    ],
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+    </script>
+{% endblock %}
