@@ -2,6 +2,8 @@
 
 This is an Online Banking Concept created using Django Web Framework.
 
+> **Note**: This is a demonstration/educational banking system.
+
 
 ## Features
 
