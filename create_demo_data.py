@@ -7,11 +7,13 @@ import django
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'banking_system.settings')
 django.setup()
 
-from django.utils import timezone
-from dateutil.relativedelta import relativedelta
-from accounts.models import User, BankAccountType, UserBankAccount, UserAddress
-from transactions.models import Transaction
-from transactions.constants import DEPOSIT, WITHDRAWAL
+from django.utils import timezone  # noqa: E402
+from dateutil.relativedelta import relativedelta  # noqa: E402
+from accounts.models import (  # noqa: E402
+    User, BankAccountType, UserBankAccount, UserAddress
+)
+from transactions.models import Transaction  # noqa: E402
+from transactions.constants import DEPOSIT, WITHDRAWAL  # noqa: E402
 
 # Create Bank Account Types
 savings_type, _ = BankAccountType.objects.get_or_create(
