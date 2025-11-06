@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 """Create demo data for the banking system"""
 import os
-import sys
 import django
 
 # Setup Django
@@ -91,7 +90,7 @@ for trans_type, amount, timestamp in transactions_data:
         balance += amount
     else:
         balance -= amount
-    
+
     Transaction.objects.create(
         account=account,
         amount=amount,
@@ -105,7 +104,7 @@ account.balance = balance
 account.save()
 
 print("✅ Demo data created successfully!")
-print(f"Demo User: demo@example.com / demo123")
+print("Demo User: demo@example.com / demo123")
 print(f"Account Number: {account.account_no}")
 print(f"Balance: ${account.balance}")
 print(f"Transactions: {Transaction.objects.filter(account=account).count()}")
