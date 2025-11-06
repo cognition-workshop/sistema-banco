@@ -81,16 +81,17 @@ class TransactionDateRangeForm(forms.Form):
 
     def clean_daterange(self):
         daterange = self.cleaned_data.get("daterange")
-        print(daterange)
-
+        
+        if not daterange:
+            return None
+        
         try:
-            daterange = daterange.split(' - ')
-            print(daterange)
-            if len(daterange) == 2:
-                for date in daterange:
+            daterange_parts = daterange.split(' - ')
+            if len(daterange_parts) == 2:
+                for date in daterange_parts:
                     datetime.datetime.strptime(date, '%Y-%m-%d')
-                return daterange
+                return daterange_parts
             else:
                 raise forms.ValidationError("Please select a date range.")
-        except (ValueError, AttributeError):
+        except ValueError:
             raise forms.ValidationError("Invalid date range")
