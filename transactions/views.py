@@ -3,9 +3,11 @@ from dateutil.relativedelta import relativedelta
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth import get_user_model
+from django.core.cache import cache
 from django.urls import reverse_lazy
 from django.utils import timezone
 from django.views.generic import CreateView, ListView
+import hashlib
 
 from transactions.constants import DEPOSIT, WITHDRAWAL
 from transactions.forms import (
@@ -29,22 +31,31 @@ class TransactionRepostView(ListView):
         return super().get(request, *args, **kwargs)
 
     def get_queryset(self):
-        # Bypass login - use demo user
         User = get_user_model()
         demo_user = User.objects.filter(email='demo@example.com').first()
         if not demo_user or not hasattr(demo_user, 'account'):
             return super().get_queryset().none()
         
+        daterange = self.form_data.get("daterange", "")
+        cache_key = f"transactions_{demo_user.account.id}_{hashlib.md5(str(daterange).encode()).hexdigest()}"
+        
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return cached_data
+        
         queryset = super().get_queryset().filter(
             account=demo_user.account
+        ).select_related('account', 'account__account_type').only(
+            'amount', 'timestamp', 'transaction_type', 'balance_after_transaction',
+            'account__balance', 'account__account_no'
         )
-
-        daterange = self.form_data.get("daterange")
-
+        
         if daterange:
             queryset = queryset.filter(timestamp__date__range=daterange)
-
-        return queryset.distinct()
+        
+        result = list(queryset.distinct())
+        cache.set(cache_key, result, 300)
+        return result
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -95,7 +106,6 @@ class DepositMoneyView(TransactionCreateMixin):
 
     def form_valid(self, form):
         amount = form.cleaned_data.get('amount')
-        # Bypass login - use demo user
         User = get_user_model()
         demo_user = User.objects.filter(email='demo@example.com').first()
         account = demo_user.account if demo_user and hasattr(demo_user, 'account') else None
@@ -122,6 +132,9 @@ class DepositMoneyView(TransactionCreateMixin):
                 'interest_start_date'
             ]
         )
+        
+        cache_pattern = f"transactions_{account.id}_*"
+        cache.delete_pattern(cache_pattern)
 
         messages.success(
             self.request,
@@ -141,12 +154,14 @@ class WithdrawMoneyView(TransactionCreateMixin):
 
     def form_valid(self, form):
         amount = form.cleaned_data.get('amount')
-        # Bypass login - use demo user
         User = get_user_model()
         demo_user = User.objects.filter(email='demo@example.com').first()
         if demo_user and hasattr(demo_user, 'account'):
             demo_user.account.balance -= form.cleaned_data.get('amount')
             demo_user.account.save(update_fields=['balance'])
+            
+            cache_pattern = f"transactions_{demo_user.account.id}_*"
+            cache.delete_pattern(cache_pattern)
 
         messages.success(
             self.request,
