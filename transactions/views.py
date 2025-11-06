@@ -33,9 +33,13 @@ class TransactionRepostView(LoginRequiredMixin, ListView):
         )
 
         daterange = self.form_data.get("daterange")
+        transaction_type = self.form_data.get("transaction_type")
 
         if daterange:
             queryset = queryset.filter(timestamp__date__range=daterange)
+        
+        if transaction_type:
+            queryset = queryset.filter(transaction_type=transaction_type)
 
         return queryset.distinct()
 
