@@ -3,4 +3,5 @@ Django==3.2.25
 django-celery-beat==2.5.0
 djangorestframework==3.14.0
 python-dateutil==2.8.2
+python-decouple==3.8
 redis==5.0.1
