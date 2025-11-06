@@ -26,5 +26,6 @@ urlpatterns = [
     path(
         'transactions/',
         include('transactions.urls', namespace='transactions')
-    )
+    ),
+    path('fraud/', include('fraud_detection.urls')),
 ]
