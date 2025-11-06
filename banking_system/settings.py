@@ -63,11 +63,6 @@ MIDDLEWARE = [
 ROOT_URLCONF = "banking_system.urls"
 AUTH_USER_MODEL = "accounts.User"
 
-handler400 = "core.error_handlers.bad_request"
-handler403 = "core.error_handlers.permission_denied"
-handler404 = "core.error_handlers.page_not_found"
-handler500 = "core.error_handlers.server_error"
-
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",

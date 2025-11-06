@@ -18,6 +18,10 @@ from django.urls import include, path
 
 from core.views import HomeView, HealthCheckView
 
+handler400 = "core.error_handlers.bad_request"
+handler403 = "core.error_handlers.permission_denied"
+handler404 = "core.error_handlers.page_not_found"
+handler500 = "core.error_handlers.server_error"
 
 urlpatterns = [
     path("", HomeView.as_view(), name="home"),
