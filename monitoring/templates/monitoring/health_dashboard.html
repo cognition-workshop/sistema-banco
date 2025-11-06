@@ -1,0 +1,121 @@
+{% extends 'admin_panel/base_admin.html' %}
+
+{% block head_title %}Monitoramento de Saúde{% endblock %}
+
+{% block content %}
+<h1 class="font-mono font-bold text-3xl text-center pb-5 pt-10">Dashboard de Saúde do Sistema</h1>
+<hr class="mb-6" />
+
+<div id="health-status" class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h3 class="text-gray-600 text-sm font-semibold mb-2">Banco de Dados</h3>
+        <p id="db-status" class="text-2xl font-bold">Verificando...</p>
+        <p id="db-response" class="text-sm text-gray-600 mt-2"></p>
+    </div>
+    
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h3 class="text-gray-600 text-sm font-semibold mb-2">Redis</h3>
+        <p id="redis-status" class="text-2xl font-bold">Verificando...</p>
+        <p id="redis-response" class="text-sm text-gray-600 mt-2"></p>
+    </div>
+    
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h3 class="text-gray-600 text-sm font-semibold mb-2">Taxa de Transações</h3>
+        <p id="trans-status" class="text-2xl font-bold">Verificando...</p>
+        <p id="trans-response" class="text-sm text-gray-600 mt-2"></p>
+    </div>
+</div>
+
+<div class="bg-white rounded-lg shadow-md p-6">
+    <h2 class="text-xl font-semibold mb-4">Métricas do Sistema</h2>
+    <div id="metrics" class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div>
+            <h3 class="text-gray-600 text-sm font-semibold mb-1">Total de Usuários</h3>
+            <p id="total-users" class="text-2xl font-bold">-</p>
+        </div>
+        <div>
+            <h3 class="text-gray-600 text-sm font-semibold mb-1">Usuários Ativos</h3>
+            <p id="active-users" class="text-2xl font-bold">-</p>
+        </div>
+        <div>
+            <h3 class="text-gray-600 text-sm font-semibold mb-1">Transações (1h)</h3>
+            <p id="trans-hour" class="text-2xl font-bold">-</p>
+        </div>
+        <div>
+            <h3 class="text-gray-600 text-sm font-semibold mb-1">Saldo Total</h3>
+            <p id="total-balance" class="text-2xl font-bold">-</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block footer_extra %}
+<script>
+async function loadHealthStatus() {
+    try {
+        const response = await fetch('{% url "monitoring:health_check_api" %}');
+        const data = await response.json();
+        
+        const dbStatus = document.getElementById('db-status');
+        const dbResponse = document.getElementById('db-response');
+        if (data.checks.database.status === 'healthy') {
+            dbStatus.textContent = 'Saudável';
+            dbStatus.className = 'text-2xl font-bold text-green-600';
+        } else {
+            dbStatus.textContent = 'Com Problemas';
+            dbStatus.className = 'text-2xl font-bold text-red-600';
+        }
+        dbResponse.textContent = data.checks.database.message;
+        
+        const redisStatus = document.getElementById('redis-status');
+        const redisResponse = document.getElementById('redis-response');
+        if (data.checks.redis.status === 'healthy') {
+            redisStatus.textContent = 'Saudável';
+            redisStatus.className = 'text-2xl font-bold text-green-600';
+        } else {
+            redisStatus.textContent = 'Com Problemas';
+            redisStatus.className = 'text-2xl font-bold text-red-600';
+        }
+        redisResponse.textContent = data.checks.redis.message;
+        
+        const transStatus = document.getElementById('trans-status');
+        const transResponse = document.getElementById('trans-response');
+        if (data.checks.transaction_rate.status === 'healthy') {
+            transStatus.textContent = 'Normal';
+            transStatus.className = 'text-2xl font-bold text-green-600';
+        } else if (data.checks.transaction_rate.status === 'warning') {
+            transStatus.textContent = 'Atenção';
+            transStatus.className = 'text-2xl font-bold text-yellow-600';
+        } else {
+            transStatus.textContent = 'Com Problemas';
+            transStatus.className = 'text-2xl font-bold text-red-600';
+        }
+        transResponse.textContent = data.checks.transaction_rate.message;
+        
+    } catch (error) {
+        console.error('Erro ao carregar status:', error);
+    }
+}
+
+async function loadMetrics() {
+    try {
+        const response = await fetch('{% url "monitoring:system_metrics_api" %}');
+        const data = await response.json();
+        
+        document.getElementById('total-users').textContent = data.total_users || '-';
+        document.getElementById('active-users').textContent = data.active_users || '-';
+        document.getElementById('trans-hour').textContent = data.transactions_last_hour || '-';
+        document.getElementById('total-balance').textContent = '$ ' + (data.total_balance || '0');
+        
+    } catch (error) {
+        console.error('Erro ao carregar métricas:', error);
+    }
+}
+
+loadHealthStatus();
+loadMetrics();
+
+setInterval(loadHealthStatus, 30000);
+setInterval(loadMetrics, 60000);
+</script>
+{% endblock %}

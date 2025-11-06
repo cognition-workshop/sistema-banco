@@ -1,0 +1,68 @@
+{% extends 'admin_panel/base_admin.html' %}
+
+{% block head_title %}Detalhes do Alerta{% endblock %}
+
+{% block content %}
+<h1 class="font-mono font-bold text-3xl text-center pb-5 pt-10">Detalhes do Alerta de Fraude</h1>
+<hr class="mb-6" />
+
+<div class="max-w-3xl mx-auto bg-white rounded-lg shadow-md p-6">
+    <div class="grid grid-cols-2 gap-4 mb-6">
+        <div>
+            <h3 class="text-gray-600 text-sm font-semibold mb-1">Conta</h3>
+            <p class="text-lg">{{ alert.account.account_no }} - {{ alert.account.user.email }}</p>
+        </div>
+        <div>
+            <h3 class="text-gray-600 text-sm font-semibold mb-1">Data</h3>
+            <p class="text-lg">{{ alert.created_at|date:"d/m/Y H:i:s" }}</p>
+        </div>
+        <div>
+            <h3 class="text-gray-600 text-sm font-semibold mb-1">Tipo</h3>
+            <p class="text-lg">{{ alert.alert_type }}</p>
+        </div>
+        <div>
+            <h3 class="text-gray-600 text-sm font-semibold mb-1">Severidade</h3>
+            <p class="text-lg">
+                {% if alert.severity == 'high' %}
+                    <span class="bg-red-200 text-red-800 px-2 py-1 rounded">Alta</span>
+                {% elif alert.severity == 'medium' %}
+                    <span class="bg-yellow-200 text-yellow-800 px-2 py-1 rounded">Média</span>
+                {% else %}
+                    <span class="bg-blue-200 text-blue-800 px-2 py-1 rounded">Baixa</span>
+                {% endif %}
+            </p>
+        </div>
+    </div>
+    
+    <div class="mb-6">
+        <h3 class="text-gray-600 text-sm font-semibold mb-1">Mensagem</h3>
+        <p class="text-lg">{{ alert.message }}</p>
+    </div>
+    
+    <div class="mb-6">
+        <h3 class="text-gray-600 text-sm font-semibold mb-1">Status</h3>
+        <p class="text-lg">{{ alert.get_status_display }}</p>
+    </div>
+    
+    {% if alert.notes %}
+    <div class="mb-6">
+        <h3 class="text-gray-600 text-sm font-semibold mb-1">Notas</h3>
+        <p class="text-lg">{{ alert.notes }}</p>
+    </div>
+    {% endif %}
+    
+    <div class="flex gap-4">
+        <a href="{% url 'fraud_detection:alert_list' %}" class="bg-gray-400 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded">
+            Voltar
+        </a>
+        {% if alert.status == 'pending' %}
+            <a href="{% url 'fraud_detection:mark_resolved' alert.pk %}" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded" onclick="return confirm('Marcar como resolvido?')">
+                Marcar como Resolvido
+            </a>
+            <a href="{% url 'fraud_detection:mark_false_positive' alert.pk %}" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" onclick="return confirm('Marcar como falso positivo?')">
+                Falso Positivo
+            </a>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

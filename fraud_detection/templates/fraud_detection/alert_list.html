@@ -1,0 +1,98 @@
+{% extends 'admin_panel/base_admin.html' %}
+
+{% block head_title %}Alertas de Fraude{% endblock %}
+
+{% block content %}
+<h1 class="font-mono font-bold text-3xl text-center pb-5 pt-10">Alertas de Fraude</h1>
+<hr class="mb-6" />
+
+<form method="get" class="mb-6">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div>
+            <label class="block text-gray-700 text-sm font-bold mb-2">Severidade</label>
+            <select name="severity" class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500">
+                <option value="">Todas</option>
+                <option value="low" {% if request.GET.severity == 'low' %}selected{% endif %}>Baixa</option>
+                <option value="medium" {% if request.GET.severity == 'medium' %}selected{% endif %}>Média</option>
+                <option value="high" {% if request.GET.severity == 'high' %}selected{% endif %}>Alta</option>
+            </select>
+        </div>
+        <div>
+            <label class="block text-gray-700 text-sm font-bold mb-2">Status</label>
+            <select name="status" class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500">
+                <option value="">Todos</option>
+                <option value="pending" {% if request.GET.status == 'pending' or not request.GET.status %}selected{% endif %}>Pendente</option>
+                <option value="investigating" {% if request.GET.status == 'investigating' %}selected{% endif %}>Em Investigação</option>
+                <option value="resolved" {% if request.GET.status == 'resolved' %}selected{% endif %}>Resolvido</option>
+                <option value="false_positive" {% if request.GET.status == 'false_positive' %}selected{% endif %}>Falso Positivo</option>
+            </select>
+        </div>
+        <div class="flex items-end">
+            <button type="submit" class="bg-gray-800 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded w-full">
+                Filtrar
+            </button>
+        </div>
+    </div>
+</form>
+
+<div class="bg-white rounded-lg shadow-md overflow-hidden">
+    <table class="table-auto w-full">
+        <thead class="bg-gray-800 text-white">
+            <tr class="uppercase font-semibold text-sm">
+                <th class="px-4 py-2">Data</th>
+                <th class="px-4 py-2">Conta</th>
+                <th class="px-4 py-2">Tipo</th>
+                <th class="px-4 py-2">Severidade</th>
+                <th class="px-4 py-2">Mensagem</th>
+                <th class="px-4 py-2">Status</th>
+                <th class="px-4 py-2">Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for alert in alerts %}
+            <tr class="{% cycle 'bg-gray-100' 'bg-white' %}">
+                <td class="border px-4 py-2 text-center">{{ alert.created_at|date:"d/m/Y H:i" }}</td>
+                <td class="border px-4 py-2 text-center">{{ alert.account.account_no }}</td>
+                <td class="border px-4 py-2">{{ alert.alert_type }}</td>
+                <td class="border px-4 py-2 text-center">
+                    {% if alert.severity == 'high' %}
+                        <span class="bg-red-200 text-red-800 px-2 py-1 rounded">Alta</span>
+                    {% elif alert.severity == 'medium' %}
+                        <span class="bg-yellow-200 text-yellow-800 px-2 py-1 rounded">Média</span>
+                    {% else %}
+                        <span class="bg-blue-200 text-blue-800 px-2 py-1 rounded">Baixa</span>
+                    {% endif %}
+                </td>
+                <td class="border px-4 py-2">{{ alert.message }}</td>
+                <td class="border px-4 py-2 text-center">{{ alert.get_status_display }}</td>
+                <td class="border px-4 py-2 text-center">
+                    <a href="{% url 'fraud_detection:alert_detail' alert.pk %}" class="text-blue-600 hover:text-blue-800">Ver</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="7" class="border px-4 py-2 text-center text-gray-500">Nenhum alerta encontrado</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% if is_paginated %}
+<div class="mt-6 flex justify-center">
+    <nav class="inline-flex rounded-md shadow">
+        {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="px-3 py-2 bg-white border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50">Anterior</a>
+        {% endif %}
+        
+        <span class="px-3 py-2 bg-gray-800 border border-gray-300 text-sm font-medium text-white">
+            Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+        </span>
+        
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="px-3 py-2 bg-white border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50">Próxima</a>
+        {% endif %}
+    </nav>
+</div>
+{% endif %}
+{% endblock %}

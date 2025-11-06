@@ -1,0 +1,98 @@
+{% extends 'admin_panel/base_admin.html' %}
+
+{% block head_title %}Monitoramento de Transações{% endblock %}
+
+{% block content %}
+<h1 class="font-mono font-bold text-3xl text-center pb-5 pt-10">Monitoramento de Transações</h1>
+<hr class="mb-6" />
+
+<form method="get" class="mb-6 bg-white rounded-lg shadow-md p-6">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+        <div>
+            <label class="block text-gray-700 text-sm font-bold mb-2">Data Início</label>
+            <input type="date" name="date_from" value="{{ request.GET.date_from }}" class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500">
+        </div>
+        <div>
+            <label class="block text-gray-700 text-sm font-bold mb-2">Data Fim</label>
+            <input type="date" name="date_to" value="{{ request.GET.date_to }}" class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500">
+        </div>
+        <div>
+            <label class="block text-gray-700 text-sm font-bold mb-2">Tipo de Transação</label>
+            <select name="transaction_type" class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500">
+                <option value="">Todos</option>
+                {% for value, label in transaction_types %}
+                    <option value="{{ value }}" {% if request.GET.transaction_type == value|stringformat:"s" %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+        <div>
+            <label class="block text-gray-700 text-sm font-bold mb-2">Buscar Usuário</label>
+            <input type="text" name="user_search" value="{{ request.GET.user_search }}" placeholder="Email ou número da conta" class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500">
+        </div>
+        <div>
+            <label class="block text-gray-700 text-sm font-bold mb-2">Valor Mínimo</label>
+            <input type="number" name="min_amount" value="{{ request.GET.min_amount }}" step="0.01" class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500">
+        </div>
+        <div>
+            <label class="block text-gray-700 text-sm font-bold mb-2">Valor Máximo</label>
+            <input type="number" name="max_amount" value="{{ request.GET.max_amount }}" step="0.01" class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500">
+        </div>
+    </div>
+    
+    <button type="submit" class="bg-gray-800 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
+        Filtrar
+    </button>
+</form>
+
+<div class="bg-white rounded-lg shadow-md overflow-hidden">
+    <table class="table-auto w-full">
+        <thead class="bg-gray-800 text-white">
+            <tr class="uppercase font-semibold text-sm">
+                <th class="px-4 py-2">Data</th>
+                <th class="px-4 py-2">Usuário</th>
+                <th class="px-4 py-2">Conta</th>
+                <th class="px-4 py-2">Tipo</th>
+                <th class="px-4 py-2">Valor</th>
+                <th class="px-4 py-2">Saldo Após</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for transaction in transactions %}
+            <tr class="{% cycle 'bg-gray-100' 'bg-white' %}">
+                <td class="border px-4 py-2 text-center">{{ transaction.timestamp|date:"d/m/Y H:i" }}</td>
+                <td class="border px-4 py-2">{{ transaction.account.user.email }}</td>
+                <td class="border px-4 py-2 text-center">{{ transaction.account.account_no }}</td>
+                <td class="border px-4 py-2 text-center">{{ transaction.get_transaction_type_display }}</td>
+                <td class="border px-4 py-2 text-center">$ {{ transaction.amount }}</td>
+                <td class="border px-4 py-2 text-center">$ {{ transaction.balance_after_transaction }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" class="border px-4 py-2 text-center text-gray-500">Nenhuma transação encontrada</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% if is_paginated %}
+<div class="mt-6 flex justify-center">
+    <nav class="inline-flex rounded-md shadow">
+        {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="px-3 py-2 bg-white border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50">Anterior</a>
+        {% endif %}
+        
+        <span class="px-3 py-2 bg-gray-800 border border-gray-300 text-sm font-medium text-white">
+            Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+        </span>
+        
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="px-3 py-2 bg-white border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50">Próxima</a>
+        {% endif %}
+    </nav>
+</div>
+{% endif %}
+{% endblock %}

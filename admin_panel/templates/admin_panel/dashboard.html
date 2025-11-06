@@ -1,0 +1,65 @@
+{% extends 'admin_panel/base_admin.html' %}
+
+{% block head_title %}Dashboard Administrativo{% endblock %}
+
+{% block content %}
+<h1 class="font-mono font-bold text-3xl text-center pb-5 pt-10">Dashboard Administrativo</h1>
+<hr class="mb-6" />
+
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h3 class="text-gray-500 text-sm font-semibold uppercase mb-2">Total de Usuários</h3>
+        <p class="text-3xl font-bold text-gray-800">{{ total_users }}</p>
+    </div>
+    
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h3 class="text-gray-500 text-sm font-semibold uppercase mb-2">Usuários Ativos</h3>
+        <p class="text-3xl font-bold text-green-600">{{ active_users }}</p>
+    </div>
+    
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h3 class="text-gray-500 text-sm font-semibold uppercase mb-2">Total de Contas</h3>
+        <p class="text-3xl font-bold text-gray-800">{{ total_accounts }}</p>
+    </div>
+    
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h3 class="text-gray-500 text-sm font-semibold uppercase mb-2">Saldo Total</h3>
+        <p class="text-3xl font-bold text-blue-600">$ {{ total_balance }}</p>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h3 class="text-lg font-semibold mb-4">Transações (Últimas 24h)</h3>
+        <p class="text-4xl font-bold text-purple-600">{{ transactions_24h }}</p>
+    </div>
+</div>
+
+<div class="bg-white rounded-lg shadow-md p-6">
+    <h2 class="text-xl font-semibold mb-4">Transações Recentes</h2>
+    <table class="table-auto w-full">
+        <thead class="bg-gray-800 text-white">
+            <tr class="uppercase font-semibold text-sm">
+                <th class="px-4 py-2">Data</th>
+                <th class="px-4 py-2">Usuário</th>
+                <th class="px-4 py-2">Tipo</th>
+                <th class="px-4 py-2">Valor</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for transaction in recent_transactions %}
+            <tr class="{% cycle 'bg-gray-100' 'bg-white' %}">
+                <td class="border px-4 py-2 text-center">{{ transaction.timestamp|date:"d/m/Y H:i" }}</td>
+                <td class="border px-4 py-2">{{ transaction.account.user.email }}</td>
+                <td class="border px-4 py-2 text-center">{{ transaction.get_transaction_type_display }}</td>
+                <td class="border px-4 py-2 text-center">$ {{ transaction.amount }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4" class="border px-4 py-2 text-center text-gray-500">Nenhuma transação recente</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

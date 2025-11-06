@@ -1,0 +1,54 @@
+{% extends 'admin_panel/base_admin.html' %}
+
+{% block head_title %}Editar Usuário{% endblock %}
+
+{% block content %}
+<h1 class="font-mono font-bold text-3xl text-center pb-5 pt-10">Editar Usuário</h1>
+<hr class="mb-6" />
+
+<div class="max-w-2xl mx-auto bg-white rounded-lg shadow-md p-6">
+    <form method="post">
+        {% csrf_token %}
+        
+        <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2">Email</label>
+            {{ form.email }}
+            {% if form.email.errors %}
+                <p class="text-red-600 text-sm italic">{{ form.email.errors.0 }}</p>
+            {% endif %}
+        </div>
+        
+        <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2">Nome</label>
+            {{ form.first_name }}
+            {% if form.first_name.errors %}
+                <p class="text-red-600 text-sm italic">{{ form.first_name.errors.0 }}</p>
+            {% endif %}
+        </div>
+        
+        <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2">Sobrenome</label>
+            {{ form.last_name }}
+            {% if form.last_name.errors %}
+                <p class="text-red-600 text-sm italic">{{ form.last_name.errors.0 }}</p>
+            {% endif %}
+        </div>
+        
+        <div class="mb-6">
+            <label class="flex items-center">
+                {{ form.is_active }}
+                <span class="ml-2 text-gray-700 text-sm font-bold">Usuário Ativo</span>
+            </label>
+        </div>
+        
+        <div class="flex gap-4">
+            <button type="submit" class="bg-gray-800 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
+                Salvar Alterações
+            </button>
+            <a href="{% url 'admin_panel:user_management' %}" class="bg-gray-400 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded">
+                Cancelar
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

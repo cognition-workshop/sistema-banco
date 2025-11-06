@@ -23,6 +23,10 @@ urlpatterns = [
     path('', HomeView.as_view(), name='home'),
     path('accounts/', include('accounts.urls', namespace='accounts')),
     path('admin/', admin.site.urls),
+    path('admin-panel/', include('admin_panel.urls', namespace='admin_panel')),
+    path('analytics/', include('analytics.urls', namespace='analytics')),
+    path('fraud-detection/', include('fraud_detection.urls', namespace='fraud_detection')),
+    path('monitoring/', include('monitoring.urls', namespace='monitoring')),
     path(
         'transactions/',
         include('transactions.urls', namespace='transactions')

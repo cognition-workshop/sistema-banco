@@ -1,0 +1,39 @@
+{% extends 'core/base.html' %}
+
+{% block body %}
+<nav class="flex items-center justify-between flex-wrap bg-gray-800 p-6">
+    <div class="flex items-center flex-shrink-0 text-white mr-6">
+        <span class="font-semibold text-xl tracking-tight">Painel Administrativo</span>
+    </div>
+    <div class="w-full block flex-grow lg:flex lg:items-center lg:w-auto">
+        <div class="text-md lg:flex-grow">
+            <a href="{% url 'admin_panel:dashboard' %}" class="block mt-4 lg:inline-block lg:mt-0 text-white hover:text-gray-300 mr-4">
+                Dashboard
+            </a>
+            <a href="{% url 'admin_panel:user_management' %}" class="block mt-4 lg:inline-block lg:mt-0 text-white hover:text-gray-300 mr-4">
+                Usuários
+            </a>
+            <a href="{% url 'admin_panel:transaction_monitor' %}" class="block mt-4 lg:inline-block lg:mt-0 text-white hover:text-gray-300 mr-4">
+                Transações
+            </a>
+            <a href="{% url 'analytics:dashboard' %}" class="block mt-4 lg:inline-block lg:mt-0 text-white hover:text-gray-300 mr-4">
+                Analytics
+            </a>
+            <a href="{% url 'fraud_detection:alert_list' %}" class="block mt-4 lg:inline-block lg:mt-0 text-white hover:text-gray-300 mr-4">
+                Fraudes
+            </a>
+            <a href="{% url 'monitoring:health_dashboard' %}" class="block mt-4 lg:inline-block lg:mt-0 text-white hover:text-gray-300 mr-4">
+                Monitoramento
+            </a>
+        </div>
+        <div class="text-white">
+            <span class="inline-block font-medium text-sm px-4 py-2">{{ user.email }}</span>
+            <a href="{% url 'accounts:user_logout' %}" class="inline-block text-sm px-4 py-2 leading-none border rounded text-white border-white hover:border-transparent hover:text-gray-800 hover:bg-white mt-4 lg:mt-0">Sair</a>
+        </div>
+    </div>
+</nav>
+<div class="lg:container lg:mx-auto p-6">
+    {% include 'core/messages.html' %}
+    {% block content %}{% endblock %}
+</div>
+{% endblock %}

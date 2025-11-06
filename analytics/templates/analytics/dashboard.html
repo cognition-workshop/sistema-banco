@@ -1,0 +1,123 @@
+{% extends 'admin_panel/base_admin.html' %}
+
+{% block head_title %}Analytics{% endblock %}
+
+{% block head_extra %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<h1 class="font-mono font-bold text-3xl text-center pb-5 pt-10">Analytics e Relatórios</h1>
+<hr class="mb-6" />
+
+<div class="mb-6">
+    <a href="{% url 'analytics:export_csv' %}" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
+        Exportar CSV
+    </a>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-xl font-semibold mb-4">Volume de Transações (Últimos 30 dias)</h2>
+        <canvas id="volumeChart"></canvas>
+    </div>
+    
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-xl font-semibold mb-4">Distribuição por Tipo</h2>
+        <canvas id="typeChart"></canvas>
+    </div>
+</div>
+
+<div class="bg-white rounded-lg shadow-md p-6">
+    <h2 class="text-xl font-semibold mb-4">Top 10 Usuários Mais Ativos</h2>
+    <canvas id="topUsersChart"></canvas>
+</div>
+{% endblock %}
+
+{% block footer_extra %}
+<script>
+async function loadVolumeChart() {
+    const response = await fetch('{% url "analytics:transaction_volume_data" %}');
+    const data = await response.json();
+    
+    const ctx = document.getElementById('volumeChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: data.labels,
+            datasets: [{
+                label: 'Número de Transações',
+                data: data.transaction_counts,
+                borderColor: 'rgb(75, 192, 192)',
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                tension: 0.1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+}
+
+async function loadTypeChart() {
+    const response = await fetch('{% url "analytics:transaction_type_data" %}');
+    const data = await response.json();
+    
+    const ctx = document.getElementById('typeChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: data.labels,
+            datasets: [{
+                data: data.counts,
+                backgroundColor: [
+                    'rgb(255, 99, 132)',
+                    'rgb(54, 162, 235)',
+                    'rgb(255, 205, 86)'
+                ]
+            }]
+        },
+        options: {
+            responsive: true
+        }
+    });
+}
+
+async function loadTopUsersChart() {
+    const response = await fetch('{% url "analytics:top_users_data" %}');
+    const data = await response.json();
+    
+    const ctx = document.getElementById('topUsersChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: data.labels,
+            datasets: [{
+                label: 'Número de Transações',
+                data: data.transaction_counts,
+                backgroundColor: 'rgba(153, 102, 255, 0.6)',
+                borderColor: 'rgb(153, 102, 255)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+}
+
+loadVolumeChart();
+loadTypeChart();
+loadTopUsersChart();
+</script>
+{% endblock %}
