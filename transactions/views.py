@@ -6,6 +6,8 @@ from django.contrib.auth import get_user_model
 from django.urls import reverse_lazy
 from django.utils import timezone
 from django.views.generic import CreateView, ListView
+from django.views.decorators.cache import cache_page
+from django.utils.decorators import method_decorator
 
 from transactions.constants import DEPOSIT, WITHDRAWAL
 from transactions.forms import (
@@ -16,6 +18,7 @@ from transactions.forms import (
 from transactions.models import Transaction
 
 
+@method_decorator(cache_page(300), name='dispatch')
 class TransactionRepostView(ListView):
     template_name = 'transactions/transaction_report.html'
     model = Transaction
