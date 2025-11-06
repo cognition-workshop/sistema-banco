@@ -14,6 +14,11 @@ from transactions.forms import (
     WithdrawForm,
 )
 from transactions.models import Transaction
+import logging
+
+logger = logging.getLogger(__name__)
+
+
 
 
 class TransactionRepostView(ListView):
@@ -102,6 +107,16 @@ class DepositMoneyView(TransactionCreateMixin):
         if not account:
             return super().form_valid(form)
 
+        logger.info(
+            "Deposit attempt",
+            extra={
+                'user_id': demo_user.id if demo_user else None,
+                'account_no': account.account_no,
+                'amount': str(amount)
+            }
+        )
+
+
         if not account.initial_deposit_date:
             now = timezone.now()
             next_interest_month = int(
@@ -122,6 +137,16 @@ class DepositMoneyView(TransactionCreateMixin):
                 'interest_start_date'
             ]
         )
+
+        logger.info(
+            "Deposit completed",
+            extra={
+                'user_id': demo_user.id if demo_user else None,
+                'amount': str(amount),
+                'new_balance': str(account.balance)
+            }
+        )
+
 
         messages.success(
             self.request,
