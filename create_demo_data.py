@@ -52,6 +52,10 @@ account, _ = UserBankAccount.objects.get_or_create(
     defaults={
         'account_type': savings_type,
         'account_no': 1001,
+        'cpf': '111.444.777-35',
+        'agency': '0001',
+        'account_number': '00001001',
+        'account_digit': '0',
         'gender': 'M',
         'birth_date': '1990-01-01',
         'balance': 5000.00,

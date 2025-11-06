@@ -1,0 +1,60 @@
+{% extends 'core/base.html' %}
+
+{% block head_title %}Informe de Rendimentos IRPF{% endblock %}
+
+{% block content %}
+    <h1 class="font-mono font-bold text-3xl text-center pb-5 pt-10">
+        Informe de Rendimentos - IRPF {{ year }}
+    </h1>
+    <hr />
+    
+    {% if account %}
+    <div class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4 mt-10">
+        <h2 class="text-xl font-bold mb-4">Dados do Titular</h2>
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                <p class="text-gray-700"><strong>Nome:</strong> {{ account.user.get_full_name }}</p>
+                <p class="text-gray-700"><strong>CPF:</strong> {{ account.cpf }}</p>
+            </div>
+            <div>
+                <p class="text-gray-700"><strong>Agência:</strong> {{ account.agency }}</p>
+                <p class="text-gray-700"><strong>Conta:</strong> {{ account.account_number }}-{{ account.account_digit }}</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+        <h2 class="text-xl font-bold mb-4">Rendimentos Tributáveis - Juros Sobre Capital</h2>
+        
+        <table class="table-auto w-full mt-4">
+            <thead class="bg-gray-800 text-white">
+                <tr>
+                    <th class="px-4 py-2">Mês</th>
+                    <th class="px-4 py-2">Valor (R$)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for month in monthly_interest %}
+                <tr class="{% cycle 'bg-gray-300' 'bg-white-100' %}">
+                    <td class="border px-4 py-2">{{ month.month_name }}</td>
+                    <td class="border px-4 py-2 text-right">R$ {{ month.amount|floatformat:2 }}</td>
+                </tr>
+                {% endfor %}
+                <tr class="bg-gray-600 text-white font-bold">
+                    <td class="px-4 py-2">Total Anual</td>
+                    <td class="px-4 py-2 text-right">R$ {{ total_interest|floatformat:2 }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    
+    <div class="mt-4 flex justify-center space-x-4">
+        <a href="{% url 'transactions:irpf_csv' year=year %}" 
+           class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
+            Exportar CSV
+        </a>
+    </div>
+    {% else %}
+    <p class="text-center mt-10">Nenhuma conta encontrada.</p>
+    {% endif %}
+{% endblock %}

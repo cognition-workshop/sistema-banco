@@ -1,0 +1,59 @@
+{% extends 'core/base.html' %}
+
+{% block head_title %}Transferência PIX{% endblock %}
+
+{% block content %}
+    <h1 class="font-mono font-bold text-3xl text-center pb-5 pt-10">Transferência PIX</h1>
+    <hr />
+    
+    <div class="w-full max-w-md mx-auto mt-10">
+        <form method="post" class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+            {% csrf_token %}
+            
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="{{ form.pix_key.id_for_label }}">
+                    Chave PIX do Destinatário
+                </label>
+                {{ form.pix_key }}
+                {% if form.pix_key.errors %}
+                    {% for error in form.pix_key.errors %}
+                        <p class="text-red-600 text-sm italic">{{ error }}</p>
+                    {% endfor %}
+                {% endif %}
+            </div>
+            
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="{{ form.amount.id_for_label }}">
+                    Valor (R$)
+                </label>
+                {{ form.amount }}
+                {% if form.amount.errors %}
+                    {% for error in form.amount.errors %}
+                        <p class="text-red-600 text-sm italic">{{ error }}</p>
+                    {% endfor %}
+                {% endif %}
+            </div>
+            
+            <div class="mb-6">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="{{ form.description.id_for_label }}">
+                    Descrição (opcional)
+                </label>
+                {{ form.description }}
+                {% if form.description.errors %}
+                    {% for error in form.description.errors %}
+                        <p class="text-red-600 text-sm italic">{{ error }}</p>
+                    {% endfor %}
+                {% endif %}
+            </div>
+            
+            <div class="flex items-center justify-between">
+                <button class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded" type="submit">
+                    Transferir
+                </button>
+                <a href="{% url 'transactions:transaction_report' %}" class="text-blue-500 hover:text-blue-700">
+                    Cancelar
+                </a>
+            </div>
+        </form>
+    </div>
+{% endblock %}

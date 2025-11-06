@@ -1,0 +1,46 @@
+{% extends 'core/base.html' %}
+
+{% block head_title %}Minhas Chaves PIX{% endblock %}
+
+{% block content %}
+    <h1 class="font-mono font-bold text-3xl text-center pb-5 pt-10">Minhas Chaves PIX</h1>
+    <hr />
+    
+    <div class="mt-10">
+        <a href="{% url 'transactions:pix_register' %}" 
+           class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+            Registrar Nova Chave
+        </a>
+    </div>
+    
+    <table class="table-auto mx-auto w-full mt-8">
+        <thead class="bg-gray-800 text-white">
+            <tr class="uppercase font-semibold text-sm">
+                <th class="px-4 py-2">Tipo</th>
+                <th class="px-4 py-2">Chave</th>
+                <th class="px-4 py-2">Status</th>
+                <th class="px-4 py-2">Data de Registro</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for key in pix_keys %}
+            <tr class="{% cycle 'bg-gray-300' 'bg-white-100' %}">
+                <td class="border px-4 py-2 text-center">{{ key.get_key_type_display }}</td>
+                <td class="border px-4 py-2 text-center">{{ key.key_value }}</td>
+                <td class="border px-4 py-2 text-center">
+                    {% if key.is_active %}
+                    <span class="text-green-600">Ativa</span>
+                    {% else %}
+                    <span class="text-red-600">Inativa</span>
+                    {% endif %}
+                </td>
+                <td class="border px-4 py-2 text-center">{{ key.created_at|date:"d/m/Y H:i" }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4" class="text-center py-4">Nenhuma chave PIX registrada</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

@@ -4,6 +4,7 @@ from django import forms
 from django.conf import settings
 
 from .models import Transaction
+from .constants import DEPOSIT, WITHDRAWAL
 
 
 class TransactionForm(forms.ModelForm):
@@ -24,7 +25,14 @@ class TransactionForm(forms.ModelForm):
 
     def save(self, commit=True):
         self.instance.account = self.account
-        self.instance.balance_after_transaction = self.account.balance
+        
+        # Calculate balance after this transaction
+        amount = self.cleaned_data['amount']
+        if self.instance.transaction_type == DEPOSIT:
+            self.instance.balance_after_transaction = self.account.balance + amount
+        else:  # WITHDRAWAL
+            self.instance.balance_after_transaction = self.account.balance - amount
+        
         return super().save()
 
 
@@ -64,8 +72,10 @@ class WithdrawForm(TransactionForm):
                 f'You can withdraw at most {max_withdraw_amount} $'
             )
 
-        # TODO: Add validation to prevent negative balances
-        # Bug: Users can currently withdraw more than their balance
+        if amount > balance:
+            raise forms.ValidationError(
+                f'Saldo insuficiente. Saldo disponível: R$ {balance}'
+            )
 
         return amount
 

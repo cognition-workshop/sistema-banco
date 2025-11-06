@@ -33,11 +33,12 @@ class UserAddressForm(forms.ModelForm):
 
 
 class UserRegistrationForm(UserCreationForm):
+    cpf = forms.CharField(max_length=14, label='CPF')
     account_type = forms.ModelChoiceField(
         queryset=BankAccountType.objects.all()
     )
     gender = forms.ChoiceField(choices=GENDER_CHOICE)
-    birth_date = forms.DateField()
+    birth_date = forms.DateField(widget=forms.DateInput(attrs={'type': 'date'}))
 
     class Meta:
         model = User
@@ -45,6 +46,7 @@ class UserRegistrationForm(UserCreationForm):
             'first_name',
             'last_name',
             'email',
+            'cpf',
             'password1',
             'password2',
         ]
@@ -72,15 +74,19 @@ class UserRegistrationForm(UserCreationForm):
             account_type = self.cleaned_data.get('account_type')
             gender = self.cleaned_data.get('gender')
             birth_date = self.cleaned_data.get('birth_date')
+            cpf = self.cleaned_data.get('cpf')
+            
+            agency = '0001'
+            account_number = str(user.id + settings.ACCOUNT_NUMBER_START_FROM).zfill(8)
 
             UserBankAccount.objects.create(
                 user=user,
                 gender=gender,
                 birth_date=birth_date,
                 account_type=account_type,
-                account_no=(
-                    user.id +
-                    settings.ACCOUNT_NUMBER_START_FROM
-                )
+                cpf=cpf,
+                agency=agency,
+                account_number=account_number,
+                account_no=user.id + settings.ACCOUNT_NUMBER_START_FROM
             )
         return user
