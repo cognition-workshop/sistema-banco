@@ -2,6 +2,7 @@ from django import forms
 from django.conf import settings
 from django.contrib.auth.forms import UserCreationForm
 from django.db import transaction
+from django.db.models import Max
 
 from .models import User, BankAccountType, UserBankAccount, UserAddress
 from .constants import GENDER_CHOICE
@@ -73,14 +74,20 @@ class UserRegistrationForm(UserCreationForm):
             gender = self.cleaned_data.get('gender')
             birth_date = self.cleaned_data.get('birth_date')
 
+            max_account = UserBankAccount.objects.aggregate(
+                Max('account_no')
+            )['account_no__max']
+            
+            if max_account is not None:
+                new_account_no = max_account + 1
+            else:
+                new_account_no = settings.ACCOUNT_NUMBER_START_FROM
+            
             UserBankAccount.objects.create(
                 user=user,
                 gender=gender,
                 birth_date=birth_date,
                 account_type=account_type,
-                account_no=(
-                    user.id +
-                    settings.ACCOUNT_NUMBER_START_FROM
-                )
+                account_no=new_account_no
             )
         return user
