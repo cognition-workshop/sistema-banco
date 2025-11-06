@@ -27,6 +27,30 @@ Be sure you have the following installed on your development machine:
 + pip
 + Virtualenv (virtualenvwrapper is recommended)
 
+## Environment Variables
+
+For local development, you can create a `.env` file in the project root (optional, as defaults are provided):
+
+```bash
+cp .env.example .env
+```
+
+Edit the `.env` file and set your environment-specific values. Key variables include:
+
+- `SECRET_KEY`: Django secret key (required for production, default provided for development)
+- `DEBUG`: Set to `True` for development, `False` for production (default: `False`)
+- `ALLOWED_HOSTS`: Comma-separated list of allowed hosts (default: empty for development)
+- `CELERY_BROKER_URL`: Redis connection URL (default: `redis://localhost:6379`)
+- `CELERY_RESULT_BACKEND`: Redis results backend URL (default: `redis://localhost:6379`)
+
+For production deployments, also configure security headers:
+- `SECURE_SSL_REDIRECT=True`
+- `SECURE_HSTS_SECONDS=31536000`
+- `SESSION_COOKIE_SECURE=True`
+- `CSRF_COOKIE_SECURE=True`
+
+**Note:** The `.env` file is gitignored and should never be committed to version control.
+
 ## Requirements
 
 + celery==4.4.7
