@@ -1,0 +1,84 @@
+{% extends 'admin_panel/base.html' %}
+
+{% block title %}Transaction Monitoring{% endblock %}
+
+{% block content %}
+<h1 class="text-3xl font-bold mb-6">Transaction Monitoring</h1>
+
+<div class="bg-white rounded-lg shadow p-6 mb-6">
+    <form method="get" class="grid grid-cols-2 md:grid-cols-3 gap-4">
+        {{ filter_form.user_email }}
+        {{ filter_form.transaction_type }}
+        {{ filter_form.min_amount }}
+        {{ filter_form.max_amount }}
+        {{ filter_form.date_from }}
+        {{ filter_form.date_to }}
+        <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700">
+            Filter
+        </button>
+    </form>
+    
+    {% if perms.accounts.export_data %}
+    <div class="mt-4 flex gap-4">
+        <a href="{% url 'admin_panel:export_transactions_csv' %}?{{ request.GET.urlencode }}" class="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700">
+            Export CSV
+        </a>
+        <a href="{% url 'admin_panel:export_transactions_excel' %}?{{ request.GET.urlencode }}" class="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700">
+            Export Excel
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<div class="bg-white rounded-lg shadow p-6 mb-6">
+    <div class="grid grid-cols-2 gap-4">
+        <div>
+            <label class="font-semibold">Total Volume:</label>
+            <p class="text-2xl">${{ total_volume|floatformat:2 }}</p>
+        </div>
+        <div>
+            <label class="font-semibold">Average Transaction:</label>
+            <p class="text-2xl">${{ avg_transaction|floatformat:2 }}</p>
+        </div>
+    </div>
+</div>
+
+<div class="bg-white rounded-lg shadow">
+    <table class="min-w-full">
+        <thead class="bg-gray-800 text-white">
+            <tr>
+                <th class="px-4 py-2 text-left">ID</th>
+                <th class="px-4 py-2 text-left">User</th>
+                <th class="px-4 py-2 text-left">Type</th>
+                <th class="px-4 py-2 text-left">Amount</th>
+                <th class="px-4 py-2 text-left">Balance After</th>
+                <th class="px-4 py-2 text-left">Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for transaction in transactions %}
+            <tr class="border-b hover:bg-gray-50">
+                <td class="px-4 py-2">{{ transaction.id }}</td>
+                <td class="px-4 py-2">{{ transaction.account.user.email }}</td>
+                <td class="px-4 py-2">{{ transaction.get_transaction_type_display }}</td>
+                <td class="px-4 py-2">${{ transaction.amount }}</td>
+                <td class="px-4 py-2">${{ transaction.balance_after_transaction }}</td>
+                <td class="px-4 py-2">{{ transaction.timestamp|date:"Y-m-d H:i" }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    {% if is_paginated %}
+    <div class="p-4 flex justify-center">
+        {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}&{{ request.GET.urlencode }}" class="px-4 py-2 border rounded-l">Previous</a>
+        {% endif %}
+        <span class="px-4 py-2 border-t border-b">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}&{{ request.GET.urlencode }}" class="px-4 py-2 border rounded-r">Next</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

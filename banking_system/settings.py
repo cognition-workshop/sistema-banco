@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'accounts',
     'core',
     'transactions',
+    'admin_panel',
 ]
 
 MIDDLEWARE = [
@@ -140,3 +141,12 @@ CELERY_ACCEPT_CONTENT = ['application/json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = TIME_ZONE
+
+from celery.schedules import crontab
+
+CELERY_BEAT_SCHEDULE = {
+    'check-fraud-patterns': {
+        'task': 'admin_panel.tasks.check_fraud_patterns',
+        'schedule': crontab(minute='*/15'),
+    },
+}

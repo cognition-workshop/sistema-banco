@@ -1,0 +1,38 @@
+{% extends 'admin_panel/base.html' %}
+
+{% block title %}Review Fraud Alert{% endblock %}
+
+{% block content %}
+<h1 class="text-3xl font-bold mb-6">Review Fraud Alert #{{ alert.id }}</h1>
+
+<div class="bg-white rounded-lg shadow p-6 mb-6">
+    <p class="mb-4"><strong>Details:</strong> {{ alert.details }}</p>
+    <p class="mb-4"><strong>Transaction:</strong> ${{ alert.transaction.amount }} - {{ alert.transaction.get_transaction_type_display }}</p>
+    <p class="mb-4"><strong>User:</strong> {{ alert.transaction.account.user.email }}</p>
+</div>
+
+<div class="bg-white rounded-lg shadow p-6">
+    <form method="post">
+        {% csrf_token %}
+        
+        <div class="mb-4">
+            <label class="block font-semibold mb-2">Status</label>
+            {{ form.status }}
+        </div>
+        
+        <div class="mb-4">
+            <label class="block font-semibold mb-2">Review Notes</label>
+            {{ form.notes }}
+        </div>
+        
+        <div class="flex gap-4">
+            <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700">
+                Submit Review
+            </button>
+            <a href="{% url 'admin_panel:fraud_alert_detail' alert.pk %}" class="bg-gray-600 text-white px-6 py-2 rounded-md hover:bg-gray-700">
+                Cancel
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

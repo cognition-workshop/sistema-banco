@@ -1,0 +1,60 @@
+{% extends 'admin_panel/base.html' %}
+
+{% block title %}Edit User{% endblock %}
+
+{% block content %}
+<h1 class="text-3xl font-bold mb-6">Edit User</h1>
+
+<div class="bg-white rounded-lg shadow p-6">
+    <form method="post">
+        {% csrf_token %}
+        
+        <div class="mb-4">
+            <label class="block font-semibold mb-2">Email</label>
+            {{ form.email }}
+            {% if form.email.errors %}
+                <p class="text-red-600 text-sm mt-1">{{ form.email.errors.0 }}</p>
+            {% endif %}
+        </div>
+        
+        <div class="mb-4">
+            <label class="block font-semibold mb-2">First Name</label>
+            {{ form.first_name }}
+            {% if form.first_name.errors %}
+                <p class="text-red-600 text-sm mt-1">{{ form.first_name.errors.0 }}</p>
+            {% endif %}
+        </div>
+        
+        <div class="mb-4">
+            <label class="block font-semibold mb-2">Last Name</label>
+            {{ form.last_name }}
+            {% if form.last_name.errors %}
+                <p class="text-red-600 text-sm mt-1">{{ form.last_name.errors.0 }}</p>
+            {% endif %}
+        </div>
+        
+        <div class="mb-4">
+            <label class="flex items-center">
+                {{ form.is_active }}
+                <span class="ml-2">Is Active</span>
+            </label>
+        </div>
+        
+        <div class="mb-4">
+            <label class="flex items-center">
+                {{ form.is_staff }}
+                <span class="ml-2">Is Staff</span>
+            </label>
+        </div>
+        
+        <div class="flex gap-4">
+            <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700">
+                Save Changes
+            </button>
+            <a href="{% url 'admin_panel:user_detail' user_obj.pk %}" class="bg-gray-600 text-white px-6 py-2 rounded-md hover:bg-gray-700">
+                Cancel
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

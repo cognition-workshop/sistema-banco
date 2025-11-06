@@ -1,0 +1,93 @@
+{% extends 'admin_panel/base.html' %}
+
+{% block title %}Fraud Alert Details{% endblock %}
+
+{% block content %}
+<h1 class="text-3xl font-bold mb-6">Fraud Alert Details</h1>
+
+<div class="bg-white rounded-lg shadow p-6 mb-6">
+    <div class="grid grid-cols-2 gap-4">
+        <div>
+            <label class="font-semibold">Alert ID:</label>
+            <p>{{ alert.id }}</p>
+        </div>
+        <div>
+            <label class="font-semibold">Status:</label>
+            <p>{{ alert.get_status_display }}</p>
+        </div>
+        <div>
+            <label class="font-semibold">Rule Triggered:</label>
+            <p>{{ alert.rule_triggered }}</p>
+        </div>
+        <div>
+            <label class="font-semibold">Severity:</label>
+            <p>
+                <span class="px-2 py-1 rounded {% if alert.severity == 'high' %}bg-red-200 text-red-800{% else %}bg-yellow-200 text-yellow-800{% endif %}">
+                    {{ alert.severity }}
+                </span>
+            </p>
+        </div>
+        <div>
+            <label class="font-semibold">Created:</label>
+            <p>{{ alert.created_at|date:"Y-m-d H:i:s" }}</p>
+        </div>
+        {% if alert.reviewed_by %}
+        <div>
+            <label class="font-semibold">Reviewed By:</label>
+            <p>{{ alert.reviewed_by.email }}</p>
+        </div>
+        {% endif %}
+        <div class="col-span-2">
+            <label class="font-semibold">Details:</label>
+            <p>{{ alert.details }}</p>
+        </div>
+        {% if alert.notes %}
+        <div class="col-span-2">
+            <label class="font-semibold">Notes:</label>
+            <p>{{ alert.notes }}</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="bg-white rounded-lg shadow p-6 mb-6">
+    <h2 class="text-xl font-bold mb-4">Transaction Details</h2>
+    <div class="grid grid-cols-2 gap-4">
+        <div>
+            <label class="font-semibold">User:</label>
+            <p>{{ alert.transaction.account.user.email }}</p>
+        </div>
+        <div>
+            <label class="font-semibold">Account:</label>
+            <p>{{ alert.transaction.account.account_no }}</p>
+        </div>
+        <div>
+            <label class="font-semibold">Type:</label>
+            <p>{{ alert.transaction.get_transaction_type_display }}</p>
+        </div>
+        <div>
+            <label class="font-semibold">Amount:</label>
+            <p>${{ alert.transaction.amount }}</p>
+        </div>
+        <div>
+            <label class="font-semibold">Balance After:</label>
+            <p>${{ alert.transaction.balance_after_transaction }}</p>
+        </div>
+        <div>
+            <label class="font-semibold">Timestamp:</label>
+            <p>{{ alert.transaction.timestamp|date:"Y-m-d H:i:s" }}</p>
+        </div>
+    </div>
+</div>
+
+<div class="flex gap-4">
+    {% if perms.accounts.review_fraud_alerts and alert.status == 'pending' %}
+    <a href="{% url 'admin_panel:review_fraud_alert' alert.pk %}" class="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700">
+        Review Alert
+    </a>
+    {% endif %}
+    <a href="{% url 'admin_panel:fraud_detection' %}" class="bg-gray-600 text-white px-6 py-2 rounded-md hover:bg-gray-700">
+        Back to List
+    </a>
+</div>
+{% endblock %}
