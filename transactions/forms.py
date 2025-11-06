@@ -2,6 +2,7 @@ import datetime
 
 from django import forms
 from django.conf import settings
+from django.db import transaction
 
 from .models import Transaction
 
@@ -68,6 +69,76 @@ class WithdrawForm(TransactionForm):
         # Bug: Users can currently withdraw more than their balance
 
         return amount
+
+
+class TransferForm(TransactionForm):
+    account_no = forms.IntegerField(
+        label='Recipient Account Number',
+        help_text='Enter the account number to transfer to'
+    )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        amount = cleaned_data.get('amount')
+        account_no = cleaned_data.get('account_no')
+        
+        if not amount or not account_no:
+            return cleaned_data
+        
+        if amount <= 0:
+            raise forms.ValidationError('Transfer amount must be positive')
+        
+        from accounts.models import UserBankAccount
+        try:
+            recipient_account = UserBankAccount.objects.get(account_no=account_no)
+            cleaned_data['recipient_account'] = recipient_account
+        except UserBankAccount.DoesNotExist:
+            raise forms.ValidationError(
+                f'Account number {account_no} does not exist'
+            )
+        
+        if self.account.account_no == account_no:
+            raise forms.ValidationError(
+                'Cannot transfer to your own account'
+            )
+        
+        if self.account.balance < amount:
+            raise forms.ValidationError(
+                f'Insufficient balance. Your current balance is {self.account.balance} $'
+            )
+        
+        return cleaned_data
+    
+    @transaction.atomic
+    def save(self, commit=True):
+        if not commit:
+            return None
+        
+        amount = self.cleaned_data.get('amount')
+        recipient_account = self.cleaned_data.get('recipient_account')
+        sender_account = self.account
+        
+        sender_account.balance -= amount
+        sender_account.save(update_fields=['balance'])
+        
+        recipient_account.balance += amount
+        recipient_account.save(update_fields=['balance'])
+        
+        Transaction.objects.create(
+            account=sender_account,
+            amount=-amount,
+            balance_after_transaction=sender_account.balance,
+            transaction_type=self.cleaned_data.get('transaction_type')
+        )
+        
+        Transaction.objects.create(
+            account=recipient_account,
+            amount=amount,
+            balance_after_transaction=recipient_account.balance,
+            transaction_type=self.cleaned_data.get('transaction_type')
+        )
+        
+        return None
 
 
 class TransactionDateRangeForm(forms.Form):
