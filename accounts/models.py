@@ -50,21 +50,6 @@ class BankAccountType(models.Model):
     def __str__(self):
         return self.name
 
-    def calculate_interest(self, principal):
-        """
-        Calculate interest for each account type.
-
-        This uses a basic interest calculation formula
-        """
-        p = principal
-        r = self.annual_interest_rate
-        n = Decimal(self.interest_calculation_per_year)
-
-        # Basic Future Value formula to calculate interest
-        interest = (p * (1 + ((r/100) / n))) - p
-
-        return round(interest, 2)
-
 
 class UserBankAccount(models.Model):
     user = models.OneToOneField(
@@ -95,18 +80,6 @@ class UserBankAccount(models.Model):
 
     def __str__(self):
         return str(self.account_no)
-
-    def get_interest_calculation_months(self):
-        """
-        List of month numbers for which the interest will be calculated
-
-        returns [2, 4, 6, 8, 10, 12] for every 2 months interval
-        """
-        interval = int(
-            12 / self.account_type.interest_calculation_per_year
-        )
-        start = self.interest_start_date.month
-        return [i for i in range(start, 13, interval)]
 
 
 class UserAddress(models.Model):
