@@ -22,6 +22,13 @@ class Transaction(models.Model):
         choices=TRANSACTION_TYPE_CHOICES
     )
     timestamp = models.DateTimeField(auto_now_add=True)
+    destination_account = models.ForeignKey(
+        UserBankAccount,
+        related_name='incoming_transfers',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True
+    )
 
     def __str__(self):
         return str(self.account.account_no)

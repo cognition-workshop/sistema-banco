@@ -109,3 +109,32 @@ print(f"Demo User: demo@example.com / demo123")
 print(f"Account Number: {account.account_no}")
 print(f"Balance: ${account.balance}")
 print(f"Transactions: {Transaction.objects.filter(account=account).count()}")
+
+demo_user2, created2 = User.objects.get_or_create(
+    email='demo2@example.com',
+    defaults={
+        'first_name': 'Jane',
+        'last_name': 'Smith',
+    }
+)
+
+if created2:
+    demo_user2.set_password('demo123')
+    demo_user2.save()
+
+account2, _ = UserBankAccount.objects.get_or_create(
+    user=demo_user2,
+    defaults={
+        'account_type': current_type,
+        'account_no': 1002,
+        'gender': 'F',
+        'birth_date': '1992-05-15',
+        'balance': 3000.00,
+        'initial_deposit_date': timezone.now() - relativedelta(months=3),
+        'interest_start_date': timezone.now() + relativedelta(months=1)
+    }
+)
+
+print(f"\nSecond Demo Account: demo2@example.com / demo123")
+print(f"Account Number: {account2.account_no}")
+print(f"Balance: ${account2.balance}")
