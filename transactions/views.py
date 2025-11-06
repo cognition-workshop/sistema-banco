@@ -16,6 +16,14 @@ from transactions.forms import (
 from transactions.models import Transaction
 
 
+def invalidate_transaction_cache(account_id):
+    """Increment cache version to invalidate all cached querysets for an account."""
+    from django.core.cache import cache
+    version_key = f"transaction_version_{account_id}"
+    current_version = cache.get(version_key, 0)
+    cache.set(version_key, current_version + 1, None)
+
+
 class TransactionRepostView(ListView):
     template_name = 'transactions/transaction_report.html'
     model = Transaction
@@ -29,26 +37,61 @@ class TransactionRepostView(ListView):
         return super().get(request, *args, **kwargs)
 
     def get_queryset(self):
-        # Bypass login - use demo user
+        from django.core.cache import cache
+        
         User = get_user_model()
         demo_user = User.objects.filter(email='demo@example.com').first()
         if not demo_user or not hasattr(demo_user, 'account'):
             return super().get_queryset().none()
         
-        queryset = super().get_queryset().filter(
-            account=demo_user.account
-        )
-
+        account = demo_user.account
         daterange = self.form_data.get("daterange")
+        
+        daterange_str = f"{daterange[0]}_{daterange[1]}" if daterange else "all"
+        cache_version = self._get_cache_version(account.id)
+        cache_key = f"transaction_report_{account.id}_{daterange_str}_{cache_version}"
+        
+        cached_result = cache.get(cache_key)
+        if cached_result is not None:
+            return cached_result
+        
+        queryset = super().get_queryset().filter(
+            account=account
+        ).select_related(
+            'account',
+            'account__account_type'
+        ).only(
+            'id',
+            'amount',
+            'timestamp',
+            'transaction_type',
+            'balance_after_transaction',
+            'account_id'
+        )
 
         if daterange:
             queryset = queryset.filter(timestamp__date__range=daterange)
 
-        return queryset.distinct()
+        queryset = queryset.distinct()
+        
+        queryset_list = list(queryset)
+        
+        cache.set(cache_key, queryset_list, 300)
+        
+        return queryset_list
+    
+    def _get_cache_version(self, account_id):
+        """Get cache version for an account, initializing if needed."""
+        from django.core.cache import cache
+        version_key = f"transaction_version_{account_id}"
+        version = cache.get(version_key)
+        if version is None:
+            version = 1
+            cache.set(version_key, version, None)
+        return version
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # Bypass login - use demo user
         User = get_user_model()
         demo_user = User.objects.filter(email='demo@example.com').first()
         context.update({

@@ -25,7 +25,13 @@ class TransactionForm(forms.ModelForm):
     def save(self, commit=True):
         self.instance.account = self.account
         self.instance.balance_after_transaction = self.account.balance
-        return super().save()
+        result = super().save(commit)
+        
+        if commit:
+            from transactions.views import invalidate_transaction_cache
+            invalidate_transaction_cache(self.account.id)
+        
+        return result
 
 
 class DepositForm(TransactionForm):
