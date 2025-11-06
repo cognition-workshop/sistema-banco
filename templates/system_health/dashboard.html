@@ -1,0 +1,191 @@
+{% extends 'core/base.html' %}
+
+{% block head_title %}System Health Dashboard{% endblock %}
+
+{% block head_extra %}
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+{% endblock %}
+
+{% block content %}
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold text-gray-800 mb-8">System Health Dashboard</h1>
+        
+        <div class="mb-6">
+            <button id="refresh-btn" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                Refresh Status
+            </button>
+            <span class="ml-4 text-gray-600">Auto-refresh: <span id="countdown">5</span>s</span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-xl font-semibold text-gray-700">Database</h2>
+                    <div id="db-indicator" class="w-4 h-4 rounded-full bg-gray-400"></div>
+                </div>
+                <div id="db-status" class="text-gray-600">
+                    <p class="text-sm">Loading...</p>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-xl font-semibold text-gray-700">Redis</h2>
+                    <div id="redis-indicator" class="w-4 h-4 rounded-full bg-gray-400"></div>
+                </div>
+                <div id="redis-status" class="text-gray-600">
+                    <p class="text-sm">Loading...</p>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-xl font-semibold text-gray-700">Celery Workers</h2>
+                    <div id="celery-indicator" class="w-4 h-4 rounded-full bg-gray-400"></div>
+                </div>
+                <div id="celery-status" class="text-gray-600">
+                    <p class="text-sm">Loading...</p>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-xl font-semibold text-gray-700">Performance</h2>
+                    <div id="metrics-indicator" class="w-4 h-4 rounded-full bg-gray-400"></div>
+                </div>
+                <div id="metrics-status" class="text-gray-600">
+                    <p class="text-sm">Loading...</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-8 bg-white rounded-lg shadow-lg p-6">
+            <h2 class="text-2xl font-semibold text-gray-700 mb-4">Overall System Status</h2>
+            <div id="overall-status" class="text-lg">
+                <p class="text-gray-600">Checking system health...</p>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block footer_extra %}
+    <script>
+        let countdownInterval;
+        let countdown = 5;
+
+        function updateStatus() {
+            $.get("{% url 'system_health:database_status' %}", function(data) {
+                const color = data.status === 'healthy' ? 'bg-green-500' : 'bg-red-500';
+                $('#db-indicator').removeClass('bg-gray-400 bg-green-500 bg-red-500 bg-yellow-500').addClass(color);
+                $('#db-status').html(`
+                    <p class="text-sm"><strong>Status:</strong> ${data.status}</p>
+                    <p class="text-sm"><strong>Type:</strong> ${data.type}</p>
+                    <p class="text-sm mt-2">${data.message}</p>
+                `);
+            }).fail(function() {
+                $('#db-indicator').removeClass('bg-gray-400 bg-green-500 bg-red-500').addClass('bg-red-500');
+                $('#db-status').html('<p class="text-sm text-red-600">Error fetching status</p>');
+            });
+
+            $.get("{% url 'system_health:redis_status' %}", function(data) {
+                const color = data.status === 'healthy' ? 'bg-green-500' : 'bg-red-500';
+                $('#redis-indicator').removeClass('bg-gray-400 bg-green-500 bg-red-500 bg-yellow-500').addClass(color);
+                $('#redis-status').html(`
+                    <p class="text-sm"><strong>Status:</strong> ${data.status}</p>
+                    <p class="text-sm mt-2">${data.message}</p>
+                `);
+            }).fail(function() {
+                $('#redis-indicator').removeClass('bg-gray-400 bg-green-500 bg-red-500').addClass('bg-red-500');
+                $('#redis-status').html('<p class="text-sm text-red-600">Error fetching status</p>');
+            });
+
+            $.get("{% url 'system_health:celery_status' %}", function(data) {
+                let color = 'bg-gray-400';
+                if (data.status === 'healthy') color = 'bg-green-500';
+                else if (data.status === 'warning') color = 'bg-yellow-500';
+                else color = 'bg-red-500';
+                
+                $('#celery-indicator').removeClass('bg-gray-400 bg-green-500 bg-red-500 bg-yellow-500').addClass(color);
+                $('#celery-status').html(`
+                    <p class="text-sm"><strong>Status:</strong> ${data.status}</p>
+                    <p class="text-sm"><strong>Workers:</strong> ${data.workers}</p>
+                    <p class="text-sm mt-2">${data.message}</p>
+                `);
+            }).fail(function() {
+                $('#celery-indicator').removeClass('bg-gray-400 bg-green-500 bg-red-500 bg-yellow-500').addClass('bg-red-500');
+                $('#celery-status').html('<p class="text-sm text-red-600">Error fetching status</p>');
+            });
+
+            $.get("{% url 'system_health:performance_metrics' %}", function(data) {
+                const color = data.status === 'healthy' ? 'bg-green-500' : 'bg-red-500';
+                $('#metrics-indicator').removeClass('bg-gray-400 bg-green-500 bg-red-500 bg-yellow-500').addClass(color);
+                $('#metrics-status').html(`
+                    <p class="text-sm"><strong>Status:</strong> ${data.status}</p>
+                    <p class="text-sm mt-2">${data.message}</p>
+                `);
+            }).fail(function() {
+                $('#metrics-indicator').removeClass('bg-gray-400 bg-green-500 bg-red-500').addClass('bg-red-500');
+                $('#metrics-status').html('<p class="text-sm text-red-600">Error fetching status</p>');
+            });
+
+            updateOverallStatus();
+        }
+
+        function updateOverallStatus() {
+            setTimeout(function() {
+                const healthyCount = $('.bg-green-500').length;
+                const warningCount = $('.bg-yellow-500').length;
+                const unhealthyCount = $('.bg-red-500').length;
+                
+                let statusText = '';
+                let statusClass = '';
+                
+                if (unhealthyCount > 0) {
+                    statusText = `⚠️ System has ${unhealthyCount} unhealthy component(s)`;
+                    statusClass = 'text-red-600';
+                } else if (warningCount > 0) {
+                    statusText = `⚠️ System has ${warningCount} warning(s)`;
+                    statusClass = 'text-yellow-600';
+                } else if (healthyCount >= 3) {
+                    statusText = '✅ All systems operational';
+                    statusClass = 'text-green-600';
+                } else {
+                    statusText = '⏳ Checking system health...';
+                    statusClass = 'text-gray-600';
+                }
+                
+                $('#overall-status').html(`<p class="${statusClass} font-semibold">${statusText}</p>`);
+            }, 500);
+        }
+
+        function startCountdown() {
+            countdown = 5;
+            $('#countdown').text(countdown);
+            
+            if (countdownInterval) {
+                clearInterval(countdownInterval);
+            }
+            
+            countdownInterval = setInterval(function() {
+                countdown--;
+                $('#countdown').text(countdown);
+                
+                if (countdown <= 0) {
+                    updateStatus();
+                    startCountdown();
+                }
+            }, 1000);
+        }
+
+        $(document).ready(function() {
+            updateStatus();
+            startCountdown();
+            
+            $('#refresh-btn').click(function() {
+                updateStatus();
+                startCountdown();
+            });
+        });
+    </script>
+{% endblock %}

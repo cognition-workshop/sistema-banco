@@ -1,0 +1,89 @@
+{% extends 'core/base.html' %}
+
+{% block head_title %}Fraud Rules{% endblock %}
+
+{% block content %}
+    <h1 class="font-mono font-bold text-3xl text-center pb-5 pt-10">Fraud Detection Rules</h1>
+    <hr />
+    
+    <div class="mt-5 mb-5">
+        <a href="{% url 'fraud_detection:rule_create' %}" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+            Create New Rule
+        </a>
+    </div>
+
+    <form method="get" class="mb-5">
+        <div class="flex gap-4">
+            <select name="is_active" class="border rounded px-3 py-2">
+                <option value="">All Status</option>
+                <option value="true">Active</option>
+                <option value="false">Inactive</option>
+            </select>
+            <select name="severity" class="border rounded px-3 py-2">
+                <option value="">All Severities</option>
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+                <option value="critical">Critical</option>
+            </select>
+            <button type="submit" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
+                Filter
+            </button>
+        </div>
+    </form>
+
+    <table class="table-auto mx-auto w-full mt-8">
+        <thead class="bg-gray-800 text-white">
+        <tr class="uppercase font-semibold text-sm">
+            <th class="px-4 py-2">Name</th>
+            <th class="px-4 py-2">Type</th>
+            <th class="px-4 py-2">Severity</th>
+            <th class="px-4 py-2">Status</th>
+            <th class="px-4 py-2">Created</th>
+            <th class="px-4 py-2">Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for rule in rules %}
+        <tr class="{% cycle 'bg-gray-300' 'bg-white-100' %}">
+            <td class="border px-4 py-2">{{ rule.name }}</td>
+            <td class="border px-4 py-2 text-center">{{ rule.get_rule_type_display }}</td>
+            <td class="border px-4 py-2 text-center">
+                <span class="px-2 py-1 rounded {% if rule.severity == 'critical' %}bg-red-600 text-white{% elif rule.severity == 'high' %}bg-orange-500 text-white{% elif rule.severity == 'medium' %}bg-yellow-500{% else %}bg-green-500{% endif %}">
+                    {{ rule.get_severity_display }}
+                </span>
+            </td>
+            <td class="border px-4 py-2 text-center">
+                {% if rule.is_active %}
+                    <span class="text-green-600 font-bold">Active</span>
+                {% else %}
+                    <span class="text-gray-500">Inactive</span>
+                {% endif %}
+            </td>
+            <td class="border px-4 py-2 text-center">{{ rule.created_at|date:"Y-m-d H:i" }}</td>
+            <td class="border px-4 py-2 text-center">
+                <a href="{% url 'fraud_detection:rule_update' rule.pk %}" class="text-blue-600 hover:underline">Edit</a>
+                |
+                <a href="{% url 'fraud_detection:rule_delete' rule.pk %}" class="text-red-600 hover:underline">Delete</a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="6" class="border px-4 py-2 text-center text-gray-500">No rules found</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    {% if is_paginated %}
+    <div class="mt-5 flex justify-center">
+        {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}" class="mx-1 px-3 py-1 bg-gray-300 rounded">Previous</a>
+        {% endif %}
+        <span class="mx-2 px-3 py-1">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}" class="mx-1 px-3 py-1 bg-gray-300 rounded">Next</a>
+        {% endif %}
+    </div>
+    {% endif %}
+{% endblock %}
