@@ -15,6 +15,15 @@ class User(AbstractUser):
     username = None
     email = models.EmailField(unique=True, null=False, blank=False)
 
+    ROLE_CHOICES = [
+        ('admin', 'Administrador'),
+        ('supervisor', 'Supervisor'),
+        ('auditor', 'Auditor'),
+    ]
+
+    is_admin = models.BooleanField(default=False)
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, blank=True, null=True)
+
     objects = UserManager()
 
     USERNAME_FIELD = 'email'
