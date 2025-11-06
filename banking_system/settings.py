@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'accounts',
     'core',
     'transactions',
+    'rest_framework',
 ]
 
 MIDDLEWARE = [
@@ -140,3 +141,9 @@ CELERY_ACCEPT_CONTENT = ['application/json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = TIME_ZONE
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.SessionAuthentication',
+    ],
+}
