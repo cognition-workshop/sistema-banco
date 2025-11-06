@@ -10,8 +10,9 @@
             <p class="leading-normal mb-4">
                 A modern web application for managing your banking transactions.
             </p>
-            <div>
-            <a href="{% url 'transactions:transaction_report' %}" class="bg-transparent hover:bg-gray-800 text-gray-800 hover:text-white rounded shadow hover:shadow-lg py-2 px-4 border border-gray-900 hover:border-transparent">View Transactions</a>
+            <div class="space-x-4">
+            <a href="{% url 'accounts:dashboard' %}" class="bg-blue-600 hover:bg-blue-700 text-white rounded shadow hover:shadow-lg py-3 px-6 border border-blue-600 hover:border-blue-700 transition-colors duration-200 inline-block">Go to Dashboard</a>
+            <a href="{% url 'transactions:transaction_report' %}" class="bg-transparent hover:bg-gray-800 text-gray-800 hover:text-white rounded shadow hover:shadow-lg py-3 px-6 border border-gray-900 hover:border-transparent transition-colors duration-200 inline-block">View Transactions</a>
             </div>
         </div>
         <!--Right Col-->
