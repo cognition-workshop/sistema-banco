@@ -1,22 +1,56 @@
 {% extends 'core/base.html' %}
 
-{% block head_title %}Banking System{% endblock %}
+{% block head_title %}Banking System - Home{% endblock %}
 
 {% block content %}
-    <div class="container mx-auto flex flex-col md:flex-row items-center my-12 md:my-24">
-        <!--Left Col-->
+    <div class="container mx-auto flex flex-col md:flex-row items-center my-12 md:my-24 px-6">
         <div class="flex flex-col w-full lg:w-1/2 justify-center items-start pt-12 pb-24 px-6">
-            <h1 class="font-bold text-4xl my-4">Banking System</h1>
-            <p class="leading-normal mb-4">
-                A modern web application for managing your banking transactions.
+            <p class="uppercase tracking-loose text-gray-600 mb-2">Sistema Bancário Moderno</p>
+            <h1 class="font-bold text-5xl my-4 leading-tight">Gerencie suas finanças com segurança</h1>
+            <p class="leading-normal text-gray-700 text-lg mb-8">
+                Uma plataforma completa para gerenciar suas transações bancárias, 
+                gerar relatórios IRPF e acompanhar seu saldo em tempo real.
             </p>
-            <div>
-            <a href="{% url 'transactions:transaction_report' %}" class="bg-transparent hover:bg-gray-800 text-gray-800 hover:text-white rounded shadow hover:shadow-lg py-2 px-4 border border-gray-900 hover:border-transparent">View Transactions</a>
+            <div class="flex gap-4">
+                <a href="{% url 'dashboard' %}" 
+                   class="bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-lg py-3 px-8 font-semibold transition duration-200">
+                    Acessar Dashboard
+                </a>
+                <a href="{% url 'transactions:transaction_report' %}" 
+                   class="bg-transparent hover:bg-gray-800 text-gray-800 hover:text-white rounded-lg shadow py-3 px-8 border border-gray-900 hover:border-transparent font-semibold transition duration-200">
+                    Ver Transações
+                </a>
             </div>
         </div>
-        <!--Right Col-->
+        
         <div class="w-full lg:w-1/2 lg:py-6 text-center">
-            <h1 style="font-size: 12rem" class="font-black text-gray-800">$$$</h1>
+            <div class="relative">
+                <div class="absolute inset-0 bg-blue-600 opacity-20 rounded-full blur-3xl"></div>
+                <h1 style="font-size: 12rem" class="font-black text-gray-800 relative z-10">$$$</h1>
+            </div>
+        </div>
+    </div>
+    
+    <div class="bg-white py-16">
+        <div class="container mx-auto px-6">
+            <h2 class="text-3xl font-bold text-center mb-12">Recursos Disponíveis</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="text-center p-6">
+                    <div class="text-5xl mb-4">📊</div>
+                    <h3 class="text-xl font-semibold mb-2">Relatórios IRPF</h3>
+                    <p class="text-gray-600">Gere relatórios anuais para declaração do Imposto de Renda</p>
+                </div>
+                <div class="text-center p-6">
+                    <div class="text-5xl mb-4">🔒</div>
+                    <h3 class="text-xl font-semibold mb-2">Detecção de Fraude</h3>
+                    <p class="text-gray-600">Sistema inteligente de monitoramento de transações suspeitas</p>
+                </div>
+                <div class="text-center p-6">
+                    <div class="text-5xl mb-4">📈</div>
+                    <h3 class="text-xl font-semibold mb-2">Dashboard Interativo</h3>
+                    <p class="text-gray-600">Acompanhe seu saldo e transações com gráficos em tempo real</p>
+                </div>
+            </div>
         </div>
     </div>
 {% endblock %}

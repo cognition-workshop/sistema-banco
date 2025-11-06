@@ -1,6 +1,6 @@
 {% extends 'core/base.html' %}
 
-{% block head_title %}Transaction Report{% endblock %}
+{% block head_title %}Relatório de Transações{% endblock %}
 
 {% block head_extra %}
     <script type="text/javascript" src="https://cdn.jsdelivr.net/jquery/latest/jquery.min.js"></script>
@@ -10,47 +10,104 @@
 {% endblock %}
 
 {% block content %}
-    <h1 class="font-mono font-bold text-3xl text-center pb-5 pt-10">Transaction Report</h1>
-    <hr />
-    <form method="get">
-        <div class="mt-10 h-10 pl-3 pr-2 bg-white border rounded-md border-gray-500 flex justify-between items-center relative">
-            <input type="search" name="daterange" id="search" placeholder="Filter using date range" value="{{ request.GET.daterange }}" class="appearance-none w-full outline-none focus:outline-none active:outline-none" />
-            <button type="submit" class="ml-1 outline-none focus:outline-none active:outline-none">
-                <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" class="w-6 h-6">
-                    <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                </svg>
-            </button>
+<div class="container mx-auto px-4 py-8">
+    <h1 class="font-bold text-3xl text-center pb-5">Relatório de Transações</h1>
+    <hr class="mb-6" />
+    
+    <form method="get" class="bg-white rounded-lg shadow-md p-6 mb-6">
+        <div class="flex flex-col md:flex-row gap-4">
+            <div class="flex-grow">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Filtrar por período</label>
+                <div class="relative">
+                    <input type="search" name="daterange" id="search" 
+                           placeholder="Selecione o período" 
+                           value="{{ request.GET.daterange }}" 
+                           class="appearance-none w-full border border-gray-300 rounded-lg px-4 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    <button type="submit" class="absolute right-2 top-2 outline-none">
+                        <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" 
+                             stroke-width="2" viewBox="0 0 24 24" class="w-6 h-6 text-gray-500">
+                            <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                    </button>
+                </div>
+                {% if form.daterange.errors %}
+                    {% for error in form.daterange.errors %}
+                        <p class="text-red-600 text-sm italic mt-1">{{ error }}</p>
+                    {% endfor %}
+                {% endif %}
+            </div>
+            <div class="flex items-end">
+                <button type="submit" 
+                        class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition duration-200">
+                    Filtrar
+                </button>
+            </div>
         </div>
-        {% if form.daterange.errors %}
-            {% for error in form.daterange.errors %}
-                <p class="text-red-600 text-sm italic">{{ error }}</p>
-            {% endfor %}
-        {% endif %}
     </form>
-    <table class="table-auto mx-auto w-full mt-8">
-        <thead class="bg-gray-800 text-white">
-        <tr class="uppercase font-semibold text-sm">
-            <th class="px-4 py-2">Transaction Type</th>
-            <th class="px-4 py-2">Date</th>
-            <th class="px-4 py-2">Amount</th>
-            <th class="px-4 py-2">Balance After Transaction</th>
-        </tr>
-        </thead>
-        <tbody>
+    
+    <div class="hidden md:block bg-white rounded-lg shadow-md overflow-hidden">
+        <table class="table-auto w-full">
+            <thead class="bg-gray-800 text-white">
+                <tr class="uppercase font-semibold text-sm">
+                    <th class="px-6 py-3 text-left">Tipo</th>
+                    <th class="px-6 py-3 text-left">Data</th>
+                    <th class="px-6 py-3 text-right">Valor</th>
+                    <th class="px-6 py-3 text-right">Saldo Após</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for transaction in object_list %}
+                <tr class="{% cycle 'bg-gray-50' 'bg-white' %} hover:bg-gray-100 transition duration-150">
+                    <td class="border-b px-6 py-4">{{ transaction.get_transaction_type_display }}</td>
+                    <td class="border-b px-6 py-4">{{ transaction.timestamp|date:"d/m/Y H:i" }}</td>
+                    <td class="border-b px-6 py-4 text-right font-semibold">R$ {{ transaction.amount|floatformat:2 }}</td>
+                    <td class="border-b px-6 py-4 text-right">R$ {{ transaction.balance_after_transaction|floatformat:2 }}</td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="4" class="px-6 py-8 text-center text-gray-500">Nenhuma transação encontrada</td>
+                </tr>
+            {% endfor %}
+            {% if object_list %}
+                <tr class="bg-gray-600 text-white font-bold">
+                    <th class="px-6 py-4 text-right" colspan="3">Saldo Final</th>
+                    <th class="px-6 py-4 text-right">R$ {{ account.balance|floatformat:2 }}</th>
+                </tr>
+            {% endif %}
+            </tbody>
+        </table>
+    </div>
+    
+    <div class="md:hidden space-y-4">
         {% for transaction in object_list %}
-        <tr class="{% cycle 'bg-gray-300' 'bg-white-100' %}">
-            <td class="border px-4 py-2 text-center">{{ transaction.get_transaction_type_display }}</td>
-            <td class="border px-4 py-2 text-center">{{ transaction.timestamp }}</td>
-            <td class="border px-4 py-2 text-center">$ {{ transaction.amount }}</td>
-            <td class="border px-4 py-2 text-center">$ {{ transaction.balance_after_transaction }}</td>
-        </tr>
+        <div class="bg-white rounded-lg shadow-md p-4">
+            <div class="flex justify-between items-start mb-2">
+                <span class="font-semibold text-lg">{{ transaction.get_transaction_type_display }}</span>
+                <span class="text-sm text-gray-600">{{ transaction.timestamp|date:"d/m/Y H:i" }}</span>
+            </div>
+            <div class="flex justify-between items-center">
+                <span class="text-gray-600">Valor:</span>
+                <span class="font-bold text-lg">R$ {{ transaction.amount|floatformat:2 }}</span>
+            </div>
+            <div class="flex justify-between items-center mt-1">
+                <span class="text-gray-600">Saldo Após:</span>
+                <span class="font-semibold">R$ {{ transaction.balance_after_transaction|floatformat:2 }}</span>
+            </div>
+        </div>
+        {% empty %}
+        <p class="text-center text-gray-500 py-8">Nenhuma transação encontrada</p>
         {% endfor %}
-        <tr class="bg-gray-600 text-white">
-            <th class="px-4 py-2 text-right" colspan="3">Final Balance</th>
-            <th class="px-4 py-2 text-center">$ {{ account.balance }}</th>
-        </tr>
-        </tbody>
-    </table>
+        
+        {% if object_list %}
+        <div class="bg-gray-800 text-white rounded-lg p-4">
+            <div class="flex justify-between items-center">
+                <span class="font-semibold">Saldo Final:</span>
+                <span class="font-bold text-xl">R$ {{ account.balance|floatformat:2 }}</span>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
 {% endblock %}
 
 {% block footer_extra %}
@@ -59,7 +116,11 @@
             $('input[name="daterange"]').daterangepicker({
                 autoUpdateInput: false,
                 locale: {
-                    cancelLabel: "Clear",
+                    cancelLabel: "Limpar",
+                    applyLabel: "Aplicar",
+                    fromLabel: "De",
+                    toLabel: "Até",
+                    format: "DD/MM/YYYY"
                 },
             });
 

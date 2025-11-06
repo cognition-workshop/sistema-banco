@@ -1,27 +1,51 @@
 <nav class="flex items-center justify-between flex-wrap bg-gray-800 p-6">
     <div class="flex items-center flex-shrink-0 text-white mr-6">
-        <span class="font-semibold text-xl tracking-tight">Banking System</span>
+        <a href="{% url 'home' %}" class="font-semibold text-xl tracking-tight">Banking System</a>
     </div>
+    
     <div class="block lg:hidden">
-        <button class="flex items-center px-3 py-2 border rounded text-white border-white-400 hover:text-white hover:border-white">
-            <svg class="fill-current h-3 w-3" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><title>Menu</title><path d="M0 3h20v2H0V3zm0 6h20v2H0V9zm0 6h20v2H0v-2z"/></svg>
+        <button id="nav-toggle" class="flex items-center px-3 py-2 border rounded text-white border-white-400 hover:text-white hover:border-white">
+            <svg class="fill-current h-3 w-3" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                <title>Menu</title>
+                <path d="M0 3h20v2H0V3zm0 6h20v2H0V9zm0 6h20v2H0v-2z"/>
+            </svg>
         </button>
     </div>
-    <div class="w-full block flex-grow lg:flex lg:items-center lg:w-auto">
-        {# Bypass authentication - always show navigation for demo #}
+    
+    <div id="nav-content" class="w-full hidden lg:block flex-grow lg:flex lg:items-center lg:w-auto">
         <div class="text-md lg:flex-grow">
-            <a href="{% url 'transactions:transaction_report' %}" class="block mt-4 lg:inline-block lg:mt-0 text-white hover:text-white mr-4">
-                Transaction Report
+            <a href="{% url 'dashboard' %}" 
+               class="block mt-4 lg:inline-block lg:mt-0 text-white hover:text-gray-300 mr-4 transition duration-200">
+                Dashboard
             </a>
-            <a href="{% url 'transactions:deposit_money' %}" class="block mt-4 lg:inline-block lg:mt-0 text-white hover:text-white mr-4">
-                Deposit
+            <a href="{% url 'transactions:transaction_report' %}" 
+               class="block mt-4 lg:inline-block lg:mt-0 text-white hover:text-gray-300 mr-4 transition duration-200">
+                Transações
             </a>
-            <a href="{% url 'transactions:withdraw_money' %}" class="block mt-4 lg:inline-block lg:mt-0 text-white hover:text-white">
-                Withdraw
+            <a href="{% url 'transactions:deposit_money' %}" 
+               class="block mt-4 lg:inline-block lg:mt-0 text-white hover:text-gray-300 mr-4 transition duration-200">
+                Depósito
+            </a>
+            <a href="{% url 'transactions:withdraw_money' %}" 
+               class="block mt-4 lg:inline-block lg:mt-0 text-white hover:text-gray-300 mr-4 transition duration-200">
+                Saque
+            </a>
+            <a href="{% url 'transactions:irpf_report' %}" 
+               class="block mt-4 lg:inline-block lg:mt-0 text-white hover:text-gray-300 transition duration-200">
+                IRPF
             </a>
         </div>
         <div class="text-white">
-            <span class="inline-block font-medium text-sm px-4 py-2 mt-4 lg:mt-0">Demo User: John Doe (Account #1001)</span>
+            <span class="inline-block font-medium text-sm px-4 py-2 mt-4 lg:mt-0">
+                Demo: João Silva (Conta #1001)
+            </span>
         </div>
     </div>
 </nav>
+
+<script>
+    document.getElementById('nav-toggle').addEventListener('click', function() {
+        const navContent = document.getElementById('nav-content');
+        navContent.classList.toggle('hidden');
+    });
+</script>

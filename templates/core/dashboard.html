@@ -1,0 +1,101 @@
+{% extends 'core/base.html' %}
+
+{% block head_title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold mb-8">Dashboard</h1>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h3 class="text-gray-500 text-sm font-semibold uppercase mb-2">Saldo Atual</h3>
+            <p class="text-3xl font-bold text-gray-800">R$ {{ current_balance|floatformat:2 }}</p>
+        </div>
+        
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h3 class="text-gray-500 text-sm font-semibold uppercase mb-2">Depósitos (30d)</h3>
+            <p class="text-3xl font-bold text-green-600">R$ {{ deposits_30d|floatformat:2 }}</p>
+        </div>
+        
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h3 class="text-gray-500 text-sm font-semibold uppercase mb-2">Saques (30d)</h3>
+            <p class="text-3xl font-bold text-red-600">R$ {{ withdrawals_30d|floatformat:2 }}</p>
+        </div>
+        
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h3 class="text-gray-500 text-sm font-semibold uppercase mb-2">Transações (30d)</h3>
+            <p class="text-3xl font-bold text-blue-600">{{ transaction_count_30d }}</p>
+        </div>
+    </div>
+    
+    <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+        <h2 class="text-xl font-semibold mb-4">Evolução do Saldo (Últimos 30 dias)</h2>
+        <canvas id="balanceChart" height="80"></canvas>
+    </div>
+    
+    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <h2 class="text-xl font-semibold p-6 border-b">Transações Recentes</h2>
+        <table class="w-full">
+            <thead class="bg-gray-800 text-white">
+                <tr>
+                    <th class="px-6 py-3 text-left">Tipo</th>
+                    <th class="px-6 py-3 text-left">Data</th>
+                    <th class="px-6 py-3 text-right">Valor</th>
+                    <th class="px-6 py-3 text-right">Saldo</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for transaction in last_transactions %}
+                <tr class="{% cycle 'bg-gray-50' 'bg-white' %} hover:bg-gray-100">
+                    <td class="px-6 py-4">{{ transaction.get_transaction_type_display }}</td>
+                    <td class="px-6 py-4">{{ transaction.timestamp|date:"d/m/Y H:i" }}</td>
+                    <td class="px-6 py-4 text-right">R$ {{ transaction.amount|floatformat:2 }}</td>
+                    <td class="px-6 py-4 text-right font-semibold">R$ {{ transaction.balance_after_transaction|floatformat:2 }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block footer_extra %}
+<script>
+    const balanceData = {{ balance_history|safe }};
+    const ctx = document.getElementById('balanceChart').getContext('2d');
+    
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: balanceData.map(item => item.date),
+            datasets: [{
+                label: 'Saldo',
+                data: balanceData.map(item => item.balance),
+                borderColor: 'rgb(59, 130, 246)',
+                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                tension: 0.1,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return 'R$ ' + value.toFixed(2);
+                        }
+                    }
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
