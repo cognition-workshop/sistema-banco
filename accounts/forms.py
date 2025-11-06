@@ -38,6 +38,7 @@ class UserRegistrationForm(UserCreationForm):
     )
     gender = forms.ChoiceField(choices=GENDER_CHOICE)
     birth_date = forms.DateField()
+    cpf = forms.CharField(max_length=14, help_text='CPF no formato XXX.XXX.XXX-XX')
 
     class Meta:
         model = User
@@ -45,6 +46,7 @@ class UserRegistrationForm(UserCreationForm):
             'first_name',
             'last_name',
             'email',
+            'cpf',
             'password1',
             'password2',
         ]
@@ -63,8 +65,18 @@ class UserRegistrationForm(UserCreationForm):
                 )
             })
 
+    def clean_cpf(self):
+        from .validators import validate_cpf
+        cpf = self.cleaned_data.get('cpf')
+        try:
+            validate_cpf(cpf)
+        except Exception as e:
+            raise forms.ValidationError(str(e))
+        return cpf
+
     @transaction.atomic
     def save(self, commit=True):
+        from .managers import generate_account_number
         user = super().save(commit=False)
         user.set_password(self.cleaned_data["password1"])
         if commit:
@@ -72,6 +84,8 @@ class UserRegistrationForm(UserCreationForm):
             account_type = self.cleaned_data.get('account_type')
             gender = self.cleaned_data.get('gender')
             birth_date = self.cleaned_data.get('birth_date')
+
+            agency, account_number, account_digit = generate_account_number()
 
             UserBankAccount.objects.create(
                 user=user,
@@ -81,6 +95,9 @@ class UserRegistrationForm(UserCreationForm):
                 account_no=(
                     user.id +
                     settings.ACCOUNT_NUMBER_START_FROM
-                )
+                ),
+                agency=agency,
+                account_number=account_number,
+                account_digit=account_digit
             )
         return user

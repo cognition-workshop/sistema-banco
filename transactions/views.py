@@ -95,7 +95,6 @@ class DepositMoneyView(TransactionCreateMixin):
 
     def form_valid(self, form):
         amount = form.cleaned_data.get('amount')
-        # Bypass login - use demo user
         User = get_user_model()
         demo_user = User.objects.filter(email='demo@example.com').first()
         account = demo_user.account if demo_user and hasattr(demo_user, 'account') else None
@@ -122,13 +121,19 @@ class DepositMoneyView(TransactionCreateMixin):
                 'interest_start_date'
             ]
         )
+        
+        response = super().form_valid(form)
+        
+        from core.audit import AuditLogger
+        if hasattr(self, 'object') and self.object:
+            AuditLogger.log_transaction(demo_user, self.object, 'DEPOSIT')
 
         messages.success(
             self.request,
             f'{amount}$ was deposited to your account successfully'
         )
 
-        return super().form_valid(form)
+        return response
 
 
 class WithdrawMoneyView(TransactionCreateMixin):
@@ -141,16 +146,21 @@ class WithdrawMoneyView(TransactionCreateMixin):
 
     def form_valid(self, form):
         amount = form.cleaned_data.get('amount')
-        # Bypass login - use demo user
         User = get_user_model()
         demo_user = User.objects.filter(email='demo@example.com').first()
         if demo_user and hasattr(demo_user, 'account'):
             demo_user.account.balance -= form.cleaned_data.get('amount')
             demo_user.account.save(update_fields=['balance'])
+        
+        response = super().form_valid(form)
+        
+        from core.audit import AuditLogger
+        if hasattr(self, 'object') and self.object:
+            AuditLogger.log_transaction(demo_user, self.object, 'WITHDRAW')
 
         messages.success(
             self.request,
             f'Successfully withdrawn {amount}$ from your account'
         )
 
-        return super().form_valid(form)
+        return response

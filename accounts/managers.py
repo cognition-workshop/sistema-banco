@@ -1,5 +1,6 @@
 from django.contrib import auth
 from django.contrib.auth.base_user import BaseUserManager
+import random
 
 
 class UserManager(BaseUserManager):
@@ -58,3 +59,25 @@ class UserManager(BaseUserManager):
                 obj=obj,
             )
         return self.none()
+
+
+def generate_account_number():
+    """Generate Brazilian bank account number (agency-account-digit)."""
+    from accounts.models import UserBankAccount
+    
+    agency = '0001'
+    
+    while True:
+        account_number = str(random.randint(1000000, 9999999))
+        
+        weights = [2, 3, 4, 5, 6, 7, 8, 9]
+        total = sum(int(account_number[i]) * weights[i] for i in range(7))
+        remainder = total % 11
+        digit = 0 if remainder < 2 else 11 - remainder
+        
+        if not UserBankAccount.objects.filter(
+            agency=agency,
+            account_number=account_number,
+            account_digit=str(digit)
+        ).exists():
+            return agency, account_number, str(digit)

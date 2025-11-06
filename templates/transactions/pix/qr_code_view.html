@@ -1,0 +1,30 @@
+{% extends 'core/base.html' %}
+
+{% block head_title %}QR Code PIX{% endblock %}
+
+{% block content %}
+<h1 class="font-mono font-bold text-3xl text-center pb-5 pt-10">QR Code PIX</h1>
+<hr />
+<div class="w-full mt-5 text-center">
+    <div class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4 inline-block">
+        <img src="data:image/png;base64,{{ qr_code.qr_code_data }}" alt="QR Code PIX" class="mx-auto mb-4">
+        
+        <div class="text-left">
+            <p class="mb-2"><strong>Chave PIX:</strong> {{ qr_code.pix_key.key_value }}</p>
+            {% if qr_code.amount %}
+            <p class="mb-2"><strong>Valor:</strong> R$ {{ qr_code.amount }}</p>
+            {% endif %}
+            {% if qr_code.description %}
+            <p class="mb-2"><strong>Descrição:</strong> {{ qr_code.description }}</p>
+            {% endif %}
+            <p class="mb-2"><strong>Criado em:</strong> {{ qr_code.created_at|date:"d/m/Y H:i" }}</p>
+        </div>
+        
+        <div class="mt-4">
+            <a href="{% url 'transactions:pix_key_list' %}" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                Voltar para Chaves PIX
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
