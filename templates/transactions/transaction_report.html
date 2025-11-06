@@ -9,57 +9,150 @@
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
 {% endblock %}
 
+{% load static %}
 {% block content %}
-    <h1 class="font-mono font-bold text-3xl text-center pb-5 pt-10">Transaction Report</h1>
-    <hr />
-    <form method="get">
-        <div class="mt-10 h-10 pl-3 pr-2 bg-white border rounded-md border-gray-500 flex justify-between items-center relative">
-            <input type="search" name="daterange" id="search" placeholder="Filter using date range" value="{{ request.GET.daterange }}" class="appearance-none w-full outline-none focus:outline-none active:outline-none" />
-            <button type="submit" class="ml-1 outline-none focus:outline-none active:outline-none">
-                <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" class="w-6 h-6">
-                    <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                </svg>
-            </button>
+    <div class="bg-gray-100 min-h-screen py-8">
+        <div class="container mx-auto px-6">
+            <h1 class="font-bold text-4xl text-center mb-8 text-gray-800">Dashboard de Transações</h1>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="stat-card fade-in">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-600 text-sm font-semibold mb-1">Saldo Atual</p>
+                            <p class="text-3xl font-bold text-blue-600 counter">{{ account.balance }}</p>
+                        </div>
+                        <i class="fas fa-wallet text-4xl text-blue-600"></i>
+                    </div>
+                </div>
+                <div class="stat-card fade-in">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-600 text-sm font-semibold mb-1">Total de Depósitos</p>
+                            <p class="text-3xl font-bold text-green-600 counter" id="total-deposits">0.00</p>
+                        </div>
+                        <i class="fas fa-arrow-up text-4xl text-green-600"></i>
+                    </div>
+                </div>
+                <div class="stat-card fade-in">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-600 text-sm font-semibold mb-1">Total de Saques</p>
+                            <p class="text-3xl font-bold text-red-600 counter" id="total-withdrawals">0.00</p>
+                        </div>
+                        <i class="fas fa-arrow-down text-4xl text-red-600"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-lg p-6 mb-8 fade-in">
+                <h2 class="text-2xl font-bold mb-4 text-gray-800">Evolução do Saldo</h2>
+                <div class="chart-container">
+                    <canvas id="transactionChart"></canvas>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+                <h2 class="text-2xl font-bold mb-4 text-gray-800">Filtrar Transações</h2>
+                <form method="get">
+                    <div class="flex items-center">
+                        <div class="flex-1 mr-4">
+                            <div class="input-with-icon">
+                                <i class="fas fa-calendar"></i>
+                                <input type="search" name="daterange" id="search" placeholder="Filtrar por período" value="{{ request.GET.daterange }}" class="shadow appearance-none border rounded w-full py-3 px-3 text-gray-700 leading-tight focus:outline-none focus:border-blue-500" />
+                            </div>
+                        </div>
+                        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded transition duration-300">
+                            <i class="fas fa-search mr-2"></i>Filtrar
+                        </button>
+                    </div>
+                    {% if form.daterange.errors %}
+                        {% for error in form.daterange.errors %}
+                            <p class="text-red-600 text-sm italic mt-2">{{ error }}</p>
+                        {% endfor %}
+                    {% endif %}
+                </form>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+                <table class="w-full">
+                    <thead class="bg-gray-800 text-white">
+                        <tr class="uppercase font-semibold text-sm">
+                            <th class="px-6 py-4 text-left">
+                                <i class="fas fa-tag mr-2"></i>Tipo
+                            </th>
+                            <th class="px-6 py-4 text-left">
+                                <i class="fas fa-calendar mr-2"></i>Data
+                            </th>
+                            <th class="px-6 py-4 text-right">
+                                <i class="fas fa-dollar-sign mr-2"></i>Valor
+                            </th>
+                            <th class="px-6 py-4 text-right">
+                                <i class="fas fa-wallet mr-2"></i>Saldo Após
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for transaction in object_list %}
+                        <tr class="{% cycle 'bg-gray-50' 'bg-white' %} hover:bg-blue-50 transition">
+                            <td class="border-t px-6 py-4">
+                                {% if transaction.transaction_type == 1 %}
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-green-100 text-green-800">
+                                        <i class="fas fa-arrow-up mr-1"></i>
+                                        {{ transaction.get_transaction_type_display }}
+                                    </span>
+                                {% else %}
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-red-100 text-red-800">
+                                        <i class="fas fa-arrow-down mr-1"></i>
+                                        {{ transaction.get_transaction_type_display }}
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td class="border-t px-6 py-4 text-gray-700">{{ transaction.timestamp|date:"d/m/Y H:i" }}</td>
+                            <td class="border-t px-6 py-4 text-right font-semibold text-gray-800">R$ {{ transaction.amount }}</td>
+                            <td class="border-t px-6 py-4 text-right font-semibold text-blue-600">R$ {{ transaction.balance_after_transaction }}</td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="4" class="border-t px-6 py-8 text-center text-gray-500">
+                                <i class="fas fa-inbox text-4xl mb-4"></i>
+                                <p>Nenhuma transação encontrada</p>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    <tr class="bg-gray-800 text-white font-bold">
+                        <td colspan="3" class="px-6 py-4 text-right uppercase">Saldo Final</td>
+                        <td class="px-6 py-4 text-right text-xl">R$ {{ account.balance }}</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
-        {% if form.daterange.errors %}
-            {% for error in form.daterange.errors %}
-                <p class="text-red-600 text-sm italic">{{ error }}</p>
+    </div>
+
+    <script id="transaction-data" type="application/json">
+        [
+            {% for transaction in object_list %}
+            {
+                "timestamp": "{{ transaction.timestamp|date:'c' }}",
+                "amount": "{{ transaction.amount }}",
+                "balance_after_transaction": "{{ transaction.balance_after_transaction }}",
+                "transaction_type": {{ transaction.transaction_type }}
+            }{% if not forloop.last %},{% endif %}
             {% endfor %}
-        {% endif %}
-    </form>
-    <table class="table-auto mx-auto w-full mt-8">
-        <thead class="bg-gray-800 text-white">
-        <tr class="uppercase font-semibold text-sm">
-            <th class="px-4 py-2">Transaction Type</th>
-            <th class="px-4 py-2">Date</th>
-            <th class="px-4 py-2">Amount</th>
-            <th class="px-4 py-2">Balance After Transaction</th>
-        </tr>
-        </thead>
-        <tbody>
-        {% for transaction in object_list %}
-        <tr class="{% cycle 'bg-gray-300' 'bg-white-100' %}">
-            <td class="border px-4 py-2 text-center">{{ transaction.get_transaction_type_display }}</td>
-            <td class="border px-4 py-2 text-center">{{ transaction.timestamp }}</td>
-            <td class="border px-4 py-2 text-center">$ {{ transaction.amount }}</td>
-            <td class="border px-4 py-2 text-center">$ {{ transaction.balance_after_transaction }}</td>
-        </tr>
-        {% endfor %}
-        <tr class="bg-gray-600 text-white">
-            <th class="px-4 py-2 text-right" colspan="3">Final Balance</th>
-            <th class="px-4 py-2 text-center">$ {{ account.balance }}</th>
-        </tr>
-        </tbody>
-    </table>
+        ]
+    </script>
 {% endblock %}
 
 {% block footer_extra %}
+    {{ block.super }}
+    <script src="{% static 'js/dashboard.js' %}"></script>
     <script type="text/javascript">
         $(function () {
             $('input[name="daterange"]').daterangepicker({
                 autoUpdateInput: false,
                 locale: {
-                    cancelLabel: "Clear",
+                    cancelLabel: "Limpar",
                 },
             });
 

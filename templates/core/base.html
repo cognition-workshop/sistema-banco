@@ -10,6 +10,9 @@
             {% block head_title %}Banking System{% endblock %}
         </title>
         <link href="https://unpkg.com/tailwindcss@^1.0/dist/tailwind.min.css" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+        <link rel="stylesheet" href="{% static 'css/custom.css' %}">
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
 
         {% block head_extra %}{% endblock %}
     </head>
@@ -25,6 +28,7 @@
             {% include 'core/footer.html' %}
 
         {% endblock %}
+        <script src="{% static 'js/animations.js' %}"></script>
         {% block footer_extra %}{% endblock %}
     </body>
 </html>

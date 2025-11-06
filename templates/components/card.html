@@ -1,0 +1,6 @@
+<div class="bg-white rounded-lg shadow-lg p-6 {% if extra_classes %}{{ extra_classes }}{% endif %}">
+    {% if title %}
+    <h3 class="text-xl font-bold mb-4 text-gray-800">{{ title }}</h3>
+    {% endif %}
+    {{ content }}
+</div>

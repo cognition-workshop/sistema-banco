@@ -1,0 +1,192 @@
+/* Banking System - Custom Styles */
+
+/* Banking color palette - professional blues and grays */
+:root {
+    --primary-blue: #1e3a8a;
+    --secondary-blue: #3b82f6;
+    --accent-green: #10b981;
+    --accent-red: #ef4444;
+    --dark-gray: #1f2937;
+    --light-gray: #f3f4f6;
+}
+
+/* Smooth animations */
+@keyframes fadeIn {
+    from { 
+        opacity: 0; 
+        transform: translateY(20px); 
+    }
+    to { 
+        opacity: 1; 
+        transform: translateY(0); 
+    }
+}
+
+.fade-in {
+    animation: fadeIn 0.6s ease-out;
+    animation-fill-mode: both;
+}
+
+/* Professional card styling */
+.stat-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+    transform: translateY(-5px);
+}
+
+/* Professional button styling */
+.btn-primary {
+    background: linear-gradient(135deg, var(--primary-blue), var(--secondary-blue));
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+    transform: translateY(-2px);
+}
+
+/* Input with icon styling */
+.input-with-icon {
+    position: relative;
+}
+
+.input-with-icon i {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6b7280;
+    pointer-events: none;
+    z-index: 10;
+}
+
+.input-with-icon input,
+.input-with-icon select,
+.input-with-icon textarea {
+    padding-left: 40px !important;
+}
+
+/* Mobile menu toggle */
+.mobile-menu {
+    display: none;
+}
+
+.mobile-menu.active {
+    display: block;
+}
+
+/* Hero section gradient */
+.hero-gradient {
+    background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+}
+
+/* Chart container */
+.chart-container {
+    position: relative;
+    height: 400px;
+    margin: 2rem 0;
+}
+
+/* Counter animation */
+@keyframes countUp {
+    from { 
+        opacity: 0; 
+    }
+    to { 
+        opacity: 1; 
+    }
+}
+
+.counter {
+    animation: countUp 1s ease-out;
+}
+
+/* Smooth transitions */
+.transition-smooth {
+    transition: all 0.3s ease;
+}
+
+/* Progress indicator styling */
+.progress-step {
+    transition: all 0.3s ease;
+}
+
+.progress-step.active {
+    background-color: #3b82f6;
+    color: white;
+}
+
+.progress-step.inactive {
+    background-color: #d1d5db;
+    color: #6b7280;
+}
+
+/* Professional shadows */
+.shadow-professional {
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+/* Gradient backgrounds */
+.bg-gradient-blue {
+    background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+}
+
+.bg-gradient-gray {
+    background: linear-gradient(135deg, #374151 0%, #1f2937 100%);
+}
+
+/* Badge styling */
+.badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.badge-success {
+    background-color: #d1fae5;
+    color: #065f46;
+}
+
+.badge-danger {
+    background-color: #fee2e2;
+    color: #991b1b;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+    .mobile-menu {
+        width: 100%;
+    }
+    
+    .mobile-menu.active {
+        display: block;
+    }
+}
+
+/* Form focus states */
+input:focus,
+select:focus,
+textarea:focus {
+    outline: none;
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+}
+
+/* Loading animation */
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.spinner {
+    animation: spin 1s linear infinite;
+}
