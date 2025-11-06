@@ -3,14 +3,16 @@ from dateutil.relativedelta import relativedelta
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth import get_user_model
+from django.db import transaction
 from django.urls import reverse_lazy
 from django.utils import timezone
 from django.views.generic import CreateView, ListView
 
-from transactions.constants import DEPOSIT, WITHDRAWAL
+from transactions.constants import DEPOSIT, WITHDRAWAL, TRANSFER
 from transactions.forms import (
     DepositForm,
     TransactionDateRangeForm,
+    TransferForm,
     WithdrawForm,
 )
 from transactions.models import Transaction
@@ -151,6 +153,59 @@ class WithdrawMoneyView(TransactionCreateMixin):
         messages.success(
             self.request,
             f'Successfully withdrawn {amount}$ from your account'
+        )
+
+        return super().form_valid(form)
+
+
+class TransferMoneyView(TransactionCreateMixin):
+    template_name = 'transactions/transfer_form.html'
+    form_class = TransferForm
+    title = 'Transfer Money to Another Account'
+
+    def get_initial(self):
+        initial = {'transaction_type': TRANSFER}
+        return initial
+
+    def form_valid(self, form):
+        amount = form.cleaned_data.get('amount')
+        recipient_account_no = form.cleaned_data.get('recipient_account_no')
+        
+        User = get_user_model()
+        demo_user = User.objects.filter(email='demo@example.com').first()
+        sender_account = demo_user.account if demo_user and hasattr(demo_user, 'account') else None
+        
+        if not sender_account:
+            messages.error(self.request, 'Sender account not found')
+            return super().form_valid(form)
+
+        from accounts.models import UserBankAccount
+        recipient_account = UserBankAccount.objects.get(account_no=recipient_account_no)
+
+        with transaction.atomic():
+            sender_account.balance -= amount
+            sender_account.save(update_fields=['balance'])
+
+            recipient_account.balance += amount
+            recipient_account.save(update_fields=['balance'])
+
+            Transaction.objects.create(
+                account=sender_account,
+                amount=amount,
+                balance_after_transaction=sender_account.balance,
+                transaction_type=TRANSFER
+            )
+
+            Transaction.objects.create(
+                account=recipient_account,
+                amount=amount,
+                balance_after_transaction=recipient_account.balance,
+                transaction_type=TRANSFER
+            )
+
+        messages.success(
+            self.request,
+            f'Successfully transferred {amount}$ to account {recipient_account_no}'
         )
 
         return super().form_valid(form)
