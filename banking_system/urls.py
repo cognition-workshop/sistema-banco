@@ -17,6 +17,12 @@ from django.contrib import admin
 from django.urls import include, path
 
 from core.views import HomeView
+from core.health_views import (
+    health_check,
+    health_check_db,
+    health_check_redis,
+    health_check_celery
+)
 
 
 urlpatterns = [
@@ -26,5 +32,9 @@ urlpatterns = [
     path(
         'transactions/',
         include('transactions.urls', namespace='transactions')
-    )
+    ),
+    path('health/', health_check, name='health'),
+    path('health/db/', health_check_db, name='health_db'),
+    path('health/redis/', health_check_redis, name='health_redis'),
+    path('health/celery/', health_check_celery, name='health_celery'),
 ]
