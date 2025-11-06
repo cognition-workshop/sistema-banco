@@ -187,13 +187,6 @@ class TransferMoneyView(TransactionCreateMixin):
             recipient_account.save(update_fields=['balance'])
             
             Transaction.objects.create(
-                account=sender_account,
-                amount=amount,
-                balance_after_transaction=sender_account.balance,
-                transaction_type=TRANSFER
-            )
-            
-            Transaction.objects.create(
                 account=recipient_account,
                 amount=amount,
                 balance_after_transaction=recipient_account.balance,
