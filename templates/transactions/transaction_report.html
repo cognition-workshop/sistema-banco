@@ -12,7 +12,7 @@
 {% block content %}
     <h1 class="font-mono font-bold text-3xl text-center pb-5 pt-10">Transaction Report</h1>
     <hr />
-    <form method="get">
+    <form method="get" class="space-y-4">
         <div class="mt-10 h-10 pl-3 pr-2 bg-white border rounded-md border-gray-500 flex justify-between items-center relative">
             <input type="search" name="daterange" id="search" placeholder="Filter using date range" value="{{ request.GET.daterange }}" class="appearance-none w-full outline-none focus:outline-none active:outline-none" />
             <button type="submit" class="ml-1 outline-none focus:outline-none active:outline-none">
@@ -26,6 +26,16 @@
                 <p class="text-red-600 text-sm italic">{{ error }}</p>
             {% endfor %}
         {% endif %}
+        
+        <div class="flex items-center space-x-4">
+            <label for="transaction_type" class="font-semibold">Transaction Type:</label>
+            <select name="transaction_type" id="transaction_type" class="pl-3 pr-8 py-2 bg-white border rounded-md border-gray-500 outline-none focus:outline-none active:outline-none">
+                {% for value, label in form.fields.transaction_type.choices %}
+                    <option value="{{ value }}" {% if request.GET.transaction_type == value|stringformat:"s" %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-700">Filter</button>
+        </div>
     </form>
     <table class="table-auto mx-auto w-full mt-8">
         <thead class="bg-gray-800 text-white">

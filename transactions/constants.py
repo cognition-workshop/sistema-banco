@@ -7,3 +7,10 @@ TRANSACTION_TYPE_CHOICES = (
     (WITHDRAWAL, 'Withdrawal'),
     (INTEREST, 'Interest'),
 )
+
+TRANSACTION_TYPE_FILTER_CHOICES = (
+    ('', 'All'),
+    (DEPOSIT, 'Deposit'),
+    (WITHDRAWAL, 'Withdrawal'),
+    (INTEREST, 'Interest'),
+)
