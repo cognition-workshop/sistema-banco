@@ -15,9 +15,19 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import include, path
+from rest_framework.routers import DefaultRouter
 
 from core.views import HomeView
+from accounts.api_views import (
+    BankAccountTypeViewSet, UserBankAccountViewSet, UserViewSet
+)
+from transactions.api_views import TransactionViewSet
 
+router = DefaultRouter()
+router.register(r'account-types', BankAccountTypeViewSet, basename='accounttype')
+router.register(r'accounts', UserBankAccountViewSet, basename='bankaccount')
+router.register(r'users', UserViewSet, basename='user')
+router.register(r'transactions', TransactionViewSet, basename='transaction')
 
 urlpatterns = [
     path('', HomeView.as_view(), name='home'),
@@ -26,5 +36,7 @@ urlpatterns = [
     path(
         'transactions/',
         include('transactions.urls', namespace='transactions')
-    )
+    ),
+    path('api/', include(router.urls)),
+    path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
 ]

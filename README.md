@@ -21,7 +21,7 @@ This is an Online Banking Concept created using Django Web Framework.
 
 Be sure you have the following installed on your development machine:
 
-+ Python >= 3.7
++ Python >= 3.10
 + Redis Server
 + Git
 + pip
@@ -29,11 +29,15 @@ Be sure you have the following installed on your development machine:
 
 ## Requirements
 
-+ celery==4.4.7
-+ Django==3.2
-+ django-celery-beat==2.0.0
-+ python-dateutil==2.8.1
-+ redis==3.5.3
++ celery==5.4.0
++ Django==5.0.10
++ django-celery-beat==2.7.0
++ djangorestframework==3.15.2
++ python-dateutil==2.9.0
++ redis==5.2.0
++ psycopg[binary]==3.2.3
++ dj-database-url==2.2.0
++ python-decouple==3.8
 
 ## Install Redis Server
 
@@ -94,6 +98,100 @@ celery -A banking_system worker -l info
 
 celery -A banking_system beat -l info
 ```
+
+## Environment Variables
+
+Create a `.env` file in the project root (use `.env.example` as template):
+
+```bash
+# Django Settings
+SECRET_KEY=your-secret-key-here
+DEBUG=True
+
+# Database Configuration (optional - defaults to SQLite)
+DATABASE_URL=postgresql://user:password@localhost:5432/banking_system
+
+# Redis Configuration
+REDIS_URL=redis://localhost:6379/1
+```
+
+## PostgreSQL Setup (Production)
+
+For production environments, use PostgreSQL instead of SQLite:
+
+1. Install PostgreSQL:
+```bash
+# Ubuntu/Debian
+sudo apt-get install postgresql postgresql-contrib
+
+# macOS
+brew install postgresql
+```
+
+2. Create database and user:
+```bash
+sudo -u postgres psql
+CREATE DATABASE banking_system;
+CREATE USER banking_user WITH PASSWORD 'your_password';
+GRANT ALL PRIVILEGES ON DATABASE banking_system TO banking_user;
+\q
+```
+
+3. Set DATABASE_URL environment variable:
+```bash
+export DATABASE_URL="postgresql://banking_user:your_password@localhost:5432/banking_system"
+```
+
+4. Run migrations:
+```bash
+python manage.py migrate
+```
+
+## API Endpoints
+
+The system now includes RESTful API endpoints with full CRUD operations:
+
+### Account Types
+- `GET /api/account-types/` - List all account types
+- `POST /api/account-types/` - Create new account type
+- `GET /api/account-types/{id}/` - Retrieve account type details
+- `PUT /api/account-types/{id}/` - Update account type
+- `DELETE /api/account-types/{id}/` - Delete account type
+
+### Bank Accounts
+- `GET /api/accounts/` - List all bank accounts
+- `POST /api/accounts/` - Create new bank account
+- `GET /api/accounts/{id}/` - Retrieve account details
+- `PUT /api/accounts/{id}/` - Update account
+- `DELETE /api/accounts/{id}/` - Delete account
+- `GET /api/accounts/{id}/balance/` - Get account balance
+
+### Users
+- `GET /api/users/` - List all users
+- `POST /api/users/` - Create new user
+- `GET /api/users/{id}/` - Retrieve user details
+- `PUT /api/users/{id}/` - Update user
+- `DELETE /api/users/{id}/` - Delete user
+
+### Transactions
+- `GET /api/transactions/` - List all transactions
+- `POST /api/transactions/` - Create new transaction
+- `GET /api/transactions/{id}/` - Retrieve transaction details
+- `PUT /api/transactions/{id}/` - Update transaction
+- `DELETE /api/transactions/{id}/` - Delete transaction
+
+Browse the interactive API documentation at: http://localhost:8000/api/
+
+## Redis Caching
+
+Redis is now used for both Celery message broker and Django caching. The cache timeout is set to 5 minutes by default and can be configured in settings.
+
+## Modern Frontend
+
+The system now uses:
+- **HTMX 2.0** - Modern interactivity without jQuery
+- **Tailwind CSS v4** - Latest utility-first CSS framework
+- **Native HTML5 date inputs** - No external date picker libraries needed
 
 ## Images:
 ![alt text](https://i.imgur.com/FvgmEJL.png)
