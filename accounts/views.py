@@ -1,6 +1,7 @@
 from django.contrib import messages
 from django.contrib.auth import get_user_model, login, logout
 from django.contrib.auth.views import LoginView
+from django.core.cache import cache
 from django.shortcuts import HttpResponseRedirect
 from django.urls import reverse_lazy
 from django.views.generic import TemplateView, RedirectView
@@ -32,6 +33,8 @@ class UserRegistrationView(TemplateView):
             address = address_form.save(commit=False)
             address.user = user
             address.save()
+
+            cache.delete('account_types')
 
             login(self.request, user)
             messages.success(
