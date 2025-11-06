@@ -2,6 +2,7 @@ from django import forms
 from django.conf import settings
 from django.contrib.auth.forms import UserCreationForm
 from django.db import transaction
+from django.utils import timezone
 
 from .models import User, BankAccountType, UserBankAccount, UserAddress
 from .constants import GENDER_CHOICE
@@ -30,6 +31,18 @@ class UserAddressForm(forms.ModelForm):
                     'focus:bg-white focus:border-gray-500'
                 )
             })
+
+    def clean_postal_code(self):
+        postal_code = self.cleaned_data.get('postal_code')
+        if postal_code is not None and postal_code < 0:
+            raise forms.ValidationError('CEP deve ser um número positivo')
+        return postal_code
+    
+    def clean_street_address(self):
+        street_address = self.cleaned_data.get('street_address')
+        if street_address and len(street_address.strip()) < 5:
+            raise forms.ValidationError('Endereço deve ter pelo menos 5 caracteres')
+        return street_address
 
 
 class UserRegistrationForm(UserCreationForm):
@@ -62,6 +75,24 @@ class UserRegistrationForm(UserCreationForm):
                     'focus:border-gray-500'
                 )
             })
+
+    def clean_birth_date(self):
+        birth_date = self.cleaned_data.get('birth_date')
+        if not birth_date:
+            raise forms.ValidationError('Data de nascimento é obrigatória')
+        
+        today = timezone.now().date()
+        if birth_date > today:
+            raise forms.ValidationError('Data de nascimento não pode estar no futuro')
+        
+        age = (today - birth_date).days / 365.25
+        if age < 18:
+            raise forms.ValidationError('Você deve ter pelo menos 18 anos para abrir uma conta')
+        
+        if age > 150:
+            raise forms.ValidationError('Data de nascimento inválida')
+        
+        return birth_date
 
     @transaction.atomic
     def save(self, commit=True):

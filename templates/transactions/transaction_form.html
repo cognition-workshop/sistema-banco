@@ -13,7 +13,7 @@
             <label class="block text-gray-700 text-sm font-bold mb-2" for="amount">
                 Amount
             </label>
-            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight border rounded-md border-gray-500 focus:outline-none focus:shadow-outline" name="amount" id="amount" type="number" required placeholder="Amount">
+            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight border rounded-md border-gray-500 focus:outline-none focus:shadow-outline" name="amount" id="amount" type="number" step="0.01" min="0.01" required placeholder="Digite o valor">
         </div>
         {% if form.amount.errors %}
             {% for error in form.amount.errors %}
@@ -25,4 +25,32 @@
         </button>
     </form>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const amountInput = document.getElementById('amount');
+    
+    if (amountInput && form) {
+        amountInput.addEventListener('input', function() {
+            const value = parseFloat(this.value);
+            
+            if (isNaN(value) || value <= 0) {
+                this.setCustomValidity('O valor deve ser maior que zero');
+            } else if (value < 0.01) {
+                this.setCustomValidity('O valor mínimo é 0.01');
+            } else {
+                this.setCustomValidity('');
+            }
+        });
+        
+        form.addEventListener('submit', function(e) {
+            if (!form.checkValidity()) {
+                e.preventDefault();
+                amountInput.reportValidity();
+            }
+        });
+    }
+});
+</script>
 {% endblock %}
