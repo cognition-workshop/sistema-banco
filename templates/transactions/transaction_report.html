@@ -3,10 +3,8 @@
 {% block head_title %}Transaction Report{% endblock %}
 
 {% block head_extra %}
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/jquery/latest/jquery.min.js"></script>
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 {% endblock %}
 
 {% block content %}
@@ -55,21 +53,36 @@
 
 {% block footer_extra %}
     <script type="text/javascript">
-        $(function () {
-            $('input[name="daterange"]').daterangepicker({
-                autoUpdateInput: false,
-                locale: {
-                    cancelLabel: "Clear",
+        document.addEventListener('DOMContentLoaded', function() {
+            const dateInput = document.querySelector('input[name="daterange"]');
+            
+            const fp = flatpickr(dateInput, {
+                mode: 'range',
+                dateFormat: 'Y-m-d',
+                onClose: function(selectedDates, dateStr, instance) {
+                    if (selectedDates.length === 2) {
+                        const startDate = selectedDates[0];
+                        const endDate = selectedDates[1];
+                        const formattedStart = startDate.toISOString().split('T')[0];
+                        const formattedEnd = endDate.toISOString().split('T')[0];
+                        dateInput.value = formattedStart + ' - ' + formattedEnd;
+                    }
                 },
+                locale: {
+                    rangeSeparator: ' - '
+                }
             });
 
-            $('input[name="daterange"]').on("apply.daterangepicker", function (ev, picker) {
-                $(this).val(picker.startDate.format("YYYY-MM-DD") + " - " + picker.endDate.format("YYYY-MM-DD"));
+            const clearButton = document.createElement('button');
+            clearButton.textContent = 'Clear';
+            clearButton.type = 'button';
+            clearButton.className = 'ml-2 px-3 py-1 bg-gray-200 hover:bg-gray-300 rounded text-sm';
+            clearButton.addEventListener('click', function() {
+                fp.clear();
+                dateInput.value = '';
             });
-
-            $('input[name="daterange"]').on("cancel.daterangepicker", function (ev, picker) {
-                $(this).val("");
-            });
+            
+            dateInput.parentNode.appendChild(clearButton);
         });
     </script>
 {% endblock %}
