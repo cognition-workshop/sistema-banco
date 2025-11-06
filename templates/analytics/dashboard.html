@@ -1,0 +1,198 @@
+{% extends 'core/base.html' %}
+
+{% block head_title %}Analytics Dashboard{% endblock %}
+
+{% block head_extra %}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/jquery/latest/jquery.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <h1 class="font-mono font-bold text-4xl text-center pb-5">Analytics Dashboard</h1>
+    
+    <div class="mb-8 bg-white rounded-lg shadow p-6">
+        <form method="get" class="flex items-center gap-4">
+            <div class="flex-1">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Date Range</label>
+                <input type="text" name="daterange" id="daterange" 
+                       value="{{ date_from|date:'Y-m-d' }} - {{ date_to|date:'Y-m-d' }}"
+                       class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <button type="submit" class="mt-6 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md">
+                Filter
+            </button>
+        </form>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div class="bg-white rounded-lg shadow p-6">
+            <h3 class="text-gray-500 text-sm font-medium">Total Users</h3>
+            <p class="text-3xl font-bold text-gray-900 mt-2">{{ total_users }}</p>
+        </div>
+        <div class="bg-white rounded-lg shadow p-6">
+            <h3 class="text-gray-500 text-sm font-medium">Total Accounts</h3>
+            <p class="text-3xl font-bold text-gray-900 mt-2">{{ total_accounts }}</p>
+        </div>
+        <div class="bg-white rounded-lg shadow p-6">
+            <h3 class="text-gray-500 text-sm font-medium">Total Balance</h3>
+            <p class="text-3xl font-bold text-green-600 mt-2">${{ total_balance|floatformat:2 }}</p>
+        </div>
+        <div class="bg-white rounded-lg shadow p-6">
+            <h3 class="text-gray-500 text-sm font-medium">Average Balance</h3>
+            <p class="text-3xl font-bold text-blue-600 mt-2">${{ average_balance|floatformat:2 }}</p>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div class="bg-white rounded-lg shadow p-6">
+            <h3 class="text-gray-700 text-lg font-semibold mb-4">Deposits</h3>
+            <p class="text-2xl font-bold text-green-600">{{ total_deposits }}</p>
+            <p class="text-sm text-gray-500 mt-1">Total: ${{ deposit_amount|floatformat:2 }}</p>
+        </div>
+        <div class="bg-white rounded-lg shadow p-6">
+            <h3 class="text-gray-700 text-lg font-semibold mb-4">Withdrawals</h3>
+            <p class="text-2xl font-bold text-red-600">{{ total_withdrawals }}</p>
+            <p class="text-sm text-gray-500 mt-1">Total: ${{ withdrawal_amount|floatformat:2 }}</p>
+        </div>
+        <div class="bg-white rounded-lg shadow p-6">
+            <h3 class="text-gray-700 text-lg font-semibold mb-4">Interest</h3>
+            <p class="text-2xl font-bold text-blue-600">{{ total_interest }}</p>
+            <p class="text-sm text-gray-500 mt-1">Total: ${{ interest_amount|floatformat:2 }}</p>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <div class="bg-white rounded-lg shadow p-6">
+            <h3 class="text-gray-700 text-lg font-semibold mb-4">Daily Transactions</h3>
+            <canvas id="transactionTrendChart"></canvas>
+        </div>
+        
+        <div class="bg-white rounded-lg shadow p-6">
+            <h3 class="text-gray-700 text-lg font-semibold mb-4">Transaction Type Distribution</h3>
+            <canvas id="transactionTypeChart"></canvas>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-6 mb-8">
+        <h3 class="text-gray-700 text-lg font-semibold mb-4">Top 10 Accounts by Balance</h3>
+        <canvas id="topAccountsChart"></canvas>
+    </div>
+
+    <div class="text-center">
+        <a href="{% url 'analytics:export_csv' %}" 
+           class="inline-block bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-md font-semibold">
+            Export All Transactions to CSV
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block footer_extra %}
+<script>
+    $(function() {
+        $('#daterange').daterangepicker({
+            autoUpdateInput: true,
+            locale: {
+                format: 'YYYY-MM-DD'
+            }
+        });
+    });
+
+    const trendCtx = document.getElementById('transactionTrendChart').getContext('2d');
+    const dailyData = {{ daily_transactions|safe }};
+    
+    new Chart(trendCtx, {
+        type: 'line',
+        data: {
+            labels: dailyData.map(d => d.date),
+            datasets: [{
+                label: 'Transactions',
+                data: dailyData.map(d => d.count),
+                borderColor: 'rgb(59, 130, 246)',
+                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            }
+        }
+    });
+
+    const typeCtx = document.getElementById('transactionTypeChart').getContext('2d');
+    
+    new Chart(typeCtx, {
+        type: 'pie',
+        data: {
+            labels: ['Deposits', 'Withdrawals', 'Interest'],
+            datasets: [{
+                data: [{{ total_deposits }}, {{ total_withdrawals }}, {{ total_interest }}],
+                backgroundColor: [
+                    'rgb(34, 197, 94)',
+                    'rgb(239, 68, 68)',
+                    'rgb(59, 130, 246)'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+
+    const accountsCtx = document.getElementById('topAccountsChart').getContext('2d');
+    
+    new Chart(accountsCtx, {
+        type: 'bar',
+        data: {
+            labels: [
+                {% for account in top_accounts %}
+                '{{ account.account_no }}',
+                {% endfor %}
+            ],
+            datasets: [{
+                label: 'Balance ($)',
+                data: [
+                    {% for account in top_accounts %}
+                    {{ account.balance }},
+                    {% endfor %}
+                ],
+                backgroundColor: 'rgb(59, 130, 246)'
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
