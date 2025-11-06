@@ -1,4 +1,5 @@
 from django.utils import timezone
+import hashlib
 
 from celery.decorators import task
 
@@ -37,8 +38,15 @@ def calculate_interest():
             transaction_obj = Transaction(
                 account=account,
                 transaction_type=INTEREST,
-                amount=interest
+                amount=interest,
+                balance_after_transaction=account.balance,
+                ip_address='system',
+                geolocation='N/A',
+                channel='system'
             )
+            hash_data = f"{account.account_no}{interest}{INTEREST}system"
+            transaction_obj.hash_signature = hashlib.sha256(hash_data.encode()).hexdigest()
+            
             created_transactions.append(transaction_obj)
             updated_accounts.append(account)
 
