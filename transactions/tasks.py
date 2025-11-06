@@ -26,7 +26,6 @@ def calculate_interest():
                 account.balance
             )
             account.balance += interest
-            account.save()
 
             transaction_obj = Transaction(
                 account=account,
