@@ -17,6 +17,10 @@ from transactions.models import Transaction
 
 
 class TransactionRepostView(ListView):
+    """
+    View to display transaction history with optional date range filtering.
+    Uses demo user approach for unauthenticated access.
+    """
     template_name = 'transactions/transaction_report.html'
     model = Transaction
     form_data = {}
@@ -60,6 +64,11 @@ class TransactionRepostView(ListView):
 
 
 class TransactionCreateMixin(CreateView):
+    """
+    Base mixin for creating transactions (deposits and withdrawals).
+    Handles common functionality for transaction creation views.
+    Uses demo user approach for unauthenticated access.
+    """
     template_name = 'transactions/transaction_form.html'
     model = Transaction
     title = ''
@@ -86,6 +95,10 @@ class TransactionCreateMixin(CreateView):
 
 
 class DepositMoneyView(TransactionCreateMixin):
+    """
+    View for depositing money into a bank account.
+    Sets initial_deposit_date and interest_start_date on first deposit.
+    """
     form_class = DepositForm
     title = 'Deposit Money to Your Account'
 
@@ -132,6 +145,10 @@ class DepositMoneyView(TransactionCreateMixin):
 
 
 class WithdrawMoneyView(TransactionCreateMixin):
+    """
+    View for withdrawing money from a bank account.
+    Note: Currently allows overdrafts (negative balance) - see WithdrawForm TODO.
+    """
     form_class = WithdrawForm
     title = 'Withdraw Money from Your Account'
 
