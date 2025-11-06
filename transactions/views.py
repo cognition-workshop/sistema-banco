@@ -46,7 +46,7 @@ class TransactionRepostView(ListView):
 
         transaction_type = self.form_data.get("transaction_type")
         if transaction_type:
-            queryset = queryset.filter(transaction_type=transaction_type)
+            queryset = queryset.filter(transaction_type=int(transaction_type))
 
         return queryset.distinct()
 
