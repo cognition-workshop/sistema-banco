@@ -4,7 +4,7 @@ from celery.decorators import task
 
 from accounts.models import UserBankAccount
 from transactions.constants import INTEREST
-from transactions.models import Transaction
+from transactions.models import Transaction, create_audit_log
 
 
 @task(name="calculate_interest")
@@ -25,8 +25,23 @@ def calculate_interest():
             interest = account.account_type.calculate_interest(
                 account.balance
             )
+            
+            balance_before = account.balance
+            
             account.balance += interest
+            balance_after = account.balance
             account.save()
+            
+            create_audit_log(
+                account=account,
+                action_type=INTEREST,
+                amount=interest,
+                balance_before=balance_before,
+                balance_after=balance_after,
+                user=None,
+                request=None,
+                metadata={'calculation_month': this_month}
+            )
 
             transaction_obj = Transaction(
                 account=account,
