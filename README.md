@@ -1,4 +1,4 @@
-# Online Banking System V2.0.2
+# Online Banking System V2.0.0
 
 This is an Online Banking Concept created using Django Web Framework.
 
@@ -15,6 +15,10 @@ This is an Online Banking Concept created using Django Web Framework.
 * More efficient and accurate interest calculation and balance update
 * Ability to add Minimum and Maximum Transaction amount restriction
 * Modern UI with Tailwind CSS
+* **NEW:** Production-ready with comprehensive validation and error handling
+* **NEW:** Health check endpoints for monitoring
+* **NEW:** Comprehensive test suite (>80% coverage)
+* **NEW:** Security configurations for production deployment
 
 
 ## Prerequisites
@@ -30,10 +34,17 @@ Be sure you have the following installed on your development machine:
 ## Requirements
 
 + celery==4.4.7
-+ Django==3.2
-+ django-celery-beat==2.0.0
-+ python-dateutil==2.8.1
++ Django==3.2.9
++ django-celery-beat==2.1.0
++ djangorestframework==3.14.0
++ python-dateutil==2.8.2
 + redis==3.5.3
++ django-crispy-forms==2.1
++ crispy-tailwind==0.5.0
++ django-environ==0.11.2
++ coverage==7.3.2
++ flake8==6.1.0
++ black==23.12.0
 
 ## Install Redis Server
 
@@ -94,6 +105,46 @@ celery -A banking_system worker -l info
 
 celery -A banking_system beat -l info
 ```
+
+## Running Tests
+
+Run tests with coverage:
+```bash
+coverage run --source='.' manage.py test
+coverage report
+coverage html  # Generate HTML report
+```
+
+## Environment Variables
+
+For production deployment, copy `.env.example` to `.env` and configure:
+```bash
+cp .env.example .env
+```
+
+See `docs/DEPLOYMENT.md` for full deployment instructions.
+
+## Health Checks
+
+Monitor application health:
+```bash
+curl http://localhost:8000/health/
+curl http://localhost:8000/readiness/
+```
+
+## Code Quality
+
+Run linting and formatting:
+```bash
+flake8 --exclude=venv,migrations --max-line-length=100
+black --check --exclude=venv .
+```
+
+## Documentation
+
+- **API Documentation:** See `docs/API.md`
+- **Deployment Guide:** See `docs/DEPLOYMENT.md`
+- **Changelog:** See `CHANGELOG.md`
 
 ## Images:
 ![alt text](https://i.imgur.com/FvgmEJL.png)

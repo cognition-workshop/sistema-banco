@@ -3,7 +3,7 @@ from django.urls import path
 from .views import DepositMoneyView, WithdrawMoneyView, TransactionRepostView
 
 
-app_name = 'transactions'
+app_name = "transactions"
 
 
 urlpatterns = [
