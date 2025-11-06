@@ -88,3 +88,18 @@ class TransactionDateRangeForm(forms.Form):
                 raise forms.ValidationError("Please select a date range.")
         except (ValueError, AttributeError):
             raise forms.ValidationError("Invalid date range")
+
+
+class IRPFReportForm(forms.Form):
+    year = forms.ChoiceField(
+        required=True,
+        label='Ano Fiscal',
+        widget=forms.Select(attrs={
+            'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+        })
+    )
+    
+    def __init__(self, *args, **kwargs):
+        available_years = kwargs.pop('available_years', [])
+        super().__init__(*args, **kwargs)
+        self.fields['year'].choices = [(year, year) for year in available_years]
