@@ -7,11 +7,12 @@ from django.urls import reverse_lazy
 from django.utils import timezone
 from django.views.generic import CreateView, ListView
 
-from transactions.constants import DEPOSIT, WITHDRAWAL
+from transactions.constants import DEPOSIT, WITHDRAWAL, INTEREST
 from transactions.forms import (
     DepositForm,
     TransactionDateRangeForm,
     WithdrawForm,
+    IRPFYearForm,
 )
 from transactions.models import Transaction
 
@@ -57,6 +58,104 @@ class TransactionRepostView(ListView):
         })
 
         return context
+
+class IRPFReportView(ListView):
+    template_name = 'transactions/irpf_report.html'
+    model = Transaction
+    form_data = {}
+    
+    def get(self, request, *args, **kwargs):
+        User = get_user_model()
+        demo_user = User.objects.filter(email='demo@example.com').first()
+        
+        year_choices = []
+        if demo_user and hasattr(demo_user, 'account'):
+            years = Transaction.objects.filter(
+                account=demo_user.account
+            ).dates('timestamp', 'year', order='DESC')
+            year_choices = [date.year for date in years]
+        
+        form = IRPFYearForm(request.GET or None, year_choices=year_choices)
+        if form.is_valid():
+            self.form_data = form.cleaned_data
+        
+        return super().get(request, *args, **kwargs)
+    
+    def get_queryset(self):
+        User = get_user_model()
+        demo_user = User.objects.filter(email='demo@example.com').first()
+        if not demo_user or not hasattr(demo_user, 'account'):
+            return super().get_queryset().none()
+        
+        queryset = super().get_queryset().filter(
+            account=demo_user.account
+        )
+        
+        year = self.form_data.get('year')
+        if year:
+            queryset = queryset.filter(
+                timestamp__year=year
+            )
+        
+        return queryset.distinct()
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        User = get_user_model()
+        demo_user = User.objects.filter(email='demo@example.com').first()
+        
+        year_choices = []
+        if demo_user and hasattr(demo_user, 'account'):
+            years = Transaction.objects.filter(
+                account=demo_user.account
+            ).dates('timestamp', 'year', order='DESC')
+            year_choices = [date.year for date in years]
+        
+        year = self.form_data.get('year')
+        annual_summary = {
+            'total_deposits': 0,
+            'total_withdrawals': 0,
+            'total_interest': 0,
+        }
+        
+        if year and demo_user and hasattr(demo_user, 'account'):
+            from django.db.models import Sum
+            
+            transactions_year = Transaction.objects.filter(
+                account=demo_user.account,
+                timestamp__year=year
+            )
+            
+            deposits = transactions_year.filter(
+                transaction_type=DEPOSIT
+            ).aggregate(total=Sum('amount'))['total'] or 0
+            
+            withdrawals = transactions_year.filter(
+                transaction_type=WITHDRAWAL
+            ).aggregate(total=Sum('amount'))['total'] or 0
+            
+            interest = transactions_year.filter(
+                transaction_type=INTEREST
+            ).aggregate(total=Sum('amount'))['total'] or 0
+            
+            annual_summary = {
+                'total_deposits': deposits,
+                'total_withdrawals': withdrawals,
+                'total_interest': interest,
+            }
+        
+        context.update({
+            'account': demo_user.account if demo_user and hasattr(demo_user, 'account') else None,
+            'user': demo_user,
+            'form': IRPFYearForm(self.request.GET or None, year_choices=year_choices),
+            'selected_year': year,
+            'annual_summary': annual_summary,
+        })
+        
+        return context
+
+
 
 
 class TransactionCreateMixin(CreateView):

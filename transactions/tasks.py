@@ -1,14 +1,18 @@
 from django.utils import timezone
 
-from celery.decorators import task
+from celery import shared_task
 
 from accounts.models import UserBankAccount
 from transactions.constants import INTEREST
 from transactions.models import Transaction
+from utils.brazilian_holidays import is_business_day
 
 
-@task(name="calculate_interest")
+@shared_task(name="calculate_interest")
 def calculate_interest():
+    if not is_business_day():
+        return
+    
     accounts = UserBankAccount.objects.filter(
         balance__gt=0,
         interest_start_date__gte=timezone.now(),
