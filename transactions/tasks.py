@@ -1,3 +1,4 @@
+import logging
 from django.utils import timezone
 
 from celery.decorators import task
@@ -9,6 +10,9 @@ from transactions.models import Transaction
 
 @task(name="calculate_interest")
 def calculate_interest():
+    logger = logging.getLogger('transactions')
+    logger.info('Starting interest calculation task')
+    
     accounts = UserBankAccount.objects.filter(
         balance__gt=0,
         interest_start_date__gte=timezone.now(),
@@ -28,6 +32,17 @@ def calculate_interest():
             account.balance += interest
             account.save()
 
+            logger.info(
+                'Interest calculated and applied',
+                extra={
+                    'account_no': account.account_no,
+                    'user_email': account.user.email,
+                    'interest_amount': interest,
+                    'transaction_type': 'INTEREST',
+                    'balance_after': account.balance,
+                }
+            )
+
             transaction_obj = Transaction(
                 account=account,
                 transaction_type=INTEREST,
@@ -43,3 +58,11 @@ def calculate_interest():
         UserBankAccount.objects.bulk_update(
             updated_accounts, ['balance']
         )
+    
+    logger.info(
+        'Interest calculation task completed',
+        extra={
+            'accounts_processed': len(updated_accounts),
+            'total_transactions': len(created_transactions),
+        }
+    )

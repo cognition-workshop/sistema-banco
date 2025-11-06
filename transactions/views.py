@@ -1,3 +1,4 @@
+import logging
 from dateutil.relativedelta import relativedelta
 
 from django.contrib import messages
@@ -94,12 +95,19 @@ class DepositMoneyView(TransactionCreateMixin):
         return initial
 
     def form_valid(self, form):
+        logger = logging.getLogger('transactions')
         amount = form.cleaned_data.get('amount')
-        # Bypass login - use demo user
         User = get_user_model()
         demo_user = User.objects.filter(email='demo@example.com').first()
         account = demo_user.account if demo_user and hasattr(demo_user, 'account') else None
         if not account:
+            logger.warning(
+                'Deposit attempt failed - no account found',
+                extra={
+                    'transaction_type': 'DEPOSIT',
+                    'amount': amount,
+                }
+            )
             return super().form_valid(form)
 
         if not account.initial_deposit_date:
@@ -122,6 +130,17 @@ class DepositMoneyView(TransactionCreateMixin):
                 'interest_start_date'
             ]
         )
+        
+        logger.info(
+            'Deposit completed successfully',
+            extra={
+                'user_email': demo_user.email,
+                'account_no': account.account_no,
+                'amount': amount,
+                'transaction_type': 'DEPOSIT',
+                'balance_after': account.balance,
+            }
+        )
 
         messages.success(
             self.request,
@@ -140,13 +159,32 @@ class WithdrawMoneyView(TransactionCreateMixin):
         return initial
 
     def form_valid(self, form):
+        logger = logging.getLogger('transactions')
         amount = form.cleaned_data.get('amount')
-        # Bypass login - use demo user
         User = get_user_model()
         demo_user = User.objects.filter(email='demo@example.com').first()
         if demo_user and hasattr(demo_user, 'account'):
             demo_user.account.balance -= form.cleaned_data.get('amount')
             demo_user.account.save(update_fields=['balance'])
+            
+            logger.info(
+                'Withdrawal completed successfully',
+                extra={
+                    'user_email': demo_user.email,
+                    'account_no': demo_user.account.account_no,
+                    'amount': amount,
+                    'transaction_type': 'WITHDRAWAL',
+                    'balance_after': demo_user.account.balance,
+                }
+            )
+        else:
+            logger.warning(
+                'Withdrawal attempt failed - no account found',
+                extra={
+                    'transaction_type': 'WITHDRAWAL',
+                    'amount': amount,
+                }
+            )
 
         messages.success(
             self.request,
