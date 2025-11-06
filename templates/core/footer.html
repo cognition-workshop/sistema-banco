@@ -1,11 +1,38 @@
-<footer class="footer bg-gray-200 relative pt-1 border-b-2 mt-10">
-    <div class="container mx-auto px-6">
-        <div class="mt-5 flex flex-col items-center">
-            <div class="sm:w-2/3 text-center py-6">
-                <p class="text-md text-gray-900 font-bold mb-2">
-                    Banking System
-                </p>
+<footer class="bg-gray-800 text-white mt-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div>
+                <div class="flex items-center space-x-2 mb-4">
+                    <svg class="h-8 w-8" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z"/>
+                    </svg>
+                    <span class="text-xl font-bold">Sistema Bancário</span>
+                </div>
+                <p class="text-gray-400 text-sm">Seu banco digital de confiança. Seguro, rápido e moderno.</p>
             </div>
+            
+            <div>
+                <h4 class="font-semibold mb-4">Links Rápidos</h4>
+                <ul class="space-y-2 text-sm text-gray-400">
+                    <li><a href="{% url 'home' %}" class="hover:text-white transition">Dashboard</a></li>
+                    <li><a href="{% url 'transactions:transaction_report' %}" class="hover:text-white transition">Extrato</a></li>
+                    <li><a href="{% url 'transactions:deposit_money' %}" class="hover:text-white transition">Depositar</a></li>
+                    <li><a href="{% url 'transactions:withdraw_money' %}" class="hover:text-white transition">Sacar</a></li>
+                </ul>
+            </div>
+            
+            <div>
+                <h4 class="font-semibold mb-4">Informações</h4>
+                <ul class="space-y-2 text-sm text-gray-400">
+                    <li>Suporte 24/7</li>
+                    <li>Segurança Bancária</li>
+                    <li>Privacidade Garantida</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="border-t border-gray-700 mt-8 pt-8 text-center text-sm text-gray-400">
+            <p>&copy; 2024 Sistema Bancário. Todos os direitos reservados.</p>
         </div>
     </div>
 </footer>

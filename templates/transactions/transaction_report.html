@@ -10,47 +10,117 @@
 {% endblock %}
 
 {% block content %}
-    <h1 class="font-mono font-bold text-3xl text-center pb-5 pt-10">Transaction Report</h1>
-    <hr />
-    <form method="get">
-        <div class="mt-10 h-10 pl-3 pr-2 bg-white border rounded-md border-gray-500 flex justify-between items-center relative">
-            <input type="search" name="daterange" id="search" placeholder="Filter using date range" value="{{ request.GET.daterange }}" class="appearance-none w-full outline-none focus:outline-none active:outline-none" />
-            <button type="submit" class="ml-1 outline-none focus:outline-none active:outline-none">
-                <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" class="w-6 h-6">
-                    <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                </svg>
-            </button>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <h1 class="font-bold text-3xl text-gray-900 mb-2">Extrato de Transações</h1>
+    <p class="text-gray-600 mb-6">Visualize todas as suas transações</p>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div class="card bg-blue-50">
+            <p class="text-sm text-gray-600 mb-1">Saldo Atual</p>
+            <p class="text-3xl font-bold text-blue-900">R$ {{ account.balance|floatformat:2 }}</p>
         </div>
-        {% if form.daterange.errors %}
-            {% for error in form.daterange.errors %}
-                <p class="text-red-600 text-sm italic">{{ error }}</p>
-            {% endfor %}
-        {% endif %}
+        <div class="card bg-green-50">
+            <p class="text-sm text-gray-600 mb-1">Total de Transações</p>
+            <p class="text-3xl font-bold text-green-900">{{ object_list|length }}</p>
+        </div>
+        <div class="card bg-gray-50">
+            <p class="text-sm text-gray-600 mb-1">Período</p>
+            <p class="text-lg font-semibold text-gray-900">
+                {% if request.GET.daterange %}{{ request.GET.daterange }}{% else %}Todas{% endif %}
+            </p>
+        </div>
+    </div>
+
+    {% if object_list %}
+    <div class="card mb-8">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">Evolução das Transações</h3>
+        <canvas id="transactionReportChart" height="80"></canvas>
+    </div>
+    {% endif %}
+
+    <form method="get" class="mb-6">
+        <div class="card">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Filtrar por período</label>
+            <div class="flex gap-2">
+                <input type="search" name="daterange" id="search" placeholder="Selecione o intervalo de datas" value="{{ request.GET.daterange }}" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+                <button type="submit" class="btn-primary">
+                    Filtrar
+                </button>
+            </div>
+            {% if form.daterange.errors %}
+                {% for error in form.daterange.errors %}
+                    <p class="text-red-600 text-sm mt-2">{{ error }}</p>
+                {% endfor %}
+            {% endif %}
+        </div>
     </form>
-    <table class="table-auto mx-auto w-full mt-8">
-        <thead class="bg-gray-800 text-white">
-        <tr class="uppercase font-semibold text-sm">
-            <th class="px-4 py-2">Transaction Type</th>
-            <th class="px-4 py-2">Date</th>
-            <th class="px-4 py-2">Amount</th>
-            <th class="px-4 py-2">Balance After Transaction</th>
-        </tr>
-        </thead>
-        <tbody>
+    <div class="hidden md:block card overflow-x-auto">
+        <table class="w-full">
+            <thead class="bg-gray-800 text-white">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium uppercase">Tipo</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium uppercase">Data</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium uppercase">Valor</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium uppercase">Saldo Após</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200">
+            {% for transaction in object_list %}
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4">
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
+                            {% if transaction.transaction_type == 1 %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
+                            {{ transaction.get_transaction_type_display }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 text-sm text-gray-900">{{ transaction.timestamp|date:"d/m/Y H:i" }}</td>
+                    <td class="px-6 py-4 text-sm text-right font-medium
+                        {% if transaction.transaction_type == 1 %}text-green-600{% else %}text-red-600{% endif %}">
+                        {% if transaction.transaction_type == 1 %}+{% else %}-{% endif %}R$ {{ transaction.amount|floatformat:2 }}
+                    </td>
+                    <td class="px-6 py-4 text-sm text-right font-semibold text-gray-900">R$ {{ transaction.balance_after_transaction|floatformat:2 }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+            <tfoot class="bg-gray-800 text-white">
+                <tr>
+                    <th colspan="3" class="px-6 py-3 text-right font-semibold">Saldo Final</th>
+                    <th class="px-6 py-3 text-right font-bold">R$ {{ account.balance|floatformat:2 }}</th>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+
+    <div class="md:hidden space-y-4">
         {% for transaction in object_list %}
-        <tr class="{% cycle 'bg-gray-300' 'bg-white-100' %}">
-            <td class="border px-4 py-2 text-center">{{ transaction.get_transaction_type_display }}</td>
-            <td class="border px-4 py-2 text-center">{{ transaction.timestamp }}</td>
-            <td class="border px-4 py-2 text-center">$ {{ transaction.amount }}</td>
-            <td class="border px-4 py-2 text-center">$ {{ transaction.balance_after_transaction }}</td>
-        </tr>
+        <div class="card">
+            <div class="flex justify-between items-start mb-2">
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
+                    {% if transaction.transaction_type == 1 %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
+                    {{ transaction.get_transaction_type_display }}
+                </span>
+                <span class="text-sm text-gray-500">{{ transaction.timestamp|date:"d/m/Y H:i" }}</span>
+            </div>
+            <div class="flex justify-between items-center">
+                <span class="text-lg font-semibold
+                    {% if transaction.transaction_type == 1 %}text-green-600{% else %}text-red-600{% endif %}">
+                    {% if transaction.transaction_type == 1 %}+{% else %}-{% endif %}R$ {{ transaction.amount|floatformat:2 }}
+                </span>
+                <div class="text-right">
+                    <p class="text-xs text-gray-500">Saldo após</p>
+                    <p class="text-sm font-semibold text-gray-900">R$ {{ transaction.balance_after_transaction|floatformat:2 }}</p>
+                </div>
+            </div>
+        </div>
         {% endfor %}
-        <tr class="bg-gray-600 text-white">
-            <th class="px-4 py-2 text-right" colspan="3">Final Balance</th>
-            <th class="px-4 py-2 text-center">$ {{ account.balance }}</th>
-        </tr>
-        </tbody>
-    </table>
+        
+        <div class="card bg-gray-800 text-white">
+            <div class="flex justify-between items-center">
+                <span class="font-semibold">Saldo Final</span>
+                <span class="text-xl font-bold">R$ {{ account.balance|floatformat:2 }}</span>
+            </div>
+        </div>
+    </div>
+    </div>
 {% endblock %}
 
 {% block footer_extra %}
@@ -59,7 +129,9 @@
             $('input[name="daterange"]').daterangepicker({
                 autoUpdateInput: false,
                 locale: {
-                    cancelLabel: "Clear",
+                    cancelLabel: "Limpar",
+                    applyLabel: "Aplicar",
+                    format: "DD/MM/YYYY"
                 },
             });
 
@@ -72,4 +144,38 @@
             });
         });
     </script>
+    
+    {% if object_list %}
+    <script>
+        const ctx = document.getElementById('transactionReportChart').getContext('2d');
+        const labels = [];
+        const data = [];
+
+        {% for transaction in object_list %}
+        labels.push('{{ transaction.timestamp|date:"d/m" }}');
+        data.push({{ transaction.balance_after_transaction }});
+        {% endfor %}
+
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Saldo (R$)',
+                    data: data,
+                    borderColor: '#1E40AF',
+                    backgroundColor: 'rgba(30, 64, 175, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: { y: { beginAtZero: true } }
+            }
+        });
+    </script>
+    {% endif %}
 {% endblock %}
