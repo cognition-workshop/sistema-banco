@@ -40,9 +40,16 @@ INSTALLED_APPS = [
 
     'django_celery_beat',
 
+    'health_check',
+    'health_check.db',
+    'health_check.cache',
+    'health_check.contrib.redis',
+    'health_check.contrib.celery',
+
     'accounts',
     'core',
     'transactions',
+    'monitoring',
 ]
 
 MIDDLEWARE = [
@@ -54,6 +61,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'core.middleware.ErrorHandlingMiddleware',
+    'monitoring.middleware.PerformanceMonitoringMiddleware',
 ]
 
 ROOT_URLCONF = 'banking_system.urls'
@@ -142,6 +150,11 @@ CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = TIME_ZONE
 
+HEALTH_CHECK = {
+    'DISK_USAGE_MAX': 90,
+    'MEMORY_MIN': 100,
+}
+
 import os
 
 LOGS_DIR = BASE_DIR / 'logs'
@@ -160,6 +173,9 @@ LOGGING = {
             'format': '[{levelname}] {asctime} {message}',
             'style': '{',
         },
+        'json': {
+            'format': '{"time": "%(asctime)s", "level": "%(levelname)s", "logger": "%(name)s", "message": "%(message)s"}',
+        },
         'audit': {
             'format': '[AUDIT] {asctime} | User: {user} | Action: {action} | Details: {message}',
             'style': '{',
@@ -175,6 +191,10 @@ LOGGING = {
             'level': 'INFO',
             'class': 'logging.StreamHandler',
             'formatter': 'simple',
+        },
+        'monitoring': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'json',
         },
         'file_error': {
             'level': 'ERROR',
@@ -212,6 +232,11 @@ LOGGING = {
     'loggers': {
         'django': {
             'handlers': ['console', 'file_error'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'monitoring': {
+            'handlers': ['monitoring'],
             'level': 'INFO',
             'propagate': False,
         },
