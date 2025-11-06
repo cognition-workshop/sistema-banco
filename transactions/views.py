@@ -48,8 +48,7 @@ class TransactionRepostView(ListView):
         queryset = super().get_queryset().filter(
             account=demo_user.account
         ).select_related(
-            'account',
-            'account__account_type'
+            'account'
         ).only(
             'id',
             'account_id',
@@ -57,6 +56,7 @@ class TransactionRepostView(ListView):
             'timestamp',
             'transaction_type',
             'balance_after_transaction',
+            'account__id',
             'account__balance'
         )
 
