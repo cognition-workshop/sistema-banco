@@ -1,4 +1,5 @@
 from django.utils import timezone
+from django.core.cache import cache
 
 from celery import shared_task
 
@@ -19,6 +20,7 @@ def calculate_interest():
 
     created_transactions = []
     updated_accounts = []
+    accounts_to_invalidate = []
 
     for account in accounts:
         if this_month in account.get_interest_calculation_months():
@@ -26,15 +28,17 @@ def calculate_interest():
                 account.balance
             )
             account.balance += interest
-            account.save()
-
+            
+            # Create transaction with balance_after_transaction
             transaction_obj = Transaction(
                 account=account,
                 transaction_type=INTEREST,
-                amount=interest
+                amount=interest,
+                balance_after_transaction=account.balance
             )
             created_transactions.append(transaction_obj)
             updated_accounts.append(account)
+            accounts_to_invalidate.append(account.id)
 
     if created_transactions:
         Transaction.objects.bulk_create(created_transactions)
@@ -43,3 +47,6 @@ def calculate_interest():
         UserBankAccount.objects.bulk_update(
             updated_accounts, ['balance']
         )
+    
+    for account_id in accounts_to_invalidate:
+        cache.delete(f'transaction_report_{account_id}_all')
