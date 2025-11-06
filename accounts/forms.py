@@ -46,6 +46,7 @@ class UserRegistrationForm(UserCreationForm):
             'first_name',
             'last_name',
             'email',
+            'cpf',
             'password1',
             'password2',
         ]
