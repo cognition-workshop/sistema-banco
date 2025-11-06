@@ -4,3 +4,9 @@ django-celery-beat==2.1.0
 djangorestframework==3.14.0
 python-dateutil==2.8.2
 redis==3.5.3
+django-crispy-forms==2.1
+crispy-tailwind==0.5.0
+django-environ==0.11.2
+coverage==7.3.2
+flake8==6.1.0
+black==23.12.0

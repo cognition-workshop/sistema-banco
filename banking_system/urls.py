@@ -20,11 +20,13 @@ from core.views import HomeView
 
 
 urlpatterns = [
-    path('', HomeView.as_view(), name='home'),
-    path('accounts/', include('accounts.urls', namespace='accounts')),
-    path('admin/', admin.site.urls),
-    path(
-        'transactions/',
-        include('transactions.urls', namespace='transactions')
-    )
+    path("", HomeView.as_view(), name="home"),
+    path("", include("core.urls", namespace="core")),
+    path("accounts/", include("accounts.urls", namespace="accounts")),
+    path("admin/", admin.site.urls),
+    path("transactions/", include("transactions.urls", namespace="transactions")),
 ]
+
+handler404 = "core.views.handler404"
+handler500 = "core.views.handler500"
+handler403 = "core.views.handler403"
