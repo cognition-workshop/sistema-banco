@@ -6,6 +6,8 @@ from django.contrib.auth import get_user_model
 from django.urls import reverse_lazy
 from django.utils import timezone
 from django.views.generic import CreateView, ListView
+from django.http import JsonResponse
+from django.views import View
 
 from transactions.constants import DEPOSIT, WITHDRAWAL
 from transactions.forms import (
@@ -154,3 +156,21 @@ class WithdrawMoneyView(TransactionCreateMixin):
         )
 
         return super().form_valid(form)
+
+
+class BalanceQueryAPIView(LoginRequiredMixin, View):
+    
+    def get(self, request, *args, **kwargs):
+        if not hasattr(request.user, 'account'):
+            return JsonResponse(
+                {'error': 'User does not have a bank account'},
+                status=404
+            )
+        
+        account = request.user.account
+        
+        return JsonResponse({
+            'balance': str(account.balance),
+            'account_no': account.account_no,
+            'account_type': account.account_type.name,
+        })
