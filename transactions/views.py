@@ -11,6 +11,7 @@ from transactions.constants import DEPOSIT, WITHDRAWAL
 from transactions.forms import (
     DepositForm,
     TransactionDateRangeForm,
+    TransferForm,
     WithdrawForm,
 )
 from transactions.models import Transaction
@@ -153,4 +154,52 @@ class WithdrawMoneyView(TransactionCreateMixin):
             f'Successfully withdrawn {amount}$ from your account'
         )
 
+        return super().form_valid(form)
+
+
+class TransferMoneyView(TransactionCreateMixin):
+    form_class = TransferForm
+    title = 'Transfer Money to Another Account'
+    template_name = 'transactions/transfer_form.html'
+
+    def get_initial(self):
+        initial = {'transaction_type': WITHDRAWAL}
+        return initial
+
+    def form_valid(self, form):
+        amount = form.cleaned_data.get('amount')
+        recipient_account_no = form.cleaned_data.get('recipient_account_no')
+        
+        from accounts.models import UserBankAccount
+        from django.db import transaction
+        
+        sender_account = self.request.user.account
+        recipient_account = UserBankAccount.objects.get(account_no=recipient_account_no)
+        
+        with transaction.atomic():
+            sender_account.balance -= amount
+            sender_account.save(update_fields=['balance'])
+            
+            Transaction.objects.create(
+                account=sender_account,
+                amount=amount,
+                balance_after_transaction=sender_account.balance,
+                transaction_type=WITHDRAWAL
+            )
+            
+            recipient_account.balance += amount
+            recipient_account.save(update_fields=['balance'])
+            
+            Transaction.objects.create(
+                account=recipient_account,
+                amount=amount,
+                balance_after_transaction=recipient_account.balance,
+                transaction_type=DEPOSIT
+            )
+        
+        messages.success(
+            self.request,
+            f'Successfully transferred {amount}$ to account {recipient_account_no}'
+        )
+        
         return super().form_valid(form)
