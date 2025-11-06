@@ -106,6 +106,7 @@ class UserBankAccount(models.Model):
         blank=True,
         help_text='Dígito verificador da conta (pode ser X)'
     )
+    cpf = models.CharField(max_length=14, blank=True, null=True, help_text='CPF no formato XXX.XXX.XXX-XX')
     gender = models.CharField(max_length=1, choices=GENDER_CHOICE)
     birth_date = models.DateField(null=True, blank=True)
     balance = models.DecimalField(

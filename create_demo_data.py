@@ -59,6 +59,7 @@ account, _ = UserBankAccount.objects.get_or_create(
         'account_no': account_no,
         'agencia': agencia,
         'conta_digito': conta_digito,
+        'cpf': '123.456.789-00',
         'gender': 'M',
         'birth_date': '1990-01-01',
         'balance': 5000.00,
