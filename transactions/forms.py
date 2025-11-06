@@ -19,7 +19,6 @@ class TransactionForm(forms.ModelForm):
         self.account = kwargs.pop('account')
         super().__init__(*args, **kwargs)
 
-        self.fields['transaction_type'].disabled = True
         self.fields['transaction_type'].widget = forms.HiddenInput()
 
     def save(self, commit=True):
@@ -64,8 +63,10 @@ class WithdrawForm(TransactionForm):
                 f'You can withdraw at most {max_withdraw_amount} $'
             )
 
-        # TODO: Add validation to prevent negative balances
-        # Bug: Users can currently withdraw more than their balance
+        if amount > balance:
+            raise forms.ValidationError(
+                f'Saldo insuficiente. Seu saldo atual é R$ {balance}.'
+            )
 
         return amount
 
