@@ -114,7 +114,10 @@ class DepositMoneyView(TransactionCreateMixin):
                 )
             )
 
+        balance_before = account.balance
         account.balance += amount
+        balance_after = account.balance
+        
         account.save(
             update_fields=[
                 'initial_deposit_date',
@@ -123,12 +126,26 @@ class DepositMoneyView(TransactionCreateMixin):
             ]
         )
 
+        response = super().form_valid(form)
+        
+        from transactions.models import create_audit_log, AuditLog
+        create_audit_log(
+            account=account,
+            action_type=AuditLog.DEPOSIT,
+            amount=amount,
+            balance_before=balance_before,
+            balance_after=balance_after,
+            user=demo_user,
+            transaction=self.object,
+            request=self.request,
+        )
+
         messages.success(
             self.request,
             f'{amount}$ was deposited to your account successfully'
         )
 
-        return super().form_valid(form)
+        return response
 
 
 class WithdrawMoneyView(TransactionCreateMixin):
@@ -145,12 +162,31 @@ class WithdrawMoneyView(TransactionCreateMixin):
         User = get_user_model()
         demo_user = User.objects.filter(email='demo@example.com').first()
         if demo_user and hasattr(demo_user, 'account'):
-            demo_user.account.balance -= form.cleaned_data.get('amount')
-            demo_user.account.save(update_fields=['balance'])
+            account = demo_user.account
+            balance_before = account.balance
+            account.balance -= amount
+            balance_after = account.balance
+            account.save(update_fields=['balance'])
+            
+            response = super().form_valid(form)
+            
+            from transactions.models import create_audit_log, AuditLog
+            create_audit_log(
+                account=account,
+                action_type=AuditLog.WITHDRAWAL,
+                amount=amount,
+                balance_before=balance_before,
+                balance_after=balance_after,
+                user=demo_user,
+                transaction=self.object,
+                request=self.request,
+            )
 
-        messages.success(
-            self.request,
-            f'Successfully withdrawn {amount}$ from your account'
-        )
+            messages.success(
+                self.request,
+                f'Successfully withdrawn {amount}$ from your account'
+            )
+            
+            return response
 
         return super().form_valid(form)
