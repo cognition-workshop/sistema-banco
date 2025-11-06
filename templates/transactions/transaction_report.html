@@ -3,10 +3,8 @@
 {% block head_title %}Transaction Report{% endblock %}
 
 {% block head_extra %}
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/jquery/latest/jquery.min.js"></script>
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 {% endblock %}
 
 {% block content %}
@@ -55,20 +53,24 @@
 
 {% block footer_extra %}
     <script type="text/javascript">
-        $(function () {
-            $('input[name="daterange"]').daterangepicker({
-                autoUpdateInput: false,
-                locale: {
-                    cancelLabel: "Clear",
+        document.addEventListener('DOMContentLoaded', function() {
+            const dateInput = document.querySelector('input[name="daterange"]');
+            
+            flatpickr(dateInput, {
+                mode: "range",
+                dateFormat: "Y-m-d",
+                onChange: function(selectedDates, dateStr, instance) {
+                    if (selectedDates.length === 2) {
+                        const startDate = instance.formatDate(selectedDates[0], "Y-m-d");
+                        const endDate = instance.formatDate(selectedDates[1], "Y-m-d");
+                        dateInput.value = startDate + " - " + endDate;
+                    }
                 },
-            });
-
-            $('input[name="daterange"]').on("apply.daterangepicker", function (ev, picker) {
-                $(this).val(picker.startDate.format("YYYY-MM-DD") + " - " + picker.endDate.format("YYYY-MM-DD"));
-            });
-
-            $('input[name="daterange"]').on("cancel.daterangepicker", function (ev, picker) {
-                $(this).val("");
+                onClose: function(selectedDates, dateStr, instance) {
+                    if (selectedDates.length === 0) {
+                        dateInput.value = "";
+                    }
+                }
             });
         });
     </script>
