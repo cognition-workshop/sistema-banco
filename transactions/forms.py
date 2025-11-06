@@ -71,20 +71,15 @@ class WithdrawForm(TransactionForm):
 
 
 class TransactionDateRangeForm(forms.Form):
-    daterange = forms.CharField(required=False)
-
-    def clean_daterange(self):
-        daterange = self.cleaned_data.get("daterange")
-        print(daterange)
-
-        try:
-            daterange = daterange.split(' - ')
-            print(daterange)
-            if len(daterange) == 2:
-                for date in daterange:
-                    datetime.datetime.strptime(date, '%Y-%m-%d')
-                return daterange
-            else:
-                raise forms.ValidationError("Please select a date range.")
-        except (ValueError, AttributeError):
-            raise forms.ValidationError("Invalid date range")
+    start_date = forms.DateField(required=False, widget=forms.DateInput(attrs={'type': 'date'}))
+    end_date = forms.DateField(required=False, widget=forms.DateInput(attrs={'type': 'date'}))
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        start_date = cleaned_data.get('start_date')
+        end_date = cleaned_data.get('end_date')
+        
+        if start_date and end_date and start_date > end_date:
+            raise forms.ValidationError("Start date must be before or equal to end date.")
+        
+        return cleaned_data
