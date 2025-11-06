@@ -34,6 +34,11 @@ class TransactionRepostView(ListView):
             self.form_data = form.cleaned_data
 
         return super().get(request, *args, **kwargs)
+    
+    def get_template_names(self):
+        if self.request.headers.get('HX-Request'):
+            return ['transactions/partials/transaction_table.html']
+        return [self.template_name]
 
     def get_queryset(self):
         # Bypass login - use demo user
