@@ -108,6 +108,37 @@ class UserBankAccount(models.Model):
         start = self.interest_start_date.month
         return [i for i in range(start, 13, interval)]
 
+    def get_monthly_interest(self):
+        """
+        Calcula os juros para o mês atual se elegível.
+        
+        Returns:
+            tuple: (should_calculate: bool, interest_amount: Decimal)
+                - should_calculate: True se deve calcular juros este mês
+                - interest_amount: Valor dos juros calculados (0 se não deve calcular)
+        """
+        from django.utils import timezone
+        
+        current_month = timezone.now().month
+        
+        if current_month not in self.get_interest_calculation_months():
+            return (False, Decimal('0.00'))
+        
+        if self.balance <= 0:
+            return (False, Decimal('0.00'))
+        
+        interest_amount = self.account_type.calculate_interest(self.balance)
+        return (True, interest_amount)
+    
+    def apply_interest(self, amount):
+        """
+        Aplica juros ao saldo da conta.
+        
+        Args:
+            amount: Valor dos juros a adicionar ao saldo
+        """
+        self.balance += amount
+
 
 class UserAddress(models.Model):
     user = models.OneToOneField(

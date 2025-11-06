@@ -26,5 +26,27 @@ class Transaction(models.Model):
     def __str__(self):
         return str(self.account.account_no)
 
+    @classmethod
+    def create_interest_transaction(cls, account, amount, balance_after_transaction):
+        """
+        Cria uma transação de juros.
+        
+        Args:
+            account: UserBankAccount que receberá os juros
+            amount: Valor dos juros
+            balance_after_transaction: Saldo da conta após aplicar os juros
+            
+        Returns:
+            Transaction: Objeto Transaction (não salvo no banco ainda)
+        """
+        from .constants import INTEREST
+        
+        return cls(
+            account=account,
+            transaction_type=INTEREST,
+            amount=amount,
+            balance_after_transaction=balance_after_transaction
+        )
+
     class Meta:
         ordering = ['timestamp']
