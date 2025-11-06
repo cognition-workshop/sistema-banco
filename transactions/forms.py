@@ -1,9 +1,12 @@
 import datetime
+import logging
 
 from django import forms
 from django.conf import settings
 
 from .models import Transaction
+
+logger = logging.getLogger('transactions')
 
 
 class TransactionForm(forms.ModelForm):
@@ -35,6 +38,7 @@ class DepositForm(TransactionForm):
         amount = self.cleaned_data.get('amount')
 
         if amount < min_deposit_amount:
+            logger.warning(f"Deposit validation failed: amount {amount} is below minimum {min_deposit_amount}")
             raise forms.ValidationError(
                 f'You need to deposit at least {min_deposit_amount} $'
             )
@@ -55,17 +59,28 @@ class WithdrawForm(TransactionForm):
         amount = self.cleaned_data.get('amount')
 
         if amount < min_withdraw_amount:
+            logger.warning(
+                f"Withdrawal validation failed for account {account.account_no}: "
+                f"amount {amount} is below minimum {min_withdraw_amount}"
+            )
             raise forms.ValidationError(
                 f'You can withdraw at least {min_withdraw_amount} $'
             )
 
         if amount > max_withdraw_amount:
+            logger.warning(
+                f"Withdrawal validation failed for account {account.account_no}: "
+                f"amount {amount} exceeds maximum {max_withdraw_amount}"
+            )
             raise forms.ValidationError(
                 f'You can withdraw at most {max_withdraw_amount} $'
             )
 
-        # TODO: Add validation to prevent negative balances
-        # Bug: Users can currently withdraw more than their balance
+        if amount > balance:
+            logger.error(
+                f"Withdrawal validation failed for account {account.account_no}: "
+                f"amount {amount} exceeds balance {balance}"
+            )
 
         return amount
 
@@ -75,16 +90,17 @@ class TransactionDateRangeForm(forms.Form):
 
     def clean_daterange(self):
         daterange = self.cleaned_data.get("daterange")
-        print(daterange)
+        logger.debug(f"Validating daterange: {daterange}")
 
         try:
             daterange = daterange.split(' - ')
-            print(daterange)
+            logger.debug(f"Split daterange: {daterange}")
             if len(daterange) == 2:
                 for date in daterange:
                     datetime.datetime.strptime(date, '%Y-%m-%d')
                 return daterange
             else:
                 raise forms.ValidationError("Please select a date range.")
-        except (ValueError, AttributeError):
+        except (ValueError, AttributeError) as e:
+            logger.warning(f"Invalid date range format: {daterange}, error: {str(e)}")
             raise forms.ValidationError("Invalid date range")

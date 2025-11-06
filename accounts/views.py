@@ -4,9 +4,11 @@ from django.contrib.auth.views import LoginView
 from django.shortcuts import HttpResponseRedirect
 from django.urls import reverse_lazy
 from django.views.generic import TemplateView, RedirectView
+import logging
 
 from .forms import UserRegistrationForm, UserAddressForm
 
+logger = logging.getLogger('accounts')
 
 User = get_user_model()
 
@@ -34,6 +36,12 @@ class UserRegistrationView(TemplateView):
             address.save()
 
             login(self.request, user)
+            
+            logger.info(
+                f"User registration successful: email {user.email}, "
+                f"account number {user.account.account_no}"
+            )
+            
             messages.success(
                 self.request,
                 (
@@ -71,5 +79,6 @@ class LogoutView(RedirectView):
 
     def get_redirect_url(self, *args, **kwargs):
         if self.request.user.is_authenticated:
+            logger.info(f"User logout: {self.request.user.email}")
             logout(self.request)
         return super().get_redirect_url(*args, **kwargs)
