@@ -1,10 +1,13 @@
 from dateutil.relativedelta import relativedelta
 
 from django.contrib import messages
+from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
 from django.utils import timezone
 from django.views.generic import CreateView, ListView
+
+User = get_user_model()
 
 from transactions.constants import DEPOSIT, WITHDRAWAL
 from transactions.forms import (
@@ -13,6 +16,41 @@ from transactions.forms import (
     WithdrawForm,
 )
 from transactions.models import Transaction
+
+
+class DashboardView(ListView):
+    template_name = 'transactions/dashboard.html'
+    model = Transaction
+    context_object_name = 'today_transactions'
+
+    def get_queryset(self):
+        demo_user = User.objects.filter(email='demo@example.com').first()
+        
+        if not demo_user or not hasattr(demo_user, 'account'):
+            return Transaction.objects.none()
+        
+        today = timezone.now().date()
+        queryset = Transaction.objects.filter(
+            account=demo_user.account,
+            timestamp__date=today
+        ).order_by('-timestamp')
+        
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        demo_user = User.objects.filter(email='demo@example.com').first()
+        
+        if demo_user and hasattr(demo_user, 'account'):
+            top_transactions = Transaction.objects.filter(
+                account=demo_user.account
+            ).order_by('-amount')[:10]
+            
+            context['account'] = demo_user.account
+            context['top_transactions'] = top_transactions
+        
+        return context
 
 
 class TransactionRepostView(LoginRequiredMixin, ListView):

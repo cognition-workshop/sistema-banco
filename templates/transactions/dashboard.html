@@ -1,0 +1,72 @@
+{% extends 'core/base.html' %}
+
+{% block head_title %}Dashboard{% endblock %}
+
+{% block content %}
+    <h1 class="font-mono font-bold text-3xl text-center pb-5 pt-10">Dashboard - Transações do Dia e Ranking Top 10</h1>
+    <hr />
+    
+    <div class="mt-10">
+        <h2 class="font-mono font-bold text-2xl mb-4">Transações do Dia Atual</h2>
+        <table class="table-auto mx-auto w-full mt-4">
+            <thead class="bg-gray-800 text-white">
+            <tr class="uppercase font-semibold text-sm">
+                <th class="px-4 py-2">Tipo</th>
+                <th class="px-4 py-2">Data</th>
+                <th class="px-4 py-2">Valor</th>
+                <th class="px-4 py-2">Saldo Após Transação</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for transaction in today_transactions %}
+            <tr class="{% cycle 'bg-gray-300' 'bg-white-100' %}">
+                <td class="border px-4 py-2 text-center">{{ transaction.get_transaction_type_display }}</td>
+                <td class="border px-4 py-2 text-center">{{ transaction.timestamp }}</td>
+                <td class="border px-4 py-2 text-center">$ {{ transaction.amount }}</td>
+                <td class="border px-4 py-2 text-center">$ {{ transaction.balance_after_transaction }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4" class="border px-4 py-2 text-center text-gray-500">Nenhuma transação realizada hoje</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="mt-16">
+        <h2 class="font-mono font-bold text-2xl mb-4">Ranking Top 10 - Maiores Transações</h2>
+        <table class="table-auto mx-auto w-full mt-4">
+            <thead class="bg-gray-800 text-white">
+            <tr class="uppercase font-semibold text-sm">
+                <th class="px-4 py-2">Posição</th>
+                <th class="px-4 py-2">Tipo</th>
+                <th class="px-4 py-2">Data</th>
+                <th class="px-4 py-2">Valor</th>
+                <th class="px-4 py-2">Saldo Após Transação</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for transaction in top_transactions %}
+            <tr class="{% cycle 'bg-gray-300' 'bg-white-100' %}">
+                <td class="border px-4 py-2 text-center font-bold">{{ forloop.counter }}</td>
+                <td class="border px-4 py-2 text-center">{{ transaction.get_transaction_type_display }}</td>
+                <td class="border px-4 py-2 text-center">{{ transaction.timestamp }}</td>
+                <td class="border px-4 py-2 text-center">$ {{ transaction.amount }}</td>
+                <td class="border px-4 py-2 text-center">$ {{ transaction.balance_after_transaction }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" class="border px-4 py-2 text-center text-gray-500">Nenhuma transação disponível</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if account %}
+    <div class="mt-8 bg-gray-100 p-4 rounded">
+        <p class="text-center font-semibold">Saldo Atual: <span class="text-2xl text-green-600">$ {{ account.balance }}</span></p>
+    </div>
+    {% endif %}
+{% endblock %}
