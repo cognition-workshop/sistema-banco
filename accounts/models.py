@@ -30,6 +30,26 @@ class User(AbstractUser):
         return 0
 
 
+class LoginAttempt(models.Model):
+    email = models.EmailField()
+    ip_address = models.GenericIPAddressField()
+    user_agent = models.TextField()
+    timestamp = models.DateTimeField(auto_now_add=True)
+    successful = models.BooleanField(default=False)
+    failure_reason = models.CharField(max_length=255, blank=True)
+    
+    class Meta:
+        ordering = ['-timestamp']
+        indexes = [
+            models.Index(fields=['-timestamp']),
+            models.Index(fields=['email', '-timestamp']),
+        ]
+    
+    def __str__(self):
+        status = "Success" if self.successful else "Failed"
+        return f"{self.email} - {status} - {self.timestamp}"
+
+
 class BankAccountType(models.Model):
     name = models.CharField(max_length=128)
     maximum_withdrawal_amount = models.DecimalField(
