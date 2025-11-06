@@ -83,6 +83,9 @@ class DepositMoneyView(TransactionCreateMixin):
         amount = form.cleaned_data.get('amount')
         account = self.request.user.account
 
+        from fraud_detection.rules import check_fraud_rules
+        check_fraud_rules(self.request.user, DEPOSIT, amount)
+
         if not account.initial_deposit_date:
             now = timezone.now()
             next_interest_month = int(
@@ -122,6 +125,9 @@ class WithdrawMoneyView(TransactionCreateMixin):
 
     def form_valid(self, form):
         amount = form.cleaned_data.get('amount')
+
+        from fraud_detection.rules import check_fraud_rules
+        check_fraud_rules(self.request.user, WITHDRAWAL, amount)
 
         self.request.user.account.balance -= form.cleaned_data.get('amount')
         self.request.user.account.save(update_fields=['balance'])
