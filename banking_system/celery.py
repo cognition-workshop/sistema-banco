@@ -1,9 +1,12 @@
 from __future__ import absolute_import, unicode_literals
 
 import os
+import logging
 
 from celery import Celery
 from celery.schedules import crontab
+
+logger = logging.getLogger('banking_system')
 
 # set the default Django settings module for the 'celery' program.
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'banking_system.settings')
@@ -30,4 +33,4 @@ app.conf.beat_schedule = {
 
 @app.task(bind=True)
 def debug_task(self):
-    print('Request: {0!r}'.format(self.request))
+    logger.debug(f'Request: {self.request!r}')

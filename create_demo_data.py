@@ -8,11 +8,14 @@ import django
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'banking_system.settings')
 django.setup()
 
+import logging
 from django.utils import timezone
 from dateutil.relativedelta import relativedelta
 from accounts.models import User, BankAccountType, UserBankAccount, UserAddress
 from transactions.models import Transaction
 from transactions.constants import DEPOSIT, WITHDRAWAL
+
+logger = logging.getLogger('banking_system')
 
 # Create Bank Account Types
 savings_type, _ = BankAccountType.objects.get_or_create(
@@ -104,8 +107,8 @@ for trans_type, amount, timestamp in transactions_data:
 account.balance = balance
 account.save()
 
-print("✅ Demo data created successfully!")
-print(f"Demo User: demo@example.com / demo123")
-print(f"Account Number: {account.account_no}")
-print(f"Balance: ${account.balance}")
-print(f"Transactions: {Transaction.objects.filter(account=account).count()}")
+logger.info("Demo data created successfully!")
+logger.info(f"Demo User: demo@example.com / demo123")
+logger.info(f"Account Number: {account.account_no}")
+logger.info(f"Balance: ${account.balance}")
+logger.info(f"Transactions: {Transaction.objects.filter(account=account).count()}")

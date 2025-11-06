@@ -1,4 +1,5 @@
 from dateutil.relativedelta import relativedelta
+import logging
 
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -14,6 +15,8 @@ from transactions.forms import (
     WithdrawForm,
 )
 from transactions.models import Transaction
+
+logger = logging.getLogger('transactions')
 
 
 class TransactionRepostView(ListView):
@@ -123,6 +126,11 @@ class DepositMoneyView(TransactionCreateMixin):
             ]
         )
 
+        logger.info(
+            f"Deposit successful: account {account.account_no}, "
+            f"amount ${amount}, new balance ${account.balance}"
+        )
+
         messages.success(
             self.request,
             f'{amount}$ was deposited to your account successfully'
@@ -147,6 +155,11 @@ class WithdrawMoneyView(TransactionCreateMixin):
         if demo_user and hasattr(demo_user, 'account'):
             demo_user.account.balance -= form.cleaned_data.get('amount')
             demo_user.account.save(update_fields=['balance'])
+            
+            logger.info(
+                f"Withdrawal successful: account {demo_user.account.account_no}, "
+                f"amount ${amount}, new balance ${demo_user.account.balance}"
+            )
 
         messages.success(
             self.request,
