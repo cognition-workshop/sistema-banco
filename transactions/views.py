@@ -20,6 +20,7 @@ class TransactionRepostView(ListView):
     template_name = 'transactions/transaction_report.html'
     model = Transaction
     form_data = {}
+    paginate_by = 25
 
     def get(self, request, *args, **kwargs):
         form = TransactionDateRangeForm(request.GET or None)
