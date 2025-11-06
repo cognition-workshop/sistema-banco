@@ -1,0 +1,10 @@
+[flake8]
+max-line-length = 120
+extend-ignore = E203, W503, F401, E501, E225, E402, W293, F541, F841
+exclude =
+    .git,
+    __pycache__,
+    venv,
+    */migrations/*,
+    .github,
+    create_demo_data.py

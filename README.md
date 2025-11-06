@@ -95,6 +95,79 @@ celery -A banking_system worker -l info
 celery -A banking_system beat -l info
 ```
 
+## CI/CD Pipeline
+
+This project includes a complete CI/CD pipeline that automatically runs on every push and pull request.
+
+### Pipeline Stages
+
+The pipeline executes the following stages sequentially:
+
+1. **Linting** - Code quality checks using flake8
+2. **Testing** - Django tests and database migrations
+3. **Security** - Security scanning with bandit and pip-audit
+4. **Deploy** - Automatic deployment to Heroku (only on master branch)
+
+### Pipeline Configuration
+
+The pipeline is configured in `.github/workflows/ci-cd.yml` and runs automatically on:
+- Push to `master` branch
+- Pull requests to `master` branch
+
+Each stage must pass before the next stage runs. If any stage fails, the pipeline stops and deployment is blocked.
+
+### Tools Used
+
+- **flake8**: Python code linting (configured in `.flake8`)
+- **bandit**: Security vulnerability scanning (configured in `bandit.yaml`)
+- **pip-audit**: Dependency vulnerability checking
+- **Django tests**: Runs all project tests with `python manage.py test`
+
+### Deployment
+
+The deploy stage only runs when:
+- All previous stages (lint, test, security) pass successfully
+- The push is to the `master` branch
+- Heroku credentials are configured
+
+#### Heroku Deployment Setup
+
+To enable automatic deployment to Heroku, configure the following secrets in your GitHub repository (Settings → Secrets and variables → Actions):
+
+- `HEROKU_API_KEY`: Your Heroku API key
+- `HEROKU_APP_NAME`: Name of your Heroku app
+- `HEROKU_EMAIL`: Email associated with your Heroku account
+
+The deployment uses the files:
+- `Procfile`: Defines the web dyno command
+- `runtime.txt`: Specifies Python version for Heroku
+
+#### Managing Celery Workers on Heroku
+
+The `Procfile` includes commented-out configurations for Celery workers. To run background tasks:
+
+1. Uncomment the worker and beat lines in `Procfile`
+2. Add Redis addon to your Heroku app: `heroku addons:create heroku-redis:hobby-dev`
+3. Scale the worker dynos: `heroku ps:scale worker=1 beat=1`
+
+### Local Development with CI Tools
+
+You can run the CI checks locally before pushing:
+
+```bash
+# Linting
+pip install flake8
+flake8 .
+
+# Security scanning
+pip install bandit pip-audit
+bandit -r -c bandit.yaml .
+pip-audit -r requirements.txt
+
+# Tests
+python manage.py test
+```
+
 ## Images:
 ![alt text](https://i.imgur.com/FvgmEJL.png)
 #
