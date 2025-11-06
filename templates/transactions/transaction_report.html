@@ -3,10 +3,10 @@
 {% block head_title %}Transaction Report{% endblock %}
 
 {% block head_extra %}
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/jquery/latest/jquery.min.js"></script>
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/moment@2.29.4/moment.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker@3.1.0/daterangepicker.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker@3.1.0/daterangepicker.css" />
 {% endblock %}
 
 {% block content %}
@@ -28,7 +28,7 @@
         {% endif %}
     </form>
     <table class="table-auto mx-auto w-full mt-8">
-        <thead class="bg-gray-800 text-white">
+        <thead class="bg-orange-500 text-white">
         <tr class="uppercase font-semibold text-sm">
             <th class="px-4 py-2">Transaction Type</th>
             <th class="px-4 py-2">Date</th>
@@ -38,14 +38,14 @@
         </thead>
         <tbody>
         {% for transaction in object_list %}
-        <tr class="{% cycle 'bg-gray-300' 'bg-white-100' %}">
+        <tr class="{% cycle 'bg-orange-50' 'bg-white' %}">
             <td class="border px-4 py-2 text-center">{{ transaction.get_transaction_type_display }}</td>
             <td class="border px-4 py-2 text-center">{{ transaction.timestamp }}</td>
             <td class="border px-4 py-2 text-center">$ {{ transaction.amount }}</td>
             <td class="border px-4 py-2 text-center">$ {{ transaction.balance_after_transaction }}</td>
         </tr>
         {% endfor %}
-        <tr class="bg-gray-600 text-white">
+        <tr class="bg-orange-600 text-white">
             <th class="px-4 py-2 text-right" colspan="3">Final Balance</th>
             <th class="px-4 py-2 text-center">$ {{ account.balance }}</th>
         </tr>

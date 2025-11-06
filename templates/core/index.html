@@ -11,12 +11,33 @@
                 A modern web application for managing your banking transactions.
             </p>
             <div>
-            <a href="{% url 'transactions:transaction_report' %}" class="bg-transparent hover:bg-gray-800 text-gray-800 hover:text-white rounded shadow hover:shadow-lg py-2 px-4 border border-gray-900 hover:border-transparent">View Transactions</a>
+            <a href="{% url 'transactions:transaction_report' %}" class="bg-orange-500 hover:bg-orange-600 text-white rounded shadow hover:shadow-lg py-2 px-4 border border-orange-600 hover:border-orange-700">View Transactions</a>
             </div>
         </div>
         <!--Right Col-->
-        <div class="w-full lg:w-1/2 lg:py-6 text-center">
-            <h1 style="font-size: 12rem" class="font-black text-gray-800">$$$</h1>
+        <div class="w-full lg:w-1/2 lg:py-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 p-6">
+                <div class="bg-white border-2 border-orange-500 rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow">
+                    <div class="text-orange-500 text-4xl mb-4">💰</div>
+                    <h3 class="font-bold text-xl mb-2 text-gray-800">Transaction Management</h3>
+                    <p class="text-gray-600">Easily manage deposits and withdrawals with real-time balance updates.</p>
+                </div>
+                <div class="bg-white border-2 border-orange-500 rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow">
+                    <div class="text-orange-500 text-4xl mb-4">🔒</div>
+                    <h3 class="font-bold text-xl mb-2 text-gray-800">Secure Banking</h3>
+                    <p class="text-gray-600">Your financial data is protected with industry-standard security.</p>
+                </div>
+                <div class="bg-white border-2 border-orange-500 rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow">
+                    <div class="text-orange-500 text-4xl mb-4">📊</div>
+                    <h3 class="font-bold text-xl mb-2 text-gray-800">Real-Time Reports</h3>
+                    <p class="text-gray-600">Track your transaction history with detailed reporting tools.</p>
+                </div>
+                <div class="bg-white border-2 border-orange-500 rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow">
+                    <div class="text-orange-500 text-4xl mb-4">⚡</div>
+                    <h3 class="font-bold text-xl mb-2 text-gray-800">Fast Processing</h3>
+                    <p class="text-gray-600">Experience instant transaction processing and updates.</p>
+                </div>
+            </div>
         </div>
     </div>
 {% endblock %}
