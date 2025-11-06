@@ -54,6 +54,16 @@ class WithdrawForm(TransactionForm):
 
         amount = self.cleaned_data.get('amount')
 
+        if amount <= 0:
+            raise forms.ValidationError(
+                'Valor de saque inválido'
+            )
+
+        if amount > balance:
+            raise forms.ValidationError(
+                'Fundos insuficientes'
+            )
+
         if amount < min_withdraw_amount:
             raise forms.ValidationError(
                 f'You can withdraw at least {min_withdraw_amount} $'
@@ -63,9 +73,6 @@ class WithdrawForm(TransactionForm):
             raise forms.ValidationError(
                 f'You can withdraw at most {max_withdraw_amount} $'
             )
-
-        # TODO: Add validation to prevent negative balances
-        # Bug: Users can currently withdraw more than their balance
 
         return amount
 
