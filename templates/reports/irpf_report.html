@@ -1,0 +1,79 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<h1 class="font-mono font-bold text-3xl text-center pb-5 pt-10">Relatório IRPF - {{ fiscal_year }}</h1>
+<hr />
+
+<div class="w-full mt-10">
+    <div class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+        <form method="get" class="flex items-center">
+            <label class="mr-2 font-bold">Ano Fiscal:</label>
+            <select name="year" class="bg-gray-200 border border-gray-200 rounded py-2 px-4 mr-2" onchange="this.form.submit()">
+                {% for year in available_years %}
+                    <option value="{{ year }}" {% if year == fiscal_year %}selected{% endif %}>{{ year }}</option>
+                {% endfor %}
+            </select>
+        </form>
+    </div>
+    
+    <div class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+        <h2 class="text-2xl font-bold mb-4">Resumo Anual</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="border rounded p-4">
+                <p class="text-gray-600">Total de Depósitos</p>
+                <p class="text-2xl font-bold text-green-600">R$ {{ total_deposits|floatformat:2 }}</p>
+            </div>
+            <div class="border rounded p-4">
+                <p class="text-gray-600">Total de Saques</p>
+                <p class="text-2xl font-bold text-red-600">R$ {{ total_withdrawals|floatformat:2 }}</p>
+            </div>
+            <div class="border rounded p-4">
+                <p class="text-gray-600">Juros Recebidos</p>
+                <p class="text-2xl font-bold text-blue-600">R$ {{ total_interest|floatformat:2 }}</p>
+            </div>
+        </div>
+        
+        <div class="mt-4">
+            <p><strong>Conta:</strong> Agência {{ account.agencia }} / Conta {{ account.formatted_account }}</p>
+            <p><strong>CPF:</strong> {{ account.cpf }}</p>
+        </div>
+        
+        <div class="mt-4">
+            <a href="{% url 'reports:irpf_export' %}?year={{ fiscal_year }}" 
+               class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
+                Exportar CSV para IRPF
+            </a>
+        </div>
+    </div>
+    
+    <div class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+        <h2 class="text-2xl font-bold mb-4">Detalhamento de Transações</h2>
+        {% if transactions %}
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead>
+                        <tr class="border-b">
+                            <th class="text-left py-2">Data</th>
+                            <th class="text-left py-2">Tipo</th>
+                            <th class="text-right py-2">Valor (R$)</th>
+                            <th class="text-right py-2">Saldo Após (R$)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for txn in transactions %}
+                        <tr class="border-b">
+                            <td class="py-2">{{ txn.timestamp|date:"d/m/Y H:i" }}</td>
+            <td class="py-2">{{ txn.get_transaction_type_display }}</td>
+                            <td class="text-right py-2">{{ txn.amount|floatformat:2 }}</td>
+                            <td class="text-right py-2">{{ txn.balance_after_transaction|floatformat:2 }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p class="text-gray-600">Nenhuma transação encontrada para este ano.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

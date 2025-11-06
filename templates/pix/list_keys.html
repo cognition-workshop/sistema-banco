@@ -1,0 +1,45 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<h1 class="font-mono font-bold text-3xl text-center pb-5 pt-10">Minhas Chaves PIX</h1>
+<hr />
+<div class="w-full mt-10">
+    <a href="{% url 'pix:register_key' %}" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mb-4 inline-block">
+        Nova Chave PIX
+    </a>
+    <a href="{% url 'pix:transfer' %}" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mb-4 inline-block ml-2">
+        Fazer Transferência PIX
+    </a>
+    
+    <div class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+        {% if pix_keys %}
+            <table class="w-full">
+                <thead>
+                    <tr class="border-b">
+                        <th class="text-left py-2">Tipo</th>
+                        <th class="text-left py-2">Chave</th>
+                        <th class="text-left py-2">Cadastrada em</th>
+                        <th class="text-left py-2">QR Code</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for key in pix_keys %}
+                    <tr class="border-b">
+                        <td class="py-2">{{ key.get_key_type_display }}</td>
+                        <td class="py-2">{{ key.key_value }}</td>
+                        <td class="py-2">{{ key.created_at|date:"d/m/Y H:i" }}</td>
+                        <td class="py-2">
+                            <a href="{% url 'pix:qr_code' key.id %}" target="_blank" class="text-blue-500 hover:text-blue-700">
+                                Ver QR Code
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p class="text-gray-600">Você ainda não possui chaves PIX cadastradas.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

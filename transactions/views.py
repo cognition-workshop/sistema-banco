@@ -16,6 +16,16 @@ from transactions.forms import (
 from transactions.models import Transaction
 
 
+def get_client_ip(request):
+    """Get client IP address from request"""
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(',')[0]
+    else:
+        ip = request.META.get('REMOTE_ADDR')
+    return ip
+
+
 class TransactionRepostView(ListView):
     template_name = 'transactions/transaction_report.html'
     model = Transaction
@@ -122,6 +132,11 @@ class DepositMoneyView(TransactionCreateMixin):
                 'interest_start_date'
             ]
         )
+        
+        transaction = form.save(commit=False)
+        transaction.ip_address = get_client_ip(self.request)
+        transaction.user_agent = self.request.META.get('HTTP_USER_AGENT', '')[:255]
+        transaction.save()
 
         messages.success(
             self.request,
@@ -147,6 +162,11 @@ class WithdrawMoneyView(TransactionCreateMixin):
         if demo_user and hasattr(demo_user, 'account'):
             demo_user.account.balance -= form.cleaned_data.get('amount')
             demo_user.account.save(update_fields=['balance'])
+        
+        transaction = form.save(commit=False)
+        transaction.ip_address = get_client_ip(self.request)
+        transaction.user_agent = self.request.META.get('HTTP_USER_AGENT', '')[:255]
+        transaction.save()
 
         messages.success(
             self.request,

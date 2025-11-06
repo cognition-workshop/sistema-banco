@@ -5,10 +5,48 @@ from django.core.validators import (
     MinValueValidator,
     MaxValueValidator,
 )
+from django.core.exceptions import ValidationError
 from django.db import models
 
 from .constants import GENDER_CHOICE
 from .managers import UserManager
+
+
+def validate_cpf(value):
+    """Validate Brazilian CPF number using check digits algorithm."""
+    cpf = ''.join(filter(str.isdigit, value))
+    
+    if len(cpf) != 11:
+        raise ValidationError('CPF deve ter 11 dígitos')
+    
+    if cpf == cpf[0] * 11:
+        raise ValidationError('CPF inválido')
+    
+    sum_digits = sum(int(cpf[i]) * (10 - i) for i in range(9))
+    first_check = (sum_digits * 10) % 11
+    if first_check == 10:
+        first_check = 0
+    if first_check != int(cpf[9]):
+        raise ValidationError('CPF inválido')
+    
+    sum_digits = sum(int(cpf[i]) * (11 - i) for i in range(10))
+    second_check = (sum_digits * 10) % 11
+    if second_check == 10:
+        second_check = 0
+    if second_check != int(cpf[10]):
+        raise ValidationError('CPF inválido')
+
+
+def calculate_account_check_digit(account_number):
+    """Calculate check digit for Brazilian bank account using modulo 11."""
+    account_str = str(account_number).zfill(7)
+    weights = [2, 3, 4, 5, 6, 7, 8]
+    sum_digits = sum(int(account_str[i]) * weights[i] for i in range(7))
+    remainder = sum_digits % 11
+    check_digit = 11 - remainder
+    if check_digit >= 10:
+        check_digit = 0
+    return check_digit
 
 
 class User(AbstractUser):
@@ -78,6 +116,8 @@ class UserBankAccount(models.Model):
         on_delete=models.CASCADE
     )
     account_no = models.PositiveIntegerField(unique=True)
+    agencia = models.CharField(max_length=4, default='0001', help_text='Agência (4 dígitos)')
+    cpf = models.CharField(max_length=14, unique=True, validators=[validate_cpf], help_text='CPF no formato XXX.XXX.XXX-XX')
     gender = models.CharField(max_length=1, choices=GENDER_CHOICE)
     birth_date = models.DateField(null=True, blank=True)
     balance = models.DecimalField(
@@ -95,6 +135,12 @@ class UserBankAccount(models.Model):
 
     def __str__(self):
         return str(self.account_no)
+    
+    @property
+    def formatted_account(self):
+        """Return account number with check digit in format XXXXXXX-X"""
+        check_digit = calculate_account_check_digit(self.account_no)
+        return f"{str(self.account_no).zfill(7)}-{check_digit}"
 
     def get_interest_calculation_months(self):
         """
