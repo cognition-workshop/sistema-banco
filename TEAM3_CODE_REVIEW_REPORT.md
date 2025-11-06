@@ -165,7 +165,7 @@ This report provides a comprehensive code review of all 17 branches starting wit
 
 **1. Hardcoded SECRET_KEY**
 - **Location:** `banking_system/settings.py` line 23
-- **Issue:** `SECRET_KEY = 'po0172$69b@78ps4v^uhfxu6q--8ko7kpp7rbz420s_3w#sir%'` is hardcoded
+- **Issue:** `SECRET_KEY = '[REDACTED]'` is hardcoded and committed to version control
 - **Impact:** Major security vulnerability - secret keys should NEVER be committed to version control
 - **Recommendation:**
   ```python
