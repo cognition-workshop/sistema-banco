@@ -26,5 +26,6 @@ urlpatterns = [
     path(
         'transactions/',
         include('transactions.urls', namespace='transactions')
-    )
+    ),
+    path('admin-portal/', include('admin_panel.urls', namespace='admin_panel')),
 ]

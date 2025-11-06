@@ -1,0 +1,123 @@
+{% extends 'admin_panel/base.html' %}
+
+{% block title %}Analytics Dashboard{% endblock %}
+
+{% block content %}
+<h1 class="text-3xl font-bold mb-6">Analytics Dashboard</h1>
+
+<div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+    <div class="bg-white rounded-lg shadow p-6">
+        <h3 class="text-gray-500 text-sm font-semibold uppercase mb-2">Total Users</h3>
+        <p class="text-3xl font-bold text-blue-600">{{ kpis.total_users }}</p>
+        <p class="text-sm text-green-600 mt-2">+{{ kpis.user_growth_rate }}% this month</p>
+    </div>
+    <div class="bg-white rounded-lg shadow p-6">
+        <h3 class="text-gray-500 text-sm font-semibold uppercase mb-2">Active Accounts</h3>
+        <p class="text-3xl font-bold text-green-600">{{ kpis.active_accounts }}</p>
+    </div>
+    <div class="bg-white rounded-lg shadow p-6">
+        <h3 class="text-gray-500 text-sm font-semibold uppercase mb-2">Avg Transaction</h3>
+        <p class="text-3xl font-bold text-purple-600">${{ kpis.avg_transaction_value }}</p>
+    </div>
+    <div class="bg-white rounded-lg shadow p-6">
+        <h3 class="text-gray-500 text-sm font-semibold uppercase mb-2">Total Balance</h3>
+        <p class="text-3xl font-bold text-orange-600">${{ kpis.total_system_balance|floatformat:0 }}</p>
+    </div>
+</div>
+
+<div class="flex justify-end mb-4">
+    <a href="{% url 'admin_panel:analytics_export' %}?type=pdf" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded mr-2">
+        Export PDF
+    </a>
+    <a href="{% url 'admin_panel:analytics_export' %}?type=csv" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
+        Export CSV
+    </a>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+    <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-xl font-bold mb-4">User Growth (Last 30 Days)</h2>
+        <canvas id="userGrowthChart"></canvas>
+    </div>
+    
+    <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-xl font-bold mb-4">Account Type Distribution</h2>
+        <canvas id="accountTypeChart"></canvas>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+    <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-xl font-bold mb-4">Transaction Volume by Type</h2>
+        <canvas id="transactionTypeChart"></canvas>
+    </div>
+    
+    <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-xl font-bold mb-4">Top 10 Accounts by Balance</h2>
+        <div class="overflow-x-auto">
+            <table class="min-w-full">
+                <thead class="bg-gray-800 text-white">
+                    <tr>
+                        <th class="px-4 py-2">Rank</th>
+                        <th class="px-4 py-2">Account No</th>
+                        <th class="px-4 py-2">Balance</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for account in top_accounts %}
+                    <tr class="border-b hover:bg-gray-50">
+                        <td class="px-4 py-2">{{ forloop.counter }}</td>
+                        <td class="px-4 py-2">{{ account.account_no }}</td>
+                        <td class="px-4 py-2">${{ account.balance }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block footer_extra %}
+<script>
+    const userGrowthCtx = document.getElementById('userGrowthChart').getContext('2d');
+    new Chart(userGrowthCtx, {
+        type: 'line',
+        data: {
+            labels: [{% for item in user_growth_data %}'{{ item.day }}'{% if not forloop.last %},{% endif %}{% endfor %}],
+            datasets: [{
+                label: 'New Users',
+                data: [{% for item in user_growth_data %}{{ item.count }}{% if not forloop.last %},{% endif %}{% endfor %}],
+                borderColor: 'rgb(59, 130, 246)',
+                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                tension: 0.4
+            }]
+        }
+    });
+    
+    const accountTypeCtx = document.getElementById('accountTypeChart').getContext('2d');
+    new Chart(accountTypeCtx, {
+        type: 'pie',
+        data: {
+            labels: [{% for item in account_type_data %}'{{ item.account_type__name }}'{% if not forloop.last %},{% endif %}{% endfor %}],
+            datasets: [{
+                data: [{% for item in account_type_data %}{{ item.count }}{% if not forloop.last %},{% endif %}{% endfor %}],
+                backgroundColor: ['rgb(59, 130, 246)', 'rgb(16, 185, 129)', 'rgb(245, 158, 11)']
+            }]
+        }
+    });
+    
+    const transactionTypeCtx = document.getElementById('transactionTypeChart').getContext('2d');
+    new Chart(transactionTypeCtx, {
+        type: 'bar',
+        data: {
+            labels: [{% for item in transaction_type_data %}'Type {{ item.transaction_type }}'{% if not forloop.last %},{% endif %}{% endfor %}],
+            datasets: [{
+                label: 'Transaction Count',
+                data: [{% for item in transaction_type_data %}{{ item.count }}{% if not forloop.last %},{% endif %}{% endfor %}],
+                backgroundColor: 'rgb(139, 92, 246)'
+            }]
+        }
+    });
+</script>
+{% endblock %}

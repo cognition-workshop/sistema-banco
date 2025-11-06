@@ -1,0 +1,91 @@
+{% extends 'admin_panel/base.html' %}
+
+{% block title %}Transactions Dashboard{% endblock %}
+
+{% block content %}
+<h1 class="text-3xl font-bold mb-6">Transactions Monitoring</h1>
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+    <div class="bg-white rounded-lg shadow p-6">
+        <h3 class="text-gray-500 text-sm font-semibold uppercase mb-2">Total Today</h3>
+        <p class="text-3xl font-bold text-blue-600">${{ today_total|floatformat:2 }}</p>
+    </div>
+    <div class="bg-white rounded-lg shadow p-6">
+        <h3 class="text-gray-500 text-sm font-semibold uppercase mb-2">Transactions Today</h3>
+        <p class="text-3xl font-bold text-green-600">{{ today_count }}</p>
+    </div>
+    <div class="bg-white rounded-lg shadow p-6">
+        <h3 class="text-gray-500 text-sm font-semibold uppercase mb-2">Average Today</h3>
+        <p class="text-3xl font-bold text-purple-600">${{ today_avg|floatformat:2 }}</p>
+    </div>
+</div>
+
+<div class="bg-white rounded-lg shadow p-6 mb-6">
+    <h2 class="text-xl font-bold mb-4">Filter Transactions</h2>
+    <form method="get" class="grid grid-cols-1 md:grid-cols-5 gap-4">
+        {{ form.date_from }}
+        {{ form.date_to }}
+        {{ form.transaction_type }}
+        {{ form.amount_min }}
+        {{ form.amount_max }}
+        <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+            Filter
+        </button>
+    </form>
+</div>
+
+<div class="bg-white rounded-lg shadow p-6">
+    <div class="overflow-x-auto">
+        <table class="min-w-full" id="transactionsTable">
+            <thead class="bg-gray-800 text-white">
+                <tr>
+                    <th class="px-4 py-2">Account No</th>
+                    <th class="px-4 py-2">Type</th>
+                    <th class="px-4 py-2">Amount</th>
+                    <th class="px-4 py-2">Balance After</th>
+                    <th class="px-4 py-2">Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for transaction in transactions %}
+                <tr class="border-b hover:bg-gray-50">
+                    <td class="px-4 py-2">{{ transaction.account.account_no }}</td>
+                    <td class="px-4 py-2">{{ transaction.get_transaction_type_display }}</td>
+                    <td class="px-4 py-2">${{ transaction.amount }}</td>
+                    <td class="px-4 py-2">${{ transaction.balance_after_transaction }}</td>
+                    <td class="px-4 py-2">{{ transaction.timestamp|date:"Y-m-d H:i" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% if is_paginated %}
+<div class="flex justify-center mt-4">
+    <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
+        {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}&{{ request.GET.urlencode }}" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">Previous</a>
+        {% endif %}
+        <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
+            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+        </span>
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}&{{ request.GET.urlencode }}" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">Next</a>
+        {% endif %}
+    </nav>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block footer_extra %}
+<script>
+    $(document).ready(function() {
+        $('#transactionsTable').DataTable({
+            "paging": false,
+            "searching": false,
+            "info": false
+        });
+    });
+</script>
+{% endblock %}
