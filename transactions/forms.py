@@ -4,6 +4,7 @@ from django import forms
 from django.conf import settings
 
 from .models import Transaction
+from .constants import TRANSACTION_TYPE_CHOICES
 
 
 class TransactionForm(forms.ModelForm):
@@ -64,22 +65,28 @@ class WithdrawForm(TransactionForm):
                 f'You can withdraw at most {max_withdraw_amount} $'
             )
 
-        # TODO: Add validation to prevent negative balances
-        # Bug: Users can currently withdraw more than their balance
+        if amount > balance:
+            raise forms.ValidationError(
+                f'Insufficient balance. Your current balance is {balance} $'
+            )
 
         return amount
 
 
 class TransactionDateRangeForm(forms.Form):
     daterange = forms.CharField(required=False)
+    transaction_type = forms.ChoiceField(
+        choices=[('', 'All Types')] + list(TRANSACTION_TYPE_CHOICES),
+        required=False
+    )
+    min_amount = forms.DecimalField(required=False, min_value=0, decimal_places=2)
+    max_amount = forms.DecimalField(required=False, min_value=0, decimal_places=2)
 
     def clean_daterange(self):
         daterange = self.cleaned_data.get("daterange")
-        print(daterange)
 
         try:
             daterange = daterange.split(' - ')
-            print(daterange)
             if len(daterange) == 2:
                 for date in daterange:
                     datetime.datetime.strptime(date, '%Y-%m-%d')
