@@ -3,26 +3,31 @@
 {% block head_title %}{{ title }}{% endblock %}
 
 {% block content %}
-<h1 class="font-mono font-bold text-3xl text-center pb-5 pt-10">{{ title }}</h1>
-<hr />
-<div class="w-full mt-5">
-    <form method="post" class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+<h1 class="md-typescale-headline-medium" style="text-align: center; padding: 40px 0 20px;">{{ title }}</h1>
+<hr style="border: none; border-top: 1px solid var(--md-sys-color-outline); margin-bottom: 32px;" />
+<div style="max-width: 600px; margin: 0 auto;">
+    <form method="post" class="md-card">
         {% csrf_token %}
 
-        <div class="mb-4">
-            <label class="block text-gray-700 text-sm font-bold mb-2" for="amount">
-                Amount
-            </label>
-            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight border rounded-md border-gray-500 focus:outline-none focus:shadow-outline" name="amount" id="amount" type="number" required placeholder="Amount">
+        <div style="margin-bottom: 24px;">
+            <md-outlined-text-field
+                label="Amount"
+                name="amount"
+                id="amount"
+                type="number"
+                required
+                style="width: 100%;"
+                value="{{ form.amount.value|default:'' }}"
+            ></md-outlined-text-field>
         </div>
         {% if form.amount.errors %}
             {% for error in form.amount.errors %}
-                <p class="text-red-600 text-sm italic pb-2">{{ error }}</p>
+                <p class="error-text">{{ error }}</p>
             {% endfor %}
         {% endif %}
-        <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit">
+        <md-filled-button type="submit" style="margin-top: 16px;">
             Submit
-        </button>
+        </md-filled-button>
     </form>
 </div>
 {% endblock %}

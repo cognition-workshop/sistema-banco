@@ -1,27 +1,57 @@
-<nav class="flex items-center justify-between flex-wrap bg-gray-800 p-6">
-    <div class="flex items-center flex-shrink-0 text-white mr-6">
-        <span class="font-semibold text-xl tracking-tight">Banking System</span>
-    </div>
-    <div class="block lg:hidden">
-        <button class="flex items-center px-3 py-2 border rounded text-white border-white-400 hover:text-white hover:border-white">
-            <svg class="fill-current h-3 w-3" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><title>Menu</title><path d="M0 3h20v2H0V3zm0 6h20v2H0V9zm0 6h20v2H0v-2z"/></svg>
-        </button>
-    </div>
-    <div class="w-full block flex-grow lg:flex lg:items-center lg:w-auto">
-        {# Bypass authentication - always show navigation for demo #}
-        <div class="text-md lg:flex-grow">
-            <a href="{% url 'transactions:transaction_report' %}" class="block mt-4 lg:inline-block lg:mt-0 text-white hover:text-white mr-4">
-                Transaction Report
-            </a>
-            <a href="{% url 'transactions:deposit_money' %}" class="block mt-4 lg:inline-block lg:mt-0 text-white hover:text-white mr-4">
-                Deposit
-            </a>
-            <a href="{% url 'transactions:withdraw_money' %}" class="block mt-4 lg:inline-block lg:mt-0 text-white hover:text-white">
-                Withdraw
-            </a>
-        </div>
-        <div class="text-white">
-            <span class="inline-block font-medium text-sm px-4 py-2 mt-4 lg:mt-0">Demo User: John Doe (Account #1001)</span>
-        </div>
+<style>
+    .md-nav {
+        background-color: var(--md-sys-color-secondary);
+        color: var(--md-sys-color-on-secondary);
+        padding: 16px 24px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .md-nav-brand {
+        font-size: 1.25rem;
+        font-weight: 500;
+        color: var(--md-sys-color-on-secondary);
+        text-decoration: none;
+    }
+    
+    .md-nav-links {
+        display: flex;
+        gap: 24px;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+    
+    .md-nav-link {
+        color: var(--md-sys-color-on-secondary);
+        text-decoration: none;
+        font-size: 0.875rem;
+        font-weight: 500;
+        padding: 8px 12px;
+        border-radius: 4px;
+        transition: background-color 0.2s;
+    }
+    
+    .md-nav-link:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    .md-nav-user {
+        color: var(--md-sys-color-on-secondary);
+        font-size: 0.875rem;
+        padding: 8px 12px;
+        background-color: rgba(255, 255, 255, 0.1);
+        border-radius: 4px;
+    }
+</style>
+
+<nav class="md-nav">
+    <a href="/" class="md-nav-brand">Banking System</a>
+    <div class="md-nav-links">
+        <a href="{% url 'transactions:transaction_report' %}" class="md-nav-link">Transaction Report</a>
+        <a href="{% url 'transactions:deposit_money' %}" class="md-nav-link">Deposit</a>
+        <a href="{% url 'transactions:withdraw_money' %}" class="md-nav-link">Withdraw</a>
+        <span class="md-nav-user">Demo User: John Doe (Account #1001)</span>
     </div>
 </nav>

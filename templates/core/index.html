@@ -3,20 +3,37 @@
 {% block head_title %}Banking System{% endblock %}
 
 {% block content %}
-    <div class="container mx-auto flex flex-col md:flex-row items-center my-12 md:my-24">
-        <!--Left Col-->
-        <div class="flex flex-col w-full lg:w-1/2 justify-center items-start pt-12 pb-24 px-6">
-            <h1 class="font-bold text-4xl my-4">Banking System</h1>
-            <p class="leading-normal mb-4">
+    <div class="home-grid">
+        <div>
+            <h1 class="md-typescale-display-medium" style="margin: 0 0 24px;">Banking System</h1>
+            <p class="md-typescale-body-large" style="margin: 0 0 32px; line-height: 1.6;">
                 A modern web application for managing your banking transactions.
             </p>
-            <div>
-            <a href="{% url 'transactions:transaction_report' %}" class="bg-transparent hover:bg-gray-800 text-gray-800 hover:text-white rounded shadow hover:shadow-lg py-2 px-4 border border-gray-900 hover:border-transparent">View Transactions</a>
-            </div>
+            <md-filled-button href="{% url 'transactions:transaction_report' %}">
+                View Transactions
+            </md-filled-button>
         </div>
-        <!--Right Col-->
-        <div class="w-full lg:w-1/2 lg:py-6 text-center">
-            <h1 style="font-size: 12rem" class="font-black text-gray-800">$$$</h1>
+        <div style="text-align: center;">
+            <h1 style="font-size: 12rem; margin: 0; color: var(--md-sys-color-secondary); font-weight: 900;">$$$</h1>
         </div>
     </div>
+    
+    <style>
+        .home-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 48px;
+            align-items: center;
+            padding: 96px 0;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        @media (max-width: 768px) {
+            .home-grid {
+                grid-template-columns: 1fr !important;
+                padding: 48px 16px !important;
+            }
+        }
+    </style>
 {% endblock %}

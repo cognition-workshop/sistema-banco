@@ -10,46 +10,112 @@
 {% endblock %}
 
 {% block content %}
-    <h1 class="font-mono font-bold text-3xl text-center pb-5 pt-10">Transaction Report</h1>
-    <hr />
+    <style>
+        .md-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--md-sys-color-surface);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+        }
+        
+        .md-table thead {
+            background-color: var(--md-sys-color-secondary);
+            color: var(--md-sys-color-on-secondary);
+        }
+        
+        .md-table th {
+            padding: 16px;
+            text-align: center;
+            font-weight: 500;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .md-table td {
+            padding: 16px;
+            text-align: center;
+            border-bottom: 1px solid var(--md-sys-color-outline);
+        }
+        
+        .md-table tbody tr:hover {
+            background-color: var(--md-sys-color-surface-variant);
+        }
+        
+        .md-table tbody tr:nth-child(even) {
+            background-color: rgba(0,0,0,0.02);
+        }
+        
+        .md-table tfoot tr {
+            background-color: #616161;
+            color: white;
+            font-weight: 500;
+        }
+        
+        .md-table tfoot th {
+            padding: 16px;
+        }
+        
+        .search-container {
+            background: var(--md-sys-color-surface);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+    </style>
+    
+    <h1 class="md-typescale-headline-medium" style="text-align: center; padding: 40px 0 20px;">Transaction Report</h1>
+    <hr style="border: none; border-top: 1px solid var(--md-sys-color-outline); margin-bottom: 32px;" />
     <form method="get">
-        <div class="mt-10 h-10 pl-3 pr-2 bg-white border rounded-md border-gray-500 flex justify-between items-center relative">
-            <input type="search" name="daterange" id="search" placeholder="Filter using date range" value="{{ request.GET.daterange }}" class="appearance-none w-full outline-none focus:outline-none active:outline-none" />
-            <button type="submit" class="ml-1 outline-none focus:outline-none active:outline-none">
-                <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" class="w-6 h-6">
-                    <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                </svg>
-            </button>
+        <div class="search-container">
+            <md-outlined-text-field
+                label="Filter using date range"
+                name="daterange"
+                id="search"
+                value="{{ request.GET.daterange }}"
+                style="flex: 1;"
+            ></md-outlined-text-field>
+            <md-filled-button type="submit">
+                Search
+            </md-filled-button>
         </div>
         {% if form.daterange.errors %}
             {% for error in form.daterange.errors %}
-                <p class="text-red-600 text-sm italic">{{ error }}</p>
+                <p class="error-text">{{ error }}</p>
             {% endfor %}
         {% endif %}
     </form>
-    <table class="table-auto mx-auto w-full mt-8">
-        <thead class="bg-gray-800 text-white">
-        <tr class="uppercase font-semibold text-sm">
-            <th class="px-4 py-2">Transaction Type</th>
-            <th class="px-4 py-2">Date</th>
-            <th class="px-4 py-2">Amount</th>
-            <th class="px-4 py-2">Balance After Transaction</th>
+    <table class="md-table">
+        <thead>
+        <tr>
+            <th>Transaction Type</th>
+            <th>Date</th>
+            <th>Amount</th>
+            <th>Balance After Transaction</th>
         </tr>
         </thead>
         <tbody>
         {% for transaction in object_list %}
-        <tr class="{% cycle 'bg-gray-300' 'bg-white-100' %}">
-            <td class="border px-4 py-2 text-center">{{ transaction.get_transaction_type_display }}</td>
-            <td class="border px-4 py-2 text-center">{{ transaction.timestamp }}</td>
-            <td class="border px-4 py-2 text-center">$ {{ transaction.amount }}</td>
-            <td class="border px-4 py-2 text-center">$ {{ transaction.balance_after_transaction }}</td>
+        <tr>
+            <td>{{ transaction.get_transaction_type_display }}</td>
+            <td>{{ transaction.timestamp }}</td>
+            <td>$ {{ transaction.amount }}</td>
+            <td>$ {{ transaction.balance_after_transaction }}</td>
         </tr>
         {% endfor %}
-        <tr class="bg-gray-600 text-white">
-            <th class="px-4 py-2 text-right" colspan="3">Final Balance</th>
-            <th class="px-4 py-2 text-center">$ {{ account.balance }}</th>
-        </tr>
         </tbody>
+        <tfoot>
+        <tr>
+            <th colspan="3" style="text-align: right;">Final Balance</th>
+            <th>$ {{ account.balance }}</th>
+        </tr>
+        </tfoot>
     </table>
 {% endblock %}
 

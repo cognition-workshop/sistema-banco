@@ -5,181 +5,200 @@
 {% block content %}
 {% if registration_form.non_field_errors %}
     {% for error in registration_form.non_field_errors %}
-    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mt-2" role="alert">
-        <p class="font-bold">Error!</p>
-        <p class="block sm:inline">{{ error }}</p>
+    <div style="background-color: #fdecea; border-left: 4px solid var(--md-sys-color-error); padding: 16px; margin: 16px 0; border-radius: 4px;">
+        <p style="font-weight: 700; color: var(--md-sys-color-error); margin: 0 0 8px;">Error!</p>
+        <p style="color: var(--md-sys-color-error); margin: 0;">{{ error }}</p>
     </div>
     {% endfor %}
 {% endif %}
 {% if address_form.non_field_errors %}
     {% for error in address_form.non_field_errors %}
-    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mt-2" role="alert">
-        <p class="font-bold">Error!</p>
-        <p class="block sm:inline">{{ error }}</p>
+    <div style="background-color: #fdecea; border-left: 4px solid var(--md-sys-color-error); padding: 16px; margin: 16px 0; border-radius: 4px;">
+        <p style="font-weight: 700; color: var(--md-sys-color-error); margin: 0 0 8px;">Error!</p>
+        <p style="color: var(--md-sys-color-error); margin: 0;">{{ error }}</p>
     </div>
     {% endfor %}
 {% endif %}
 
-<h1 class="font-mono font-bold text-3xl text-center pb-5 pt-10">Register</h1>
-<hr />
-<div class="w-full mt-10">
-    <form method="post" class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+<h1 class="md-typescale-headline-medium" style="text-align: center; padding: 40px 0 20px;">Register</h1>
+<hr style="border: none; border-top: 1px solid var(--md-sys-color-outline); margin-bottom: 32px;" />
+<div style="max-width: 800px; margin: 0 auto;">
+    <form method="post" class="md-card">
         {% csrf_token %}
         {% for hidden_field in registration_form.hidden_fields %}
             {{ hidden_field.errors }}
             {{ hidden_field }}
         {% endfor %}
-        <div class="flex flex-wrap -mx-3 mb-6">
-            <div class="w-full md:w-1/2 px-3 mb-6 md:mb-0">
-                <label class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" for="{{ registration_form.first_name.id_for_label }}">
-                    {{ registration_form.first_name.label }}
-                </label>
-                {{ registration_form.first_name }}
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
+            <div>
+                <md-outlined-text-field
+                    label="{{ registration_form.first_name.label }}"
+                    name="{{ registration_form.first_name.name }}"
+                    id="{{ registration_form.first_name.id_for_label }}"
+                    style="width: 100%;"
+                    {% if registration_form.first_name.field.required %}required{% endif %}
+                ></md-outlined-text-field>
                 {% if registration_form.first_name.errors %}
                     {% for error in registration_form.first_name.errors %}
-                        <p class="text-red-600 text-sm italic pb-2">{{ error }}</p>
+                        <p class="error-text">{{ error }}</p>
                     {% endfor %}
                 {% endif %}
             </div>
-            <div class="w-full md:w-1/2 px-3">
-                <label class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" for="{{ registration_form.last_name.id_for_label }}">
-                    {{ registration_form.last_name.label }}
-                </label>
-                {{ registration_form.last_name }}
+            <div>
+                <md-outlined-text-field
+                    label="{{ registration_form.last_name.label }}"
+                    name="{{ registration_form.last_name.name }}"
+                    id="{{ registration_form.last_name.id_for_label }}"
+                    style="width: 100%;"
+                    {% if registration_form.last_name.field.required %}required{% endif %}
+                ></md-outlined-text-field>
                 {% if registration_form.last_name.errors %}
                     {% for error in registration_form.last_name.errors %}
-                        <p class="text-red-600 text-sm italic pb-2">{{ error }}</p>
+                        <p class="error-text">{{ error }}</p>
                     {% endfor %}
                 {% endif %}
             </div>
         </div>
-        <div class="flex flex-wrap -mx-3 mb-6">
-            <div class="w-full md:w-1/2 px-3 mb-6 md:mb-0">
-                <label class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" for="{{ registration_form.email.id_for_label }}">
-                    {{ registration_form.email.label }}
-                </label>
-                {{ registration_form.email }}
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
+            <div>
+                <md-outlined-text-field
+                    label="{{ registration_form.email.label }}"
+                    name="{{ registration_form.email.name }}"
+                    id="{{ registration_form.email.id_for_label }}"
+                    type="email"
+                    style="width: 100%;"
+                    {% if registration_form.email.field.required %}required{% endif %}
+                ></md-outlined-text-field>
                 {% if registration_form.email.errors %}
                     {% for error in registration_form.email.errors %}
-                        <p class="text-red-600 text-sm italic pb-2">{{ error }}</p>
+                        <p class="error-text">{{ error }}</p>
                     {% endfor %}
                 {% endif %}
             </div>
-            <div class="w-full md:w-1/2 px-3 mb-6 md:mb-0">
-                <label class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" for="{{ registration_form.account_type.id_for_label }}">
-                    {{ registration_form.account_type.label }}
-                </label>
+            <div>
                 {{ registration_form.account_type }}
                 {% if registration_form.account_type.errors %}
                     {% for error in registration_form.account_type.errors %}
-                    <p class="text-red-600 text-sm italic pb-2">{{ error }}</p>
+                    <p class="error-text">{{ error }}</p>
                     {% endfor %}
                 {% endif %}
             </div>
         </div>
-        <div class="flex flex-wrap -mx-3 mb-6">
-            <div class="w-full md:w-1/2 px-3 mb-6 md:mb-0">
-                <label class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" for="{{ registration_form.gender.id_for_label }}">
-                    {{ registration_form.gender.label }}
-                </label>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
+            <div>
                 {{ registration_form.gender }}
                 {% if registration_form.gender.errors %}
                     {% for error in registration_form.gender.errors %}
-                        <p class="text-red-600 text-sm italic pb-2">{{ error }}</p>
+                        <p class="error-text">{{ error }}</p>
                     {% endfor %}
                 {% endif %}
             </div>
-            <div class="w-full md:w-1/2 px-3 mb-6 md:mb-0">
-                <label class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" for="{{ registration_form.birth_date.id_for_label }}">
-                    {{ registration_form.birth_date.label }}
-                </label>
+            <div>
                 {{ registration_form.birth_date }}
                 {% if registration_form.birth_date.errors %}
                     {% for error in registration_form.birth_date.errors %}
-                    <p class="text-red-600 text-sm italic pb-2">{{ error }}</p>
+                    <p class="error-text">{{ error }}</p>
                     {% endfor %}
                 {% endif %}
             </div>
         </div>
-        <div class="flex flex-wrap -mx-3 mb-6">
-            <div class="w-full md:w-1/2 px-3 mb-6 md:mb-0">
-                <label class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" for="{{ registration_form.password1.id_for_label }}">
-                    {{ registration_form.password1.label }}
-                </label>
-                {{ registration_form.password1 }}
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
+            <div>
+                <md-outlined-text-field
+                    label="{{ registration_form.password1.label }}"
+                    name="{{ registration_form.password1.name }}"
+                    id="{{ registration_form.password1.id_for_label }}"
+                    type="password"
+                    style="width: 100%;"
+                    {% if registration_form.password1.field.required %}required{% endif %}
+                ></md-outlined-text-field>
                 {% if registration_form.password1.errors %}
                     {% for error in registration_form.password1.errors %}
-                        <p class="text-red-600 text-sm italic pb-2">{{ error }}</p>
+                        <p class="error-text">{{ error }}</p>
                     {% endfor %}
                 {% endif %}
             </div>
-            <div class="w-full md:w-1/2 px-3 mb-6 md:mb-0">
-                <label class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" for="{{ registration_form.password2.id_for_label }}">
-                    {{ registration_form.password2.label }}
-                </label>
-                {{ registration_form.password2 }}
+            <div>
+                <md-outlined-text-field
+                    label="{{ registration_form.password2.label }}"
+                    name="{{ registration_form.password2.name }}"
+                    id="{{ registration_form.password2.id_for_label }}"
+                    type="password"
+                    style="width: 100%;"
+                    {% if registration_form.password2.field.required %}required{% endif %}
+                ></md-outlined-text-field>
                     {% if registration_form.password2.errors %}
                     {% for error in registration_form.password2.errors %}
-                        <p class="text-red-600 text-sm italic pb-2">{{ error }}</p>
+                        <p class="error-text">{{ error }}</p>
                     {% endfor %}
                 {% endif %}
             </div>
         </div>
 
         {% for hidden_field in address_form.hidden_fields %} {{ hidden_field.errors }} {{ hidden_field }} {% endfor %}
-        <div class="flex flex-wrap -mx-3 mb-6">
-            <div class="w-full md:w-1/2 px-3 mb-6 md:mb-0">
-                <label class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" for="{{ address_form.street_address.id_for_label }}">
-                    {{ address_form.street_address.label }}
-                </label>
-                {{ address_form.street_address }}
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
+            <div>
+                <md-outlined-text-field
+                    label="{{ address_form.street_address.label }}"
+                    name="{{ address_form.street_address.name }}"
+                    id="{{ address_form.street_address.id_for_label }}"
+                    style="width: 100%;"
+                    {% if address_form.street_address.field.required %}required{% endif %}
+                ></md-outlined-text-field>
                 {% if address_form.street_address.errors %}
                     {% for error in address_form.street_address.errors %}
-                        <p class="text-red-600 text-sm italic pb-2">{{ error }}</p>
+                        <p class="error-text">{{ error }}</p>
                     {% endfor %}
                 {% endif %}
             </div>
-            <div class="w-full md:w-1/2 px-3">
-                <label class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" for="{{ address_form.city.id_for_label }}">
-                    {{ address_form.city.label }}
-                </label>
-                {{ address_form.city }}
+            <div>
+                <md-outlined-text-field
+                    label="{{ address_form.city.label }}"
+                    name="{{ address_form.city.name }}"
+                    id="{{ address_form.city.id_for_label }}"
+                    style="width: 100%;"
+                    {% if address_form.city.field.required %}required{% endif %}
+                ></md-outlined-text-field>
                 {% if address_form.city.errors %}
                     {% for error in address_form.city.errors %}
-                        <p class="text-red-600 text-sm italic pb-2">{{ error }}</p>
+                        <p class="error-text">{{ error }}</p>
                     {% endfor %}
                 {% endif %}
             </div>
         </div>
-        <div class="flex flex-wrap -mx-3 mb-6">
-            <div class="w-full md:w-1/2 px-3 mb-6 md:mb-0">
-                <label class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" for="{{ address_form.postal_code.id_for_label }}">
-                    {{ address_form.postal_code.label }}
-                </label>
-                {{ address_form.postal_code }}
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
+            <div>
+                <md-outlined-text-field
+                    label="{{ address_form.postal_code.label }}"
+                    name="{{ address_form.postal_code.name }}"
+                    id="{{ address_form.postal_code.id_for_label }}"
+                    style="width: 100%;"
+                    {% if address_form.postal_code.field.required %}required{% endif %}
+                ></md-outlined-text-field>
                 {% if address_form.postal_code.errors %}
                     {% for error in address_form.postal_code.errors %}
-                        <p class="text-red-600 text-sm italic pb-2">{{ error }}</p>
+                        <p class="error-text">{{ error }}</p>
                     {% endfor %}
                 {% endif %}
             </div>
-            <div class="w-full md:w-1/2 px-3">
-                <label class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" for="{{ address_form.country.id_for_label }}">
-                    {{ address_form.country.label }}
-                </label>
-                {{ address_form.country }}
+            <div>
+                <md-outlined-text-field
+                    label="{{ address_form.country.label }}"
+                    name="{{ address_form.country.name }}"
+                    id="{{ address_form.country.id_for_label }}"
+                    style="width: 100%;"
+                    {% if address_form.country.field.required %}required{% endif %}
+                ></md-outlined-text-field>
                 {% if address_form.country.errors %}
                     {% for error in address_form.country.errors %}
-                        <p class="text-red-600 text-sm italic pb-2">{{ error }}</p>
+                        <p class="error-text">{{ error }}</p>
                     {% endfor %}
                 {% endif %}
             </div>
         </div>
-        <div class="flex items-center justify-between">
-            <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit">
-                Register
-            </button>
-        </div>
+        <md-filled-button type="submit" style="margin-top: 16px;">
+            Register
+        </md-filled-button>
     </form>
 </div>
 {% endblock %}
