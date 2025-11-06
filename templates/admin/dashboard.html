@@ -1,0 +1,78 @@
+{% extends 'admin/base.html' %}
+
+{% block admin_title %}Admin Dashboard{% endblock %}
+
+{% block admin_content %}
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+    <div class="admin-card stat-card">
+        <div class="stat-value">{{ total_users }}</div>
+        <div class="stat-label">Total Users</div>
+    </div>
+    <div class="admin-card stat-card">
+        <div class="stat-value">{{ active_users }}</div>
+        <div class="stat-label">Active Users</div>
+    </div>
+    <div class="admin-card stat-card">
+        <div class="stat-value">{{ total_accounts }}</div>
+        <div class="stat-label">Bank Accounts</div>
+    </div>
+    <div class="admin-card stat-card">
+        <div class="stat-value">${{ total_balance|floatformat:2 }}</div>
+        <div class="stat-label">Total Balance</div>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+    <div class="admin-card stat-card">
+        <div class="stat-value">{{ total_transactions }}</div>
+        <div class="stat-label">Total Transactions</div>
+    </div>
+    <div class="admin-card stat-card">
+        <div class="stat-value">{{ recent_transactions }}</div>
+        <div class="stat-label">Recent Transactions (30 days)</div>
+    </div>
+</div>
+
+<div class="admin-card">
+    <h2 class="text-xl font-bold mb-4">Pending Fraud Alerts</h2>
+    <p class="text-2xl font-bold text-red-600">{{ pending_alerts }}</p>
+    <a href="{% url 'admin:fraud_alerts' %}" class="text-blue-600 hover:underline">View All Alerts →</a>
+</div>
+
+<div class="admin-card mt-4">
+    <h2 class="text-xl font-bold mb-4">Top Accounts by Balance</h2>
+    <table class="min-w-full">
+        <thead>
+            <tr class="border-b">
+                <th class="text-left py-2">Account Number</th>
+                <th class="text-left py-2">User</th>
+                <th class="text-right py-2">Balance</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for account in top_accounts %}
+            <tr class="border-b">
+                <td class="py-2">{{ account.account_no }}</td>
+                <td class="py-2">{{ account.user.email }}</td>
+                <td class="py-2 text-right">${{ account.balance|floatformat:2 }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
+    <a href="{% url 'admin:analytics' %}" class="admin-card text-center hover:shadow-lg transition">
+        <h3 class="text-lg font-bold text-blue-600">Analytics & Reports</h3>
+        <p class="text-gray-600">View charts and export data</p>
+    </a>
+    <a href="{% url 'admin:fraud_alerts' %}" class="admin-card text-center hover:shadow-lg transition">
+        <h3 class="text-lg font-bold text-red-600">Fraud Alerts</h3>
+        <p class="text-gray-600">Review suspicious activity</p>
+    </a>
+    <a href="{% url 'admin:system_health' %}" class="admin-card text-center hover:shadow-lg transition">
+        <h3 class="text-lg font-bold text-green-600">System Health</h3>
+        <p class="text-gray-600">Monitor system status</p>
+    </a>
+</div>
+{% endblock %}

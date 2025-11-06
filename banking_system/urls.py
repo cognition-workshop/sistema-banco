@@ -17,12 +17,26 @@ from django.contrib import admin
 from django.urls import include, path
 
 from core.views import HomeView
+from core.admin_views import (
+    AdminDashboardView,
+    AnalyticsView,
+    AnalyticsDataAPIView,
+    ExportTransactionsView,
+    FraudAlertsView,
+    SystemHealthView,
+)
 
 
 urlpatterns = [
     path('', HomeView.as_view(), name='home'),
     path('accounts/', include('accounts.urls', namespace='accounts')),
     path('admin/', admin.site.urls),
+    path('admin/dashboard/', AdminDashboardView.as_view(), name='admin:dashboard'),
+    path('admin/analytics/', AnalyticsView.as_view(), name='admin:analytics'),
+    path('admin/analytics/api/', AnalyticsDataAPIView.as_view(), name='admin:analytics_api'),
+    path('admin/export/', ExportTransactionsView.as_view(), name='admin:export_transactions'),
+    path('admin/fraud-alerts/', FraudAlertsView.as_view(), name='admin:fraud_alerts'),
+    path('admin/system-health/', SystemHealthView.as_view(), name='admin:system_health'),
     path(
         'transactions/',
         include('transactions.urls', namespace='transactions')

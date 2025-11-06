@@ -1,0 +1,33 @@
+{% extends 'core/base.html' %}
+
+{% block head_extra %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+    .admin-card {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 0.5rem;
+        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+        margin-bottom: 1rem;
+    }
+    .stat-card {
+        text-align: center;
+    }
+    .stat-value {
+        font-size: 2rem;
+        font-weight: bold;
+        color: #2563eb;
+    }
+    .stat-label {
+        color: #6b7280;
+        font-size: 0.875rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold mb-6">{% block admin_title %}Admin Portal{% endblock %}</h1>
+    {% block admin_content %}{% endblock %}
+</div>
+{% endblock %}

@@ -1,0 +1,58 @@
+{% extends 'admin/base.html' %}
+
+{% block admin_title %}System Health{% endblock %}
+
+{% block admin_content %}
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+    <div class="admin-card">
+        <h3 class="text-lg font-bold mb-2">Redis</h3>
+        <div class="status-indicator {% if redis_status.status == 'healthy' %}text-green-600{% else %}text-red-600{% endif %}">
+            {{ redis_status.status|upper }}
+        </div>
+        <p class="text-sm text-gray-600">{{ redis_status.message }}</p>
+    </div>
+    
+    <div class="admin-card">
+        <h3 class="text-lg font-bold mb-2">Celery</h3>
+        <div class="status-indicator {% if celery_status.status == 'healthy' %}text-green-600{% else %}text-red-600{% endif %}">
+            {{ celery_status.status|upper }}
+        </div>
+        <p class="text-sm text-gray-600">{{ celery_status.message }}</p>
+    </div>
+    
+    <div class="admin-card">
+        <h3 class="text-lg font-bold mb-2">Database</h3>
+        <div class="status-indicator {% if db_status.status == 'healthy' %}text-green-600{% else %}text-red-600{% endif %}">
+            {{ db_status.status|upper }}
+        </div>
+        <p class="text-sm text-gray-600">{{ db_status.message }}</p>
+    </div>
+</div>
+
+<div class="admin-card">
+    <h2 class="text-xl font-bold mb-4">System Metrics</h2>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="text-center">
+            <div class="text-3xl font-bold mb-2">{{ system_metrics.cpu_percent }}%</div>
+            <div class="text-gray-600">CPU Usage</div>
+            <div class="w-full bg-gray-200 rounded-full h-2 mt-2">
+                <div class="bg-blue-600 h-2 rounded-full" style="width: {{ system_metrics.cpu_percent }}%"></div>
+            </div>
+        </div>
+        <div class="text-center">
+            <div class="text-3xl font-bold mb-2">{{ system_metrics.memory_percent }}%</div>
+            <div class="text-gray-600">Memory Usage</div>
+            <div class="w-full bg-gray-200 rounded-full h-2 mt-2">
+                <div class="bg-green-600 h-2 rounded-full" style="width: {{ system_metrics.memory_percent }}%"></div>
+            </div>
+        </div>
+        <div class="text-center">
+            <div class="text-3xl font-bold mb-2">{{ system_metrics.disk_percent }}%</div>
+            <div class="text-gray-600">Disk Usage</div>
+            <div class="w-full bg-gray-200 rounded-full h-2 mt-2">
+                <div class="bg-yellow-600 h-2 rounded-full" style="width: {{ system_metrics.disk_percent }}%"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
