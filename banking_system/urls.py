@@ -15,6 +15,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import include, path
+from rest_framework.authtoken.views import obtain_auth_token
 
 from core.views import HomeView, health_check
 
@@ -29,4 +30,8 @@ urlpatterns = [
         include('transactions.urls', namespace='transactions')
     ),
     path('', include('django_prometheus.urls')),
+    path('api/accounts/', include('accounts.api_urls')),
+    path('api/transactions/', include('transactions.api_urls')),
+    path('api-auth/', include('rest_framework.urls')),
+    path('api/token/', obtain_auth_token, name='api_token_auth'),
 ]

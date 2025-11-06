@@ -2,26 +2,32 @@ import logging
 from django.db import transaction
 from django.utils import timezone
 
-from celery.decorators import task
+from celery import shared_task
 
 from accounts.models import UserBankAccount
+from accounts.utils import is_banking_day
 from transactions.constants import INTEREST
 from transactions.models import Transaction
 
 logger = logging.getLogger(__name__)
 
 
-@task(name="calculate_interest")
+@shared_task(name="calculate_interest")
 @transaction.atomic
 def calculate_interest():
     """Calculate and apply interest to eligible accounts."""
+    today = timezone.now().date()
+    
+    if not is_banking_day(today):
+        return "Not a banking business day"
+    
     accounts = UserBankAccount.objects.filter(
         balance__gt=0,
-        interest_start_date__gte=timezone.now(),
-        initial_deposit_date__isnull=False,
-    ).select_related("account_type")
+        interest_start_date__lte=today,
+        initial_deposit_date__isnull=False
+    ).select_related('account_type')
 
-    this_month = timezone.now().month
+    this_month = today.month
 
     created_transactions = []
     updated_accounts = []
@@ -40,7 +46,6 @@ def calculate_interest():
             )
 
             account.balance += interest
-            account.save()
 
             transaction_obj = Transaction(
                 account=account,
@@ -62,4 +67,6 @@ def calculate_interest():
         )
 
     if updated_accounts:
-        UserBankAccount.objects.bulk_update(updated_accounts, ["balance"])
+        UserBankAccount.objects.bulk_update(updated_accounts, ['balance'])
+    
+    return f"Interest calculated for {len(updated_accounts)} accounts"
