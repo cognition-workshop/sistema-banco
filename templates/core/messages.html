@@ -1,11 +1,53 @@
 {% for message in messages %}
-<div class="bg-teal-100 border-t-4 border-teal-500 rounded-b text-teal-900 px-4 py-3 shadow-md mt-2" role="alert">
-    <div class="flex">
-        <div class="py-1"><svg class="fill-current h-6 w-6 text-teal-500 mr-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M2.93 17.07A10 10 0 1 1 17.07 2.93 10 10 0 0 1 2.93 17.07zm12.73-1.41A8 8 0 1 0 4.34 4.34a8 8 0 0 0 11.32 11.32zM9 11V9h2v6H9v-4zm0-6h2v2H9V5z"/></svg></div>
+{% if message.level == DEFAULT_MESSAGE_LEVELS.SUCCESS %}
+<div class="bg-green-100 border-l-4 border-green-500 text-green-700 px-4 py-3 rounded shadow-md mt-2 animate-fade-in" role="alert">
+    <div class="flex items-center">
+        <i class="fas fa-check-circle text-green-500 mr-3 text-xl"></i>
         <div>
             <p class="font-bold">Success!</p>
             <p class="text-sm">{{ message }}</p>
         </div>
     </div>
 </div>
+{% elif message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}
+<div class="bg-red-100 border-l-4 border-red-500 text-red-700 px-4 py-3 rounded shadow-md mt-2 animate-fade-in" role="alert">
+    <div class="flex items-center">
+        <i class="fas fa-exclamation-circle text-red-500 mr-3 text-xl"></i>
+        <div>
+            <p class="font-bold">Error!</p>
+            <p class="text-sm">{{ message }}</p>
+        </div>
+    </div>
+</div>
+{% elif message.level == DEFAULT_MESSAGE_LEVELS.WARNING %}
+<div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 px-4 py-3 rounded shadow-md mt-2 animate-fade-in" role="alert">
+    <div class="flex items-center">
+        <i class="fas fa-exclamation-triangle text-yellow-500 mr-3 text-xl"></i>
+        <div>
+            <p class="font-bold">Warning!</p>
+            <p class="text-sm">{{ message }}</p>
+        </div>
+    </div>
+</div>
+{% elif message.level == DEFAULT_MESSAGE_LEVELS.INFO %}
+<div class="bg-blue-100 border-l-4 border-blue-500 text-blue-700 px-4 py-3 rounded shadow-md mt-2 animate-fade-in" role="alert">
+    <div class="flex items-center">
+        <i class="fas fa-info-circle text-blue-500 mr-3 text-xl"></i>
+        <div>
+            <p class="font-bold">Info</p>
+            <p class="text-sm">{{ message }}</p>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="bg-gray-100 border-l-4 border-gray-500 text-gray-700 px-4 py-3 rounded shadow-md mt-2 animate-fade-in" role="alert">
+    <div class="flex items-center">
+        <i class="fas fa-bell text-gray-500 mr-3 text-xl"></i>
+        <div>
+            <p class="font-bold">Notice</p>
+            <p class="text-sm">{{ message }}</p>
+        </div>
+    </div>
+</div>
+{% endif %}
 {% endfor %}

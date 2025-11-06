@@ -1,0 +1,216 @@
+/* Stage 4: Responsive & PWA */
+
+/* Mobile-First Base */
+* {
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* Touch-Friendly Buttons */
+.btn,
+button,
+a.button {
+    min-height: 44px;
+    min-width: 44px;
+    touch-action: manipulation;
+}
+
+/* Improved Mobile Navigation */
+@media (max-width: 1024px) {
+    .mobile-menu {
+        position: fixed;
+        top: 0;
+        left: -100%;
+        width: 80%;
+        max-width: 320px;
+        height: 100vh;
+        background: #1f2937;
+        transition: left 0.3s ease;
+        z-index: 1001;
+        overflow-y: auto;
+    }
+    
+    .mobile-menu.active {
+        left: 0;
+    }
+    
+    .mobile-menu-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.5);
+        display: none;
+        z-index: 1000;
+    }
+    
+    .mobile-menu-overlay.active {
+        display: block;
+    }
+}
+
+/* Tablet Breakpoint */
+@media (min-width: 768px) and (max-width: 1023px) {
+    .dashboard-stat-card {
+        font-size: 0.95rem;
+    }
+    
+    .chart-container {
+        height: 250px;
+    }
+}
+
+/* Mobile Breakpoint */
+@media (max-width: 767px) {
+    .container {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+    
+    .banking-card {
+        padding: 1rem;
+    }
+    
+    .dashboard-stat-card {
+        padding: 1rem;
+    }
+    
+    .dashboard-stat-card p:first-child {
+        font-size: 0.75rem;
+    }
+    
+    .dashboard-stat-card .text-3xl {
+        font-size: 1.5rem;
+    }
+    
+    .chart-container {
+        height: 200px;
+    }
+    
+    table {
+        font-size: 0.875rem;
+    }
+    
+    .chat-widget {
+        width: 100%;
+        height: 100vh;
+        bottom: 0;
+        right: 0;
+        border-radius: 0;
+    }
+    
+    .virtual-card {
+        max-width: 100%;
+        height: 200px;
+    }
+}
+
+/* Landscape Mobile */
+@media (max-width: 767px) and (orientation: landscape) {
+    .dashboard-stat-card {
+        padding: 0.75rem;
+    }
+    
+    .chart-container {
+        height: 180px;
+    }
+}
+
+/* Swipe Gestures Support */
+.swipeable {
+    touch-action: pan-y;
+    user-select: none;
+}
+
+/* Pull to Refresh */
+.ptr-element {
+    position: absolute;
+    top: -60px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: top 0.3s;
+}
+
+.ptr-element.active {
+    top: 10px;
+}
+
+/* Sticky Elements on Mobile */
+@media (max-width: 767px) {
+    .sticky-mobile {
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        background: white;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+}
+
+/* Orientation-specific styles */
+@media (orientation: portrait) {
+    .hide-portrait {
+        display: none;
+    }
+}
+
+@media (orientation: landscape) {
+    .hide-landscape {
+        display: none;
+    }
+}
+
+/* High DPI Displays */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    .virtual-card {
+        box-shadow: 0 30px 60px rgba(0, 0, 0, 0.3);
+    }
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg-primary: #1f2937;
+        --text-primary: #f3f4f6;
+    }
+    
+    body.dark-mode {
+        background: var(--bg-primary);
+        color: var(--text-primary);
+    }
+    
+    body.dark-mode .banking-card {
+        background: #374151;
+        color: #f3f4f6;
+    }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* Print Styles */
+@media print {
+    .no-print {
+        display: none !important;
+    }
+    
+    .banking-card {
+        break-inside: avoid;
+    }
+    
+    a[href]:after {
+        content: " (" attr(href) ")";
+    }
+}

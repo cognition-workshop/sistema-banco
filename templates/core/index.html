@@ -1,22 +1,164 @@
 {% extends 'core/base.html' %}
 
-{% block head_title %}Banking System{% endblock %}
+{% block head_title %}Dashboard{% endblock %}
+
+{% block head_extra %}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+{% endblock %}
 
 {% block content %}
-    <div class="container mx-auto flex flex-col md:flex-row items-center my-12 md:my-24">
-        <!--Left Col-->
-        <div class="flex flex-col w-full lg:w-1/2 justify-center items-start pt-12 pb-24 px-6">
-            <h1 class="font-bold text-4xl my-4">Banking System</h1>
-            <p class="leading-normal mb-4">
-                A modern web application for managing your banking transactions.
-            </p>
-            <div>
-            <a href="{% url 'transactions:transaction_report' %}" class="bg-transparent hover:bg-gray-800 text-gray-800 hover:text-white rounded shadow hover:shadow-lg py-2 px-4 border border-gray-900 hover:border-transparent">View Transactions</a>
+<div class="container mx-auto px-4 py-8">
+    <div class="mb-8 animate-on-load">
+        <h1 class="text-3xl font-bold text-gray-800 mb-2">Welcome back, Demo User!</h1>
+        <p class="text-gray-600">Here's your account overview for today</p>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div class="dashboard-stat-card animate-on-load">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-white text-opacity-80 text-sm font-medium mb-1">Current Balance</p>
+                    <p class="text-3xl font-bold">${{ account.balance|floatformat:2|default:"0.00" }}</p>
+                </div>
+                <div class="bg-white bg-opacity-20 p-3 rounded-lg">
+                    <i class="fas fa-wallet text-2xl"></i>
+                </div>
             </div>
         </div>
-        <!--Right Col-->
-        <div class="w-full lg:w-1/2 lg:py-6 text-center">
-            <h1 style="font-size: 12rem" class="font-black text-gray-800">$$$</h1>
+        
+        <div class="banking-card animate-on-load" style="background: linear-gradient(135deg, #43a047 0%, #388e3c 100%); color: white;">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-white text-opacity-80 text-sm font-medium mb-1">Account Number</p>
+                    <p class="text-2xl font-bold">{{ account.account_no|default:"N/A" }}</p>
+                </div>
+                <div class="bg-white bg-opacity-20 p-3 rounded-lg">
+                    <i class="fas fa-credit-card text-2xl"></i>
+                </div>
+            </div>
+        </div>
+        
+        <div class="banking-card animate-on-load" style="background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%); color: white;">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-white text-opacity-80 text-sm font-medium mb-1">Account Type</p>
+                    <p class="text-xl font-bold">{{ account.account_type.name|default:"Standard" }}</p>
+                </div>
+                <div class="bg-white bg-opacity-20 p-3 rounded-lg">
+                    <i class="fas fa-star text-2xl"></i>
+                </div>
+            </div>
+        </div>
+        
+        <div class="banking-card animate-on-load" style="background: linear-gradient(135deg, #9c27b0 0%, #7b1fa2 100%); color: white;">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-white text-opacity-80 text-sm font-medium mb-1">Interest Rate</p>
+                    <p class="text-2xl font-bold">{{ account.account_type.annual_interest_rate|default:"0" }}%</p>
+                </div>
+                <div class="bg-white bg-opacity-20 p-3 rounded-lg">
+                    <i class="fas fa-percentage text-2xl"></i>
+                </div>
+            </div>
         </div>
     </div>
+    
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <div class="banking-card animate-on-load">
+            <h3 class="text-xl font-semibold text-gray-800 mb-4">
+                <i class="fas fa-chart-line text-blue-600 mr-2"></i>Balance Trend
+            </h3>
+            <div class="chart-container">
+                <canvas id="balanceChart"></canvas>
+            </div>
+        </div>
+        
+        <div class="banking-card animate-on-load">
+            <h3 class="text-xl font-semibold text-gray-800 mb-4">
+                <i class="fas fa-chart-pie text-green-600 mr-2"></i>Transaction Distribution
+            </h3>
+            <div class="chart-container">
+                <canvas id="transactionChart"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <div class="banking-card animate-on-load">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-xl font-semibold text-gray-800">
+                <i class="fas fa-history text-purple-600 mr-2"></i>Recent Transactions
+            </h3>
+            <a href="{% url 'transactions:transaction_report' %}" class="text-blue-600 hover:text-blue-700 font-medium text-sm">
+                View All <i class="fas fa-arrow-right ml-1"></i>
+            </a>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="min-w-full">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Balance After</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for transaction in recent_transactions %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-4 py-3 whitespace-nowrap">
+                            <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                {% if transaction.transaction_type == 1 %}bg-green-100 text-green-800
+                                {% elif transaction.transaction_type == 2 %}bg-red-100 text-red-800
+                                {% else %}bg-blue-100 text-blue-800{% endif %}">
+                                {{ transaction.get_transaction_type_display }}
+                            </span>
+                        </td>
+                        <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                            {{ transaction.timestamp|date:"M d, Y" }}
+                        </td>
+                        <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
+                            ${{ transaction.amount|floatformat:2 }}
+                        </td>
+                        <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                            ${{ transaction.balance_after_transaction|floatformat:2 }}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="px-4 py-8 text-center text-gray-500">
+                            <i class="fas fa-inbox text-4xl mb-2 text-gray-300"></i>
+                            <p>No transactions yet. Start by making a deposit!</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+        <a href="{% url 'transactions:deposit_money' %}" class="banking-card hover:shadow-xl transition-all text-center py-8 animate-on-load" style="background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%); color: white; text-decoration: none;">
+            <i class="fas fa-plus-circle text-5xl mb-3"></i>
+            <h4 class="text-2xl font-bold">Deposit Money</h4>
+            <p class="text-white text-opacity-80 mt-2">Add funds to your account</p>
+        </a>
+        
+        <a href="{% url 'transactions:withdraw_money' %}" class="banking-card hover:shadow-xl transition-all text-center py-8 animate-on-load" style="background: linear-gradient(135deg, #2196f3 0%, #1565c0 100%); color: white; text-decoration: none;">
+            <i class="fas fa-minus-circle text-5xl mb-3"></i>
+            <h4 class="text-2xl font-bold">Withdraw Money</h4>
+            <p class="text-white text-opacity-80 mt-2">Take funds from your account</p>
+        </a>
+    </div>
+</div>
+
+<script id="balance-data" type="application/json">
+    {{ balance_chart_data|safe }}
+</script>
+<script id="transaction-data" type="application/json">
+    {{ transaction_chart_data|safe }}
+</script>
+{% endblock %}
+
+{% block footer_extra %}
+    <script src="{% static 'js/dashboard.js' %}"></script>
 {% endblock %}

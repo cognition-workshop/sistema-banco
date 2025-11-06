@@ -1,0 +1,42 @@
+{
+  "name": "Banking System",
+  "short_name": "BankSys",
+  "description": "Modern banking system with professional UI/UX",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2196f3",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/static/images/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/static/images/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["finance", "business"],
+  "shortcuts": [
+    {
+      "name": "View Transactions",
+      "url": "/transactions/report/",
+      "description": "View your transaction history"
+    },
+    {
+      "name": "Deposit Money",
+      "url": "/transactions/deposit/",
+      "description": "Make a deposit"
+    },
+    {
+      "name": "Withdraw Money",
+      "url": "/transactions/withdraw/",
+      "description": "Make a withdrawal"
+    }
+  ]
+}

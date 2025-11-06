@@ -9,7 +9,17 @@
             {% block head_title %}Banking System{% endblock %}
         </title>
         <link href="https://unpkg.com/tailwindcss@^1.0/dist/tailwind.min.css" rel="stylesheet">
-
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+        <link rel="stylesheet" href="{% static 'css/design-system.css' %}">
+        <link rel="stylesheet" href="{% static 'css/banking-components.css' %}">
+        <link rel="stylesheet" href="{% static 'css/advanced-ux.css' %}">
+        <link rel="stylesheet" href="{% static 'css/responsive.css' %}">
+        <link rel="manifest" href="{% static 'manifest.json' %}">
+        <meta name="theme-color" content="#2196f3">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-status-bar-style" content="default">
+        <meta name="apple-mobile-web-app-title" content="BankSys">
         {% block head_extra %}{% endblock %}
     </head>
     <body class="bg-gray-100">
@@ -22,8 +32,37 @@
                 {% endblock %}
             </div>
             {% include 'core/footer.html' %}
+            
+            <div class="loading-overlay">
+                <div class="loading-spinner"></div>
+            </div>
+            
+            <div class="chat-toggle-btn">
+                <i class="fas fa-comment text-2xl"></i>
+            </div>
+            
+            <div class="chat-widget">
+                <div class="chat-header">
+                    <span class="font-semibold">Support Chat</span>
+                    <button class="chat-close-btn">&times;</button>
+                </div>
+                <div class="chat-messages">
+                    <div class="chat-message bot">
+                        <div class="chat-bubble">
+                            Hello! How can I help you today?
+                        </div>
+                    </div>
+                </div>
+                <div class="chat-input-container">
+                    <input type="text" class="chat-input" placeholder="Type your message...">
+                </div>
+            </div>
 
         {% endblock %}
+        <script src="{% static 'js/main.js' %}"></script>
+        <script src="{% static 'js/banking-components.js' %}"></script>
+        <script src="{% static 'js/advanced-ux.js' %}"></script>
+        <script src="{% static 'js/pwa.js' %}"></script>
         {% block footer_extra %}{% endblock %}
     </body>
 </html>
