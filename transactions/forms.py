@@ -90,6 +90,7 @@ class TransactionDateRangeForm(forms.Form):
         except (ValueError, AttributeError):
             raise forms.ValidationError("Invalid date range")
 
+
 class AdminTransactionFilterForm(forms.Form):
     transaction_type = forms.ChoiceField(
         choices=[('', 'All Types')] + list(TRANSACTION_TYPE_CHOICES),
@@ -149,3 +150,19 @@ class AdminTransactionFilterForm(forms.Form):
                 raise forms.ValidationError("Please select a date range.")
         except (ValueError, AttributeError):
             raise forms.ValidationError("Invalid date range")
+
+
+class IRPFYearForm(forms.Form):
+    year = forms.IntegerField(
+        required=False,
+        widget=forms.Select(choices=[]),
+        label='Ano'
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        from django.utils import timezone
+        current_year = timezone.now().year
+        year_choices = [(year, str(year)) for year in range(2020, current_year + 1)]
+        year_choices.insert(0, ('', 'Selecione o ano'))
+        self.fields['year'].widget.choices = year_choices

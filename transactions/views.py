@@ -1,6 +1,7 @@
 from dateutil.relativedelta import relativedelta
 
 from django.contrib import messages
+from django.db import models
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth import get_user_model
 from django.urls import reverse_lazy
@@ -8,11 +9,12 @@ from django.utils import timezone
 from django.views.generic import CreateView, ListView
 from django.db.models import Q
 
-from transactions.constants import DEPOSIT, WITHDRAWAL
+from transactions.constants import DEPOSIT, WITHDRAWAL, INTEREST
 from transactions.forms import (
     DepositForm,
     TransactionDateRangeForm,
     WithdrawForm,
+    IRPFYearForm,
 )
 from transactions.models import Transaction
 
@@ -119,6 +121,65 @@ class AdminTransactionListView(UserPassesTestMixin, ListView):
         return context
 
 
+
+
+class IRPFReportView(ListView):
+    template_name = 'transactions/irpf_report.html'
+    model = Transaction
+    form_data = {}
+
+    def get(self, request, *args, **kwargs):
+        form = IRPFYearForm(request.GET or None)
+        if form.is_valid():
+            self.form_data = form.cleaned_data
+
+        return super().get(request, *args, **kwargs)
+
+    def get_queryset(self):
+        User = get_user_model()
+        demo_user = User.objects.filter(email='demo@example.com').first()
+        if not demo_user or not hasattr(demo_user, 'account'):
+            return super().get_queryset().none()
+        
+        queryset = super().get_queryset().filter(
+            account=demo_user.account
+        )
+
+        year = self.form_data.get("year")
+
+        if year:
+            queryset = queryset.filter(timestamp__year=year)
+
+        return queryset.distinct()
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        User = get_user_model()
+        demo_user = User.objects.filter(email='demo@example.com').first()
+        account = demo_user.account if demo_user and hasattr(demo_user, 'account') else None
+        
+        transactions = self.get_queryset()
+        interest_income = transactions.filter(transaction_type=INTEREST).aggregate(
+            total=models.Sum('amount')
+        )['total'] or 0
+        
+        total_deposits = transactions.filter(transaction_type=DEPOSIT).aggregate(
+            total=models.Sum('amount')
+        )['total'] or 0
+        
+        total_withdrawals = transactions.filter(transaction_type=WITHDRAWAL).aggregate(
+            total=models.Sum('amount')
+        )['total'] or 0
+        
+        context.update({
+            'account': account,
+            'form': IRPFYearForm(self.request.GET or None),
+            'interest_income': interest_income,
+            'total_deposits': total_deposits,
+            'total_withdrawals': total_withdrawals,
+        })
+
+        return context
 
 
 class TransactionCreateMixin(CreateView):
