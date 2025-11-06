@@ -20,6 +20,7 @@ class TransactionRepostView(ListView):
     template_name = 'transactions/transaction_report.html'
     model = Transaction
     form_data = {}
+    paginate_by = 10
 
     def get(self, request, *args, **kwargs):
         form = TransactionDateRangeForm(request.GET or None)
@@ -48,10 +49,10 @@ class TransactionRepostView(ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # Bypass login - use demo user
         User = get_user_model()
         demo_user = User.objects.filter(email='demo@example.com').first()
         context.update({
+            'user': demo_user,
             'account': demo_user.account if demo_user and hasattr(demo_user, 'account') else None,
             'form': TransactionDateRangeForm(self.request.GET or None)
         })
@@ -78,7 +79,10 @@ class TransactionCreateMixin(CreateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        User = get_user_model()
+        demo_user = User.objects.filter(email='demo@example.com').first()
         context.update({
+            'user': demo_user,
             'title': self.title
         })
 
