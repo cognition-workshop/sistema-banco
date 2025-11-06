@@ -49,7 +49,7 @@ class ProcessMonthlyInterestTestCase(TestCase):
         account.refresh_from_db()
         self.assertEqual(account.balance, Decimal('0.00'))
     
-    def test_account_wrong_month_skipped(self):
+    def test_account_future_interest_start_date_skipped(self):
         account = UserBankAccount.objects.create(
             user=self.user,
             account_type=self.account_type,

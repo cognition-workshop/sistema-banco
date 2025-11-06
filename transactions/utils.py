@@ -26,7 +26,7 @@ def process_monthly_interest(now=None):
     
     accounts = UserBankAccount.objects.filter(
         balance__gt=0,
-        interest_start_date__lte=now,
+        interest_start_date__gte=now,
         initial_deposit_date__isnull=False
     ).select_related('account_type')
     
