@@ -3,8 +3,11 @@ from dateutil.relativedelta import relativedelta
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth import get_user_model
+from django.core.cache import cache
 from django.urls import reverse_lazy
 from django.utils import timezone
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
 from django.views.generic import CreateView, ListView
 
 from transactions.constants import DEPOSIT, WITHDRAWAL
@@ -16,10 +19,16 @@ from transactions.forms import (
 from transactions.models import Transaction
 
 
+@method_decorator(cache_page(60 * 5), name='dispatch')
 class TransactionRepostView(ListView):
     template_name = 'transactions/transaction_report.html'
     model = Transaction
     form_data = {}
+
+    def get_template_names(self):
+        if self.request.htmx:
+            return ['transactions/transaction_table_partial.html']
+        return ['transactions/transaction_report.html']
 
     def get(self, request, *args, **kwargs):
         form = TransactionDateRangeForm(request.GET or None)
@@ -39,10 +48,11 @@ class TransactionRepostView(ListView):
             account=demo_user.account
         )
 
-        daterange = self.form_data.get("daterange")
+        start_date = self.form_data.get("start_date")
+        end_date = self.form_data.get("end_date")
 
-        if daterange:
-            queryset = queryset.filter(timestamp__date__range=daterange)
+        if start_date and end_date:
+            queryset = queryset.filter(timestamp__date__range=[start_date, end_date])
 
         return queryset.distinct()
 
@@ -123,6 +133,9 @@ class DepositMoneyView(TransactionCreateMixin):
             ]
         )
 
+        cache.delete(f'balance_{account.id}')
+        cache.delete(f'transactions_{account.id}')
+
         messages.success(
             self.request,
             f'{amount}$ was deposited to your account successfully'
@@ -147,6 +160,9 @@ class WithdrawMoneyView(TransactionCreateMixin):
         if demo_user and hasattr(demo_user, 'account'):
             demo_user.account.balance -= form.cleaned_data.get('amount')
             demo_user.account.save(update_fields=['balance'])
+
+            cache.delete(f'balance_{demo_user.account.id}')
+            cache.delete(f'transactions_{demo_user.account.id}')
 
         messages.success(
             self.request,

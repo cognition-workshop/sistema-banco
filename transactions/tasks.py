@@ -1,3 +1,4 @@
+from django.core.cache import cache
 from django.utils import timezone
 
 from celery.decorators import task
@@ -50,5 +51,8 @@ def calculate_interest():
         UserBankAccount.objects.bulk_update(
             updated_accounts, ['balance']
         )
+        for account in updated_accounts:
+            cache.delete(f'balance_{account.id}')
+            cache.delete(f'transactions_{account.id}')
     
     return f"Processed {len(updated_accounts)} accounts"

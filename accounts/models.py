@@ -1,6 +1,7 @@
 from decimal import Decimal
 
 from django.contrib.auth.models import AbstractUser
+from django.core.cache import cache
 from django.core.validators import (
     MinValueValidator,
     MaxValueValidator,
@@ -38,7 +39,13 @@ class User(AbstractUser):
     @property
     def balance(self):
         if hasattr(self, 'account'):
-            return self.account.balance
+            cache_key = f'balance_{self.account.id}'
+            cached_balance = cache.get(cache_key)
+            if cached_balance is not None:
+                return cached_balance
+            balance = self.account.balance
+            cache.set(cache_key, balance, timeout=300)
+            return balance
         return 0
 
 
