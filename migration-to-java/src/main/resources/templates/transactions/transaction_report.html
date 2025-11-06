@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <title>Transaction Report - Banking System</title>
+    <link href="https://unpkg.com/tailwindcss@^1.0/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100">
+    <div th:replace="~{layout/navbar :: navbar}"></div>
+    
+    <div class="lg:container lg:mx-auto">
+        <div th:replace="~{layout/messages :: messages}"></div>
+        
+        <div class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4 mt-4">
+            <h2 class="text-2xl font-bold mb-4">Transaction Report</h2>
+            
+            <div class="mb-4" th:if="${account != null}">
+                <p class="text-gray-700">
+                    <span class="font-semibold">Account Number:</span> 
+                    <span th:text="${account.accountNo}">1001</span>
+                </p>
+                <p class="text-gray-700">
+                    <span class="font-semibold">Current Balance:</span> 
+                    <span th:text="'$' + ${#numbers.formatDecimal(account.balance, 1, 2)}">$5000.00</span>
+                </p>
+            </div>
+            
+            <form th:action="@{/transactions/report}" method="get" class="mb-4">
+                <div class="flex items-center">
+                    <input type="text" 
+                           name="daterange" 
+                           placeholder="YYYY-MM-DD - YYYY-MM-DD"
+                           class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                           th:value="${form.daterange}" />
+                    <button type="submit" class="ml-2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                        Filter
+                    </button>
+                </div>
+            </form>
+            
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white">
+                    <thead class="bg-gray-800 text-white">
+                        <tr>
+                            <th class="py-2 px-4 text-left">Date</th>
+                            <th class="py-2 px-4 text-left">Type</th>
+                            <th class="py-2 px-4 text-right">Amount</th>
+                            <th class="py-2 px-4 text-right">Balance</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:if="${#lists.isEmpty(transactions)}">
+                            <td colspan="4" class="py-4 px-4 text-center text-gray-500">
+                                No transactions found
+                            </td>
+                        </tr>
+                        <tr th:each="transaction : ${transactions}" class="border-b hover:bg-gray-100">
+                            <td class="py-2 px-4" th:text="${#temporals.format(transaction.timestamp, 'yyyy-MM-dd HH:mm')}">2024-01-01 10:00</td>
+                            <td class="py-2 px-4">
+                                <span th:text="${T(com.banking.system.constant.TransactionType).getDisplayName(transaction.transactionType)}"
+                                      th:classappend="${transaction.transactionType == 1} ? 'text-green-600' : (${transaction.transactionType == 2} ? 'text-red-600' : 'text-blue-600')">
+                                    Deposit
+                                </span>
+                            </td>
+                            <td class="py-2 px-4 text-right" th:text="'$' + ${#numbers.formatDecimal(transaction.amount, 1, 2)}">$100.00</td>
+                            <td class="py-2 px-4 text-right font-semibold" th:text="'$' + ${#numbers.formatDecimal(transaction.balanceAfterTransaction, 1, 2)}">$5100.00</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <div th:replace="~{layout/footer :: footer}"></div>
+</body>
+</html>
