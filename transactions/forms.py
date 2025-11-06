@@ -81,6 +81,9 @@ class TransactionDateRangeForm(forms.Form):
     def clean_daterange(self):
         daterange = self.cleaned_data.get("daterange")
         print(daterange)
+        
+        if not daterange:
+            return None
 
         try:
             daterange = daterange.split(' - ')
