@@ -3,7 +3,7 @@ from datetime import timedelta
 
 from django.contrib import messages
 from django.db import models
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth import get_user_model
 from django.db.models import Sum, Count, Q
 from django.db.models.functions import TruncDate, TruncMonth
@@ -67,6 +67,67 @@ class TransactionRepostView(ListView):
         })
 
         return context
+
+class AdminTransactionListView(UserPassesTestMixin, ListView):
+    template_name = 'transactions/admin_transaction_list.html'
+    model = Transaction
+    context_object_name = 'transactions'
+    paginate_by = 20
+    form_data = {}
+    
+    def test_func(self):
+        return self.request.user.is_authenticated and self.request.user.is_staff
+    
+    def get(self, request, *args, **kwargs):
+        from transactions.forms import AdminTransactionFilterForm
+        form = AdminTransactionFilterForm(request.GET or None)
+        if form.is_valid():
+            self.form_data = form.cleaned_data
+        return super().get(request, *args, **kwargs)
+    
+    def get_queryset(self):
+        queryset = super().get_queryset().select_related(
+            'account__user'
+        ).order_by('-timestamp')
+        
+        transaction_type = self.form_data.get('transaction_type')
+        if transaction_type:
+            queryset = queryset.filter(transaction_type=transaction_type)
+        
+        amount_min = self.form_data.get('amount_min')
+        if amount_min is not None:
+            queryset = queryset.filter(amount__gte=amount_min)
+        
+        amount_max = self.form_data.get('amount_max')
+        if amount_max is not None:
+            queryset = queryset.filter(amount__lte=amount_max)
+        
+        user_email = self.form_data.get('user_email')
+        if user_email:
+            queryset = queryset.filter(
+                account__user__email__icontains=user_email
+            )
+        
+        account_no_search = self.form_data.get('account_no_search')
+        if account_no_search:
+            queryset = queryset.filter(
+                account__account_no__icontains=account_no_search
+            )
+        
+        daterange = self.form_data.get('daterange')
+        if daterange:
+            queryset = queryset.filter(timestamp__date__range=daterange)
+        
+        return queryset.distinct()
+    
+    def get_context_data(self, **kwargs):
+        from transactions.forms import AdminTransactionFilterForm
+        context = super().get_context_data(**kwargs)
+        context['form'] = AdminTransactionFilterForm(self.request.GET or None)
+        context['filter_active'] = bool(self.request.GET)
+        return context
+
+
 
 
 class IRPFReportView(ListView):
