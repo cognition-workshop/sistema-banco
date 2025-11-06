@@ -1,27 +1,60 @@
-<nav class="flex items-center justify-between flex-wrap bg-gray-800 p-6">
-    <div class="flex items-center flex-shrink-0 text-white mr-6">
-        <span class="font-semibold text-xl tracking-tight">Banking System</span>
-    </div>
-    <div class="block lg:hidden">
-        <button class="flex items-center px-3 py-2 border rounded text-white border-white-400 hover:text-white hover:border-white">
-            <svg class="fill-current h-3 w-3" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><title>Menu</title><path d="M0 3h20v2H0V3zm0 6h20v2H0V9zm0 6h20v2H0v-2z"/></svg>
-        </button>
-    </div>
-    <div class="w-full block flex-grow lg:flex lg:items-center lg:w-auto">
-        {# Bypass authentication - always show navigation for demo #}
-        <div class="text-md lg:flex-grow">
-            <a href="{% url 'transactions:transaction_report' %}" class="block mt-4 lg:inline-block lg:mt-0 text-white hover:text-white mr-4">
+<nav class="bg-gradient-to-r from-bank-dark to-bank-primary shadow-lg" x-data="{ open: false }">
+    <div class="container mx-auto px-4">
+        <div class="flex items-center justify-between py-4">
+            <div class="flex items-center space-x-4">
+                <a href="{% url 'home' %}" class="flex items-center">
+                    <svg class="h-8 w-8 text-bank-accent mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z"/>
+                        <path fill-rule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clip-rule="evenodd"/>
+                    </svg>
+                    <span class="text-white font-bold text-xl">Banking System</span>
+                </a>
+            </div>
+            
+            <button @click="open = !open" class="lg:hidden text-white hover:text-bank-accent focus:outline-none">
+                <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path :class="{'hidden': open, 'inline-flex': !open }" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                    <path :class="{'hidden': !open, 'inline-flex': open }" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+
+            <div class="hidden lg:flex lg:items-center lg:space-x-6">
+                <a href="{% url 'transactions:transaction_report' %}" 
+                   class="text-white hover:text-bank-accent transition duration-150 font-medium">
+                    Transaction Report
+                </a>
+                <a href="{% url 'transactions:deposit_money' %}" 
+                   class="text-white hover:text-bank-accent transition duration-150 font-medium">
+                    Deposit
+                </a>
+                <a href="{% url 'transactions:withdraw_money' %}" 
+                   class="text-white hover:text-bank-accent transition duration-150 font-medium">
+                    Withdraw
+                </a>
+                <div class="border-l border-bank-accent pl-6">
+                    <span class="text-bank-light text-sm font-medium bg-bank-primary bg-opacity-50 px-3 py-1 rounded-full">
+                        Demo: John Doe (#1001)
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <div :class="{'block': open, 'hidden': !open}" class="lg:hidden pb-4">
+            <a href="{% url 'transactions:transaction_report' %}" 
+               class="block text-white hover:text-bank-accent transition duration-150 py-2 font-medium">
                 Transaction Report
             </a>
-            <a href="{% url 'transactions:deposit_money' %}" class="block mt-4 lg:inline-block lg:mt-0 text-white hover:text-white mr-4">
+            <a href="{% url 'transactions:deposit_money' %}" 
+               class="block text-white hover:text-bank-accent transition duration-150 py-2 font-medium">
                 Deposit
             </a>
-            <a href="{% url 'transactions:withdraw_money' %}" class="block mt-4 lg:inline-block lg:mt-0 text-white hover:text-white">
+            <a href="{% url 'transactions:withdraw_money' %}" 
+               class="block text-white hover:text-bank-accent transition duration-150 py-2 font-medium">
                 Withdraw
             </a>
-        </div>
-        <div class="text-white">
-            <span class="inline-block font-medium text-sm px-4 py-2 mt-4 lg:mt-0">Demo User: John Doe (Account #1001)</span>
+            <div class="mt-4 pt-4 border-t border-bank-accent">
+                <span class="text-bank-light text-sm">Demo: John Doe (#1001)</span>
+            </div>
         </div>
     </div>
 </nav>

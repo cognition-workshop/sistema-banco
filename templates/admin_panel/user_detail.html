@@ -1,0 +1,90 @@
+{% extends 'admin_panel/base_admin.html' %}
+
+{% block head_title %}User Details{% endblock %}
+
+{% block admin_content %}
+<div class="mb-8">
+    <a href="{% url 'admin_panel:user_list' %}" class="text-bank-primary hover:text-bank-dark">
+        ← Back to Users
+    </a>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="lg:col-span-1">
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-bold text-bank-dark mb-4">User Information</h2>
+            <div class="space-y-3">
+                <div>
+                    <p class="text-sm text-gray-500">Email</p>
+                    <p class="font-semibold">{{ user_obj.email }}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500">Name</p>
+                    <p class="font-semibold">{{ user_obj.first_name }} {{ user_obj.last_name }}</p>
+                </div>
+                {% if user_obj.account %}
+                <div>
+                    <p class="text-sm text-gray-500">Account Number</p>
+                    <p class="font-semibold">{{ user_obj.account.account_no }}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500">Balance</p>
+                    <p class="font-semibold text-2xl text-bank-primary">${{ user_obj.account.balance }}</p>
+                </div>
+                {% endif %}
+                <div>
+                    <p class="text-sm text-gray-500">Status</p>
+                    {% if user_obj.is_active %}
+                        <span class="px-2 py-1 bg-green-100 text-green-800 rounded text-sm">Active</span>
+                    {% else %}
+                        <span class="px-2 py-1 bg-red-100 text-red-800 rounded text-sm">Suspended</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="mt-6 space-y-2">
+                <a href="{% url 'admin_panel:user_edit' user_obj.id %}" class="block btn-primary text-center">
+                    Edit User
+                </a>
+                <form method="post" action="{% url 'admin_panel:user_suspend' user_obj.id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="w-full btn-danger">
+                        {% if user_obj.is_active %}Suspend{% else %}Activate{% endif %} User
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="lg:col-span-2">
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 class="text-xl font-bold text-bank-dark mb-4">Recent Transactions</h2>
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-4 py-2 text-left text-sm">Type</th>
+                            <th class="px-4 py-2 text-left text-sm">Amount</th>
+                            <th class="px-4 py-2 text-left text-sm">Balance After</th>
+                            <th class="px-4 py-2 text-left text-sm">Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for transaction in transactions %}
+                        <tr class="border-t">
+                            <td class="px-4 py-2 text-sm">{{ transaction.get_transaction_type_display }}</td>
+                            <td class="px-4 py-2 text-sm">${{ transaction.amount }}</td>
+                            <td class="px-4 py-2 text-sm">${{ transaction.balance_after_transaction }}</td>
+                            <td class="px-4 py-2 text-sm">{{ transaction.timestamp|date:"Y-m-d H:i" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="px-4 py-4 text-center text-gray-500">No transactions</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

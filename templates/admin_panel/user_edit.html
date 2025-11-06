@@ -1,0 +1,38 @@
+{% extends 'admin_panel/base_admin.html' %}
+
+{% block head_title %}Edit User{% endblock %}
+
+{% block admin_content %}
+<div class="mb-8">
+    <a href="{% url 'admin_panel:user_detail' user_obj.id %}" class="text-bank-primary hover:text-bank-dark">
+        ← Back to User Details
+    </a>
+</div>
+
+<div class="max-w-2xl mx-auto">
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-2xl font-bold text-bank-dark mb-6">Edit User</h2>
+        <form method="post">
+            {% csrf_token %}
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-2">Email</label>
+                    <input type="email" name="email" value="{{ user_obj.email }}" class="form-input" required>
+                </div>
+                <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-2">First Name</label>
+                    <input type="text" name="first_name" value="{{ user_obj.first_name }}" class="form-input">
+                </div>
+                <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-2">Last Name</label>
+                    <input type="text" name="last_name" value="{{ user_obj.last_name }}" class="form-input">
+                </div>
+                <div class="flex gap-4">
+                    <button type="submit" class="btn-primary">Save Changes</button>
+                    <a href="{% url 'admin_panel:user_detail' user_obj.id %}" class="btn-secondary">Cancel</a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

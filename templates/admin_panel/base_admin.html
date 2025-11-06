@@ -1,0 +1,62 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<div class="flex min-h-screen bg-gray-100">
+    <aside class="w-64 bg-bank-dark text-white flex-shrink-0" x-data="{ open: true }">
+        <div class="p-6">
+            <h2 class="text-2xl font-bold text-bank-accent">Admin Panel</h2>
+        </div>
+        <nav class="mt-6">
+            <a href="{% url 'admin_panel:dashboard' %}" 
+               class="block py-3 px-6 hover:bg-bank-primary transition {% if request.resolver_match.url_name == 'dashboard' %}bg-bank-primary{% endif %}">
+                <svg class="inline-block w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/>
+                </svg>
+                Dashboard
+            </a>
+            <a href="{% url 'admin_panel:user_list' %}" 
+               class="block py-3 px-6 hover:bg-bank-primary transition {% if 'user' in request.resolver_match.url_name %}bg-bank-primary{% endif %}">
+                <svg class="inline-block w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
+                </svg>
+                Users
+            </a>
+            <a href="{% url 'admin_panel:transaction_list' %}" 
+               class="block py-3 px-6 hover:bg-bank-primary transition {% if 'transaction' in request.resolver_match.url_name %}bg-bank-primary{% endif %}">
+                <svg class="inline-block w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M8 5a1 1 0 100 2h5.586l-1.293 1.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L13.586 5H8zM12 15a1 1 0 100-2H6.414l1.293-1.293a1 1 0 10-1.414-1.414l-3 3a1 1 0 000 1.414l3 3a1 1 0 001.414-1.414L6.414 15H12z"/>
+                </svg>
+                Transactions
+            </a>
+            <a href="{% url 'admin_panel:analytics' %}" 
+               class="block py-3 px-6 hover:bg-bank-primary transition {% if request.resolver_match.url_name == 'analytics' %}bg-bank-primary{% endif %}">
+                <svg class="inline-block w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/>
+                </svg>
+                Analytics
+            </a>
+            <a href="{% url 'admin_panel:fraud_rules' %}" 
+               class="block py-3 px-6 hover:bg-bank-primary transition {% if 'fraud' in request.resolver_match.url_name %}bg-bank-primary{% endif %}">
+                <svg class="inline-block w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M13.477 14.89A6 6 0 015.11 6.524l8.367 8.368zm1.414-1.414L6.524 5.11a6 6 0 018.367 8.367zM18 10a8 8 0 11-16 0 8 8 0 0116 0z" clip-rule="evenodd"/>
+                </svg>
+                Fraud Detection
+            </a>
+            <a href="{% url 'admin_panel:system_health' %}" 
+               class="block py-3 px-6 hover:bg-bank-primary transition {% if 'health' in request.resolver_match.url_name %}bg-bank-primary{% endif %}">
+                <svg class="inline-block w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                </svg>
+                System Health
+            </a>
+        </nav>
+    </aside>
+
+    <main class="flex-1 p-8">
+        <div class="max-w-7xl mx-auto">
+            {% block admin_content %}
+            {% endblock %}
+        </div>
+    </main>
+</div>
+{% endblock %}

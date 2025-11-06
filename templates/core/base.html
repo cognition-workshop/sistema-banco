@@ -8,8 +8,25 @@
         <title>
             {% block head_title %}Banking System{% endblock %}
         </title>
-        <link href="https://unpkg.com/tailwindcss@^1.0/dist/tailwind.min.css" rel="stylesheet">
-
+        <script src="https://cdn.tailwindcss.com"></script>
+        <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+        <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+        <link href="{% static 'css/custom.css' %}" rel="stylesheet">
+        <script>
+            tailwind.config = {
+                theme: {
+                    extend: {
+                        colors: {
+                            'bank-primary': '#1e40af',
+                            'bank-secondary': '#3b82f6',
+                            'bank-accent': '#60a5fa',
+                            'bank-dark': '#1e3a8a',
+                            'bank-light': '#dbeafe',
+                        }
+                    }
+                }
+            }
+        </script>
         {% block head_extra %}{% endblock %}
     </head>
     <body class="bg-gray-100">
@@ -18,12 +35,12 @@
             <div class="lg:container lg:mx-auto">
                 {% include 'core/messages.html' %}
                 {% block content %}
-                <!-- Add content here -->
                 {% endblock %}
             </div>
             {% include 'core/footer.html' %}
 
         {% endblock %}
+        <script src="{% static 'js/htmx-extensions.js' %}"></script>
         {% block footer_extra %}{% endblock %}
     </body>
 </html>

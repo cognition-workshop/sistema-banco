@@ -1,0 +1,82 @@
+{% extends 'admin_panel/base_admin.html' %}
+
+{% block head_title %}System Health{% endblock %}
+
+{% block admin_content %}
+<h1 class="text-3xl font-bold text-bank-dark mb-8">System Health</h1>
+
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold">Database</h3>
+            {% if database_health.status == 'healthy' %}
+                <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">Healthy</span>
+            {% else %}
+                <span class="px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm">Unhealthy</span>
+            {% endif %}
+        </div>
+        <p class="text-sm text-gray-600">{{ database_health.message }}</p>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold">Redis Cache</h3>
+            {% if redis_health.status == 'healthy' %}
+                <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">Healthy</span>
+            {% else %}
+                <span class="px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm">Unhealthy</span>
+            {% endif %}
+        </div>
+        <p class="text-sm text-gray-600">{{ redis_health.message }}</p>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold">Celery Workers</h3>
+            {% if celery_health.status == 'healthy' %}
+                <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">Healthy</span>
+            {% else %}
+                <span class="px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm">Unhealthy</span>
+            {% endif %}
+        </div>
+        <p class="text-sm text-gray-600">{{ celery_health.message }}</p>
+        {% if celery_health.workers %}
+            <p class="text-sm text-gray-500 mt-2">Active workers: {{ celery_health.workers }}</p>
+        {% endif %}
+    </div>
+</div>
+
+<div class="bg-white rounded-lg shadow-md p-6">
+    <h2 class="text-xl font-bold text-bank-dark mb-6">System Metrics</h2>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div>
+            <p class="text-sm text-gray-600 mb-2">CPU Usage</p>
+            <div class="flex items-center">
+                <div class="flex-1 bg-gray-200 rounded-full h-4">
+                    <div class="bg-bank-primary h-4 rounded-full" style="width: {{ system_metrics.cpu_percent }}%"></div>
+                </div>
+                <span class="ml-4 font-semibold">{{ system_metrics.cpu_percent }}%</span>
+            </div>
+        </div>
+        <div>
+            <p class="text-sm text-gray-600 mb-2">Memory Usage</p>
+            <div class="flex items-center">
+                <div class="flex-1 bg-gray-200 rounded-full h-4">
+                    <div class="bg-green-500 h-4 rounded-full" style="width: {{ system_metrics.memory_percent }}%"></div>
+                </div>
+                <span class="ml-4 font-semibold">{{ system_metrics.memory_percent }}%</span>
+            </div>
+        </div>
+        <div>
+            <p class="text-sm text-gray-600 mb-2">Disk Usage</p>
+            <div class="flex items-center">
+                <div class="flex-1 bg-gray-200 rounded-full h-4">
+                    <div class="bg-blue-500 h-4 rounded-full" style="width: {{ system_metrics.disk_percent }}%"></div>
+                </div>
+                <span class="ml-4 font-semibold">{{ system_metrics.disk_percent }}%</span>
+            </div>
+        </div>
+    </div>
+    <p class="text-xs text-gray-500 mt-4">Last updated: {{ system_metrics.timestamp }}</p>
+</div>
+{% endblock %}

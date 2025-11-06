@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'accounts',
     'core',
     'transactions',
+    'admin_panel',
 ]
 
 MIDDLEWARE = [
@@ -125,6 +126,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
 STATIC_URL = '/static/'
+STATICFILES_DIRS = [BASE_DIR / 'static']
 
 ACCOUNT_NUMBER_START_FROM = 1000000000
 MINIMUM_DEPOSIT_AMOUNT = 10
@@ -132,6 +134,16 @@ MINIMUM_WITHDRAWAL_AMOUNT = 10
 
 # Login redirect
 LOGIN_REDIRECT_URL = 'home'
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'unique-snowflake',
+    }
+}
+
+SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
+SESSION_CACHE_ALIAS = 'default'
 
 # Celery Settings
 CELERY_BROKER_URL = 'redis://localhost:6379'

@@ -3,24 +3,32 @@
 {% block head_title %}{{ title }}{% endblock %}
 
 {% block content %}
-<h1 class="font-mono font-bold text-3xl text-center pb-5 pt-10">{{ title }}</h1>
-<hr />
-<div class="w-full mt-5">
-    <form method="post" class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+<h1 class="font-mono font-bold text-3xl text-center pb-5 pt-10 text-bank-dark">{{ title }}</h1>
+<hr class="border-bank-light" />
+<div class="w-full mt-5 max-w-2xl mx-auto">
+    <div id="form-result"></div>
+    <form method="post" 
+          hx-post="{{ request.path }}" 
+          hx-target="#form-result" 
+          hx-swap="innerHTML"
+          class="bg-white shadow-md rounded-lg px-8 pt-6 pb-8 mb-4">
         {% csrf_token %}
 
         <div class="mb-4">
             <label class="block text-gray-700 text-sm font-bold mb-2" for="amount">
-                Amount
+                Amount ($)
             </label>
-            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight border rounded-md border-gray-500 focus:outline-none focus:shadow-outline" name="amount" id="amount" type="number" required placeholder="Amount">
+            <input class="form-input" name="amount" id="amount" type="number" step="0.01" required placeholder="Enter amount">
         </div>
         {% if form.amount.errors %}
             {% for error in form.amount.errors %}
                 <p class="text-red-600 text-sm italic pb-2">{{ error }}</p>
             {% endfor %}
         {% endif %}
-        <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit">
+        <button class="btn-primary" type="submit">
+            <span class="htmx-indicator">
+                <span class="spinner inline-block mr-2"></span>
+            </span>
             Submit
         </button>
     </form>

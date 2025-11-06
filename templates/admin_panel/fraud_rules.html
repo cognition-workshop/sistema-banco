@@ -1,0 +1,49 @@
+{% extends 'admin_panel/base_admin.html' %}
+
+{% block head_title %}Fraud Detection Rules{% endblock %}
+
+{% block admin_content %}
+<div class="flex justify-between items-center mb-8">
+    <h1 class="text-3xl font-bold text-bank-dark">Fraud Detection Rules</h1>
+    <a href="{% url 'admin_panel:fraud_rule_create' %}" class="btn-primary">Create New Rule</a>
+</div>
+
+<div class="bg-white rounded-lg shadow-md overflow-hidden">
+    <table class="w-full">
+        <thead class="table-header">
+            <tr>
+                <th class="px-4 py-3 text-left">Name</th>
+                <th class="px-4 py-3 text-left">Type</th>
+                <th class="px-4 py-3 text-left">Threshold</th>
+                <th class="px-4 py-3 text-left">Time Window</th>
+                <th class="px-4 py-3 text-left">Status</th>
+                <th class="px-4 py-3 text-left">Created By</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for rule in rules %}
+            <tr class="border-t hover:bg-gray-50">
+                <td class="px-4 py-3 font-semibold">{{ rule.name }}</td>
+                <td class="px-4 py-3">{{ rule.get_rule_type_display }}</td>
+                <td class="px-4 py-3">
+                    {% if rule.threshold_value %}${{ rule.threshold_value }}{% else %}N/A{% endif %}
+                </td>
+                <td class="px-4 py-3">
+                    {% if rule.time_window_minutes %}{{ rule.time_window_minutes }} min{% else %}N/A{% endif %}
+                </td>
+                <td class="px-4 py-3">
+                    {% if rule.is_active %}
+                        <span class="px-2 py-1 bg-green-100 text-green-800 rounded text-xs">Active</span>
+                    {% else %}
+                        <span class="px-2 py-1 bg-gray-100 text-gray-800 rounded text-xs">Inactive</span>
+                    {% endif %}
+                </td>
+                <td class="px-4 py-3 text-sm">
+                    {% if rule.created_by %}{{ rule.created_by.user.email }}{% else %}System{% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

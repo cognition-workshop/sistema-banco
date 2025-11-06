@@ -1,0 +1,72 @@
+{% extends 'admin_panel/base_admin.html' %}
+
+{% block head_title %}User Management{% endblock %}
+
+{% block admin_content %}
+<div class="flex justify-between items-center mb-8">
+    <h1 class="text-3xl font-bold text-bank-dark">User Management</h1>
+</div>
+
+<div class="bg-white rounded-lg shadow-md p-6 mb-6">
+    <form method="get" class="flex gap-4">
+        <input type="text" name="search" placeholder="Search by email or name..." 
+               value="{{ request.GET.search }}"
+               class="form-input flex-1">
+        <button type="submit" class="btn-primary">Search</button>
+    </form>
+</div>
+
+<div class="bg-white rounded-lg shadow-md overflow-hidden">
+    <table class="w-full">
+        <thead class="table-header">
+            <tr>
+                <th class="px-4 py-3 text-left">Email</th>
+                <th class="px-4 py-3 text-left">Name</th>
+                <th class="px-4 py-3 text-left">Account #</th>
+                <th class="px-4 py-3 text-left">Balance</th>
+                <th class="px-4 py-3 text-left">Status</th>
+                <th class="px-4 py-3 text-left">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+            <tr class="border-t hover:bg-gray-50">
+                <td class="px-4 py-3">{{ user.email }}</td>
+                <td class="px-4 py-3">{{ user.first_name }} {{ user.last_name }}</td>
+                <td class="px-4 py-3">
+                    {% if user.account %}{{ user.account.account_no }}{% else %}N/A{% endif %}
+                </td>
+                <td class="px-4 py-3">
+                    {% if user.account %} ${{ user.account.balance }}{% else %}N/A{% endif %}
+                </td>
+                <td class="px-4 py-3">
+                    {% if user.is_active %}
+                        <span class="px-2 py-1 bg-green-100 text-green-800 rounded text-xs">Active</span>
+                    {% else %}
+                        <span class="px-2 py-1 bg-red-100 text-red-800 rounded text-xs">Suspended</span>
+                    {% endif %}
+                </td>
+                <td class="px-4 py-3">
+                    <a href="{% url 'admin_panel:user_detail' user.id %}" 
+                       class="text-bank-primary hover:text-bank-dark text-sm">View</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% if is_paginated %}
+<div class="mt-6 flex justify-center">
+    <nav class="flex gap-2">
+        {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}" class="px-3 py-1 bg-bank-primary text-white rounded">Previous</a>
+        {% endif %}
+        <span class="px-3 py-1">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}" class="px-3 py-1 bg-bank-primary text-white rounded">Next</a>
+        {% endif %}
+    </nav>
+</div>
+{% endif %}
+{% endblock %}

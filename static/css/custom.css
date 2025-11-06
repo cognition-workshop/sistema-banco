@@ -1,0 +1,62 @@
+.htmx-indicator {
+    display: none;
+}
+
+.htmx-request .htmx-indicator {
+    display: inline-block;
+}
+
+.htmx-request.htmx-indicator {
+    display: inline-block;
+}
+
+.card {
+    @apply bg-white rounded-lg shadow-md p-6;
+}
+
+.btn-primary {
+    @apply bg-bank-primary hover:bg-bank-dark text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition duration-150;
+}
+
+.btn-secondary {
+    @apply bg-bank-secondary hover:bg-bank-primary text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition duration-150;
+}
+
+.btn-danger {
+    @apply bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition duration-150;
+}
+
+.form-input {
+    @apply shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-bank-primary;
+}
+
+.table-header {
+    @apply bg-bank-dark text-white;
+}
+
+.spinner {
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top: 3px solid white;
+    width: 20px;
+    height: 20px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}

@@ -1,0 +1,51 @@
+{% extends 'admin_panel/base_admin.html' %}
+
+{% block head_title %}Analytics Dashboard{% endblock %}
+
+{% block admin_content %}
+<h1 class="text-3xl font-bold text-bank-dark mb-8">Analytics Dashboard</h1>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-xl font-bold text-bank-dark mb-4">Transaction Volume (Last 30 Days)</h2>
+        <div class="space-y-2">
+            {% for day in transaction_volume %}
+            <div class="flex justify-between items-center">
+                <span class="text-sm text-gray-600">{{ day.timestamp__date }}</span>
+                <div class="flex items-center gap-2">
+                    <span class="text-sm font-semibold">{{ day.count }} txns</span>
+                    <span class="text-sm text-green-600">${{ day.total_amount|floatformat:2 }}</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-xl font-bold text-bank-dark mb-4">Top Users by Transaction Count</h2>
+        <div class="space-y-3">
+            {% for account in top_users %}
+            <div class="flex justify-between items-center p-3 bg-gray-50 rounded">
+                <span class="font-semibold">{{ account.user.email }}</span>
+                <span class="px-3 py-1 bg-bank-primary text-white rounded text-sm">
+                    {{ account.transaction_count }} transactions
+                </span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<div class="bg-white rounded-lg shadow-md p-6">
+    <h2 class="text-xl font-bold text-bank-dark mb-4">Transaction Type Statistics</h2>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {% for stat in transaction_type_stats %}
+        <div class="p-4 bg-gradient-to-br from-bank-light to-white rounded-lg border border-bank-accent">
+            <p class="text-sm text-gray-600">Type {{ stat.transaction_type }}</p>
+            <p class="text-2xl font-bold text-bank-dark">{{ stat.count }}</p>
+            <p class="text-sm text-green-600">${{ stat.total|floatformat:2 }}</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

@@ -3,6 +3,7 @@ from dateutil.relativedelta import relativedelta
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth import get_user_model
+from django.shortcuts import render
 from django.urls import reverse_lazy
 from django.utils import timezone
 from django.views.generic import CreateView, ListView
@@ -95,11 +96,14 @@ class DepositMoneyView(TransactionCreateMixin):
 
     def form_valid(self, form):
         amount = form.cleaned_data.get('amount')
-        # Bypass login - use demo user
         User = get_user_model()
         demo_user = User.objects.filter(email='demo@example.com').first()
         account = demo_user.account if demo_user and hasattr(demo_user, 'account') else None
         if not account:
+            if self.request.headers.get('HX-Request'):
+                return render(self.request, 'transactions/partials/error.html', {
+                    'message': 'Account not found'
+                })
             return super().form_valid(form)
 
         if not account.initial_deposit_date:
@@ -128,6 +132,11 @@ class DepositMoneyView(TransactionCreateMixin):
             f'{amount}$ was deposited to your account successfully'
         )
 
+        if self.request.headers.get('HX-Request'):
+            return render(self.request, 'transactions/partials/success.html', {
+                'message': f'${amount} was deposited to your account successfully'
+            })
+
         return super().form_valid(form)
 
 
@@ -141,7 +150,6 @@ class WithdrawMoneyView(TransactionCreateMixin):
 
     def form_valid(self, form):
         amount = form.cleaned_data.get('amount')
-        # Bypass login - use demo user
         User = get_user_model()
         demo_user = User.objects.filter(email='demo@example.com').first()
         if demo_user and hasattr(demo_user, 'account'):
@@ -152,5 +160,10 @@ class WithdrawMoneyView(TransactionCreateMixin):
             self.request,
             f'Successfully withdrawn {amount}$ from your account'
         )
+
+        if self.request.headers.get('HX-Request'):
+            return render(self.request, 'transactions/partials/success.html', {
+                'message': f'Successfully withdrawn ${amount} from your account'
+            })
 
         return super().form_valid(form)
