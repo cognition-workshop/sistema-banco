@@ -1,0 +1,70 @@
+{% extends 'core/base.html' %}
+
+{% block head_title %}{{ title }}{% endblock %}
+
+{% block content %}
+<h1 class="font-mono font-bold text-3xl text-center pb-5 pt-10">{{ title }}</h1>
+<hr />
+
+<div class="w-full mt-5 max-w-2xl mx-auto">
+    <div class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+        <div class="mb-6 p-4 bg-blue-100 rounded">
+            <p class="text-sm text-gray-700">
+                <strong>Saldo disponível:</strong> $ {{ account.balance }}
+            </p>
+        </div>
+
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="pix_key">
+                    Chave PIX do Destinatário
+                </label>
+                {{ form.pix_key }}
+                {% if form.pix_key.errors %}
+                    {% for error in form.pix_key.errors %}
+                        <p class="text-red-600 text-sm italic">{{ error }}</p>
+                    {% endfor %}
+                {% endif %}
+                <p class="text-gray-600 text-xs italic mt-1">
+                    Digite o CPF, email, telefone ou chave aleatória do destinatário
+                </p>
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="amount">
+                    Valor
+                </label>
+                {{ form.amount }}
+                {% if form.amount.errors %}
+                    {% for error in form.amount.errors %}
+                        <p class="text-red-600 text-sm italic">{{ error }}</p>
+                    {% endfor %}
+                {% endif %}
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="description">
+                    Descrição (opcional)
+                </label>
+                {{ form.description }}
+                {% if form.description.errors %}
+                    {% for error in form.description.errors %}
+                        <p class="text-red-600 text-sm italic">{{ error }}</p>
+                    {% endfor %}
+                {% endif %}
+            </div>
+
+            <div class="flex items-center justify-between">
+                <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit">
+                    Transferir
+                </button>
+                <a href="{% url 'transactions:pix_history' %}" class="inline-block align-baseline font-bold text-sm text-blue-500 hover:text-blue-800">
+                    Ver Histórico
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

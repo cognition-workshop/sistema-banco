@@ -1,0 +1,94 @@
+{% extends 'core/base.html' %}
+
+{% block head_title %}{{ title }}{% endblock %}
+
+{% block content %}
+<h1 class="font-mono font-bold text-3xl text-center pb-5 pt-10">{{ title }}</h1>
+<hr />
+
+<div class="w-full mt-5">
+    <div class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-8 max-w-2xl mx-auto">
+        <h2 class="text-xl font-bold mb-4">Gerar Novo QR Code</h2>
+        <form method="post">
+            {% csrf_token %}
+            
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="amount">
+                    Valor (opcional)
+                </label>
+                {{ form.amount }}
+                {% if form.amount.errors %}
+                    {% for error in form.amount.errors %}
+                        <p class="text-red-600 text-sm italic">{{ error }}</p>
+                    {% endfor %}
+                {% endif %}
+                <p class="text-gray-600 text-xs italic mt-1">
+                    Deixe em branco para criar um QR Code com valor variável
+                </p>
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="description">
+                    Descrição
+                </label>
+                {{ form.description }}
+                {% if form.description.errors %}
+                    {% for error in form.description.errors %}
+                        <p class="text-red-600 text-sm italic">{{ error }}</p>
+                    {% endfor %}
+                {% endif %}
+            </div>
+
+            <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit">
+                Gerar QR Code
+            </button>
+        </form>
+    </div>
+
+    <div class="bg-white shadow-md rounded px-8 pt-6 pb-8">
+        <h2 class="text-xl font-bold mb-4">QR Codes Ativos</h2>
+        {% if qr_codes %}
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {% for qr in qr_codes %}
+                <div class="border rounded-lg p-4 {% if qr.is_expired %}bg-gray-200{% endif %}">
+                    <div class="mb-2">
+                        <p class="text-sm font-bold">ID:</p>
+                        <p class="text-xs text-gray-700 break-all">{{ qr.qr_code_id }}</p>
+                    </div>
+                    <div class="mb-2">
+                        <p class="text-sm font-bold">Valor:</p>
+                        <p class="text-gray-700">
+                            {% if qr.amount %}
+                                $ {{ qr.amount }}
+                            {% else %}
+                                <span class="text-blue-500">Variável</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="mb-2">
+                        <p class="text-sm font-bold">Descrição:</p>
+                        <p class="text-gray-700">{{ qr.description|default:"—" }}</p>
+                    </div>
+                    <div class="mb-2">
+                        <p class="text-sm font-bold">Expira em:</p>
+                        <p class="text-gray-700">{{ qr.expiration_date|date:"d/m/Y H:i" }}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm font-bold">Status:</p>
+                        {% if qr.is_expired %}
+                            <span class="bg-red-500 text-white px-2 py-1 rounded text-xs">Expirado</span>
+                        {% elif qr.is_active %}
+                            <span class="bg-green-500 text-white px-2 py-1 rounded text-xs">Ativo</span>
+                        {% else %}
+                            <span class="bg-gray-500 text-white px-2 py-1 rounded text-xs">Inativo</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="text-gray-600 text-center py-4">Você ainda não gerou nenhum QR Code PIX.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -3,17 +3,24 @@ from dateutil.relativedelta import relativedelta
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth import get_user_model
+from django.db import models, transaction as db_transaction
+from django.shortcuts import redirect, get_object_or_404
 from django.urls import reverse_lazy
 from django.utils import timezone
 from django.views.generic import CreateView, ListView
+import qrcode
 
-from transactions.constants import DEPOSIT, WITHDRAWAL
+from transactions.constants import DEPOSIT, WITHDRAWAL, PIX
 from transactions.forms import (
     DepositForm,
     TransactionDateRangeForm,
     WithdrawForm,
+    PixKeyForm,
+    PixTransferForm,
+    PixQRCodeForm,
+    PixQRCodePaymentForm,
 )
-from transactions.models import Transaction
+from transactions.models import Transaction, PixKey, PixTransaction, PixQRCode
 
 
 class TransactionRepostView(ListView):
@@ -154,3 +161,262 @@ class WithdrawMoneyView(TransactionCreateMixin):
         )
 
         return super().form_valid(form)
+
+
+class PixKeyManagementView(ListView):
+    template_name = 'transactions/pix_keys.html'
+    model = PixKey
+    context_object_name = 'pix_keys'
+
+    def get_queryset(self):
+        User = get_user_model()
+        demo_user = User.objects.filter(email='demo@example.com').first()
+        if not demo_user or not hasattr(demo_user, 'account'):
+            return PixKey.objects.none()
+        return PixKey.objects.filter(account=demo_user.account)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        User = get_user_model()
+        demo_user = User.objects.filter(email='demo@example.com').first()
+        
+        if demo_user and hasattr(demo_user, 'account'):
+            context['form'] = PixKeyForm(account=demo_user.account)
+            context['account'] = demo_user.account
+        
+        return context
+
+    def post(self, request, *args, **kwargs):
+        User = get_user_model()
+        demo_user = User.objects.filter(email='demo@example.com').first()
+        
+        if not demo_user or not hasattr(demo_user, 'account'):
+            messages.error(request, 'Conta não encontrada')
+            return redirect('transactions:pix_keys')
+        
+        form = PixKeyForm(request.POST, account=demo_user.account)
+        
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Chave PIX cadastrada com sucesso!')
+            return redirect('transactions:pix_keys')
+        
+        context = self.get_context_data()
+        context['form'] = form
+        return self.render_to_response(context)
+
+
+class PixTransferView(CreateView):
+    template_name = 'transactions/pix_transfer.html'
+    form_class = PixTransferForm
+    success_url = reverse_lazy('transactions:pix_history')
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        User = get_user_model()
+        demo_user = User.objects.filter(email='demo@example.com').first()
+        if demo_user and hasattr(demo_user, 'account'):
+            kwargs['account'] = demo_user.account
+        return kwargs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        User = get_user_model()
+        demo_user = User.objects.filter(email='demo@example.com').first()
+        context['account'] = demo_user.account if demo_user and hasattr(demo_user, 'account') else None
+        context['title'] = 'Transferência PIX'
+        return context
+
+    @db_transaction.atomic
+    def form_valid(self, form):
+        User = get_user_model()
+        demo_user = User.objects.filter(email='demo@example.com').first()
+        
+        if not demo_user or not hasattr(demo_user, 'account'):
+            messages.error(self.request, 'Conta não encontrada')
+            return redirect('transactions:pix_transfer')
+        
+        sender_account = demo_user.account
+        receiver_pix_key = form.receiver_pix_key
+        receiver_account = receiver_pix_key.account
+        amount = form.cleaned_data['amount']
+        description = form.cleaned_data.get('description', '')
+
+        sender_account.balance -= amount
+        sender_account.save(update_fields=['balance'])
+
+        receiver_account.balance += amount
+        receiver_account.save(update_fields=['balance'])
+
+        pix_transaction = PixTransaction.objects.create(
+            sender_account=sender_account,
+            receiver_account=receiver_account,
+            pix_key_used=receiver_pix_key,
+            amount=amount,
+            description=description,
+            status='COMPLETED'
+        )
+
+        Transaction.objects.create(
+            account=sender_account,
+            amount=amount,
+            balance_after_transaction=sender_account.balance,
+            transaction_type=PIX
+        )
+
+        Transaction.objects.create(
+            account=receiver_account,
+            amount=amount,
+            balance_after_transaction=receiver_account.balance,
+            transaction_type=PIX
+        )
+
+        messages.success(
+            self.request,
+            f'Transferência PIX de ${amount} realizada com sucesso para {receiver_pix_key.key_value}'
+        )
+
+        return super().form_valid(form)
+
+
+class PixQRCodeGenerateView(CreateView):
+    template_name = 'transactions/pix_qrcode.html'
+    form_class = PixQRCodeForm
+    success_url = reverse_lazy('transactions:pix_qrcode_generate')
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        User = get_user_model()
+        demo_user = User.objects.filter(email='demo@example.com').first()
+        if demo_user and hasattr(demo_user, 'account'):
+            kwargs['account'] = demo_user.account
+        return kwargs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        User = get_user_model()
+        demo_user = User.objects.filter(email='demo@example.com').first()
+        
+        if demo_user and hasattr(demo_user, 'account'):
+            context['account'] = demo_user.account
+            context['qr_codes'] = PixQRCode.objects.filter(
+                account=demo_user.account,
+                is_active=True
+            ).order_by('-created_at')
+        
+        context['title'] = 'Gerar QR Code PIX'
+        return context
+
+    def form_valid(self, form):
+        qr_code = form.save()
+        
+        qr_data = f"PIX:{qr_code.qr_code_id}"
+        qr = qrcode.QRCode(version=1, box_size=10, border=5)
+        qr.add_data(qr_data)
+        qr.make(fit=True)
+        
+        messages.success(
+            self.request,
+            f'QR Code gerado com sucesso! ID: {qr_code.qr_code_id}'
+        )
+        
+        return super().form_valid(form)
+
+
+class PixQRCodePayView(CreateView):
+    template_name = 'transactions/pix_qrcode_pay.html'
+    form_class = PixQRCodePaymentForm
+    success_url = reverse_lazy('transactions:pix_history')
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        User = get_user_model()
+        demo_user = User.objects.filter(email='demo@example.com').first()
+        if demo_user and hasattr(demo_user, 'account'):
+            kwargs['account'] = demo_user.account
+        return kwargs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        User = get_user_model()
+        demo_user = User.objects.filter(email='demo@example.com').first()
+        context['account'] = demo_user.account if demo_user and hasattr(demo_user, 'account') else None
+        context['title'] = 'Pagar com QR Code PIX'
+        return context
+
+    @db_transaction.atomic
+    def form_valid(self, form):
+        User = get_user_model()
+        demo_user = User.objects.filter(email='demo@example.com').first()
+        
+        if not demo_user or not hasattr(demo_user, 'account'):
+            messages.error(self.request, 'Conta não encontrada')
+            return redirect('transactions:pix_qrcode_pay')
+        
+        payer_account = demo_user.account
+        qr_code = form.qr_code
+        receiver_account = qr_code.account
+        amount = form.cleaned_data['amount']
+
+        payer_account.balance -= amount
+        payer_account.save(update_fields=['balance'])
+
+        receiver_account.balance += amount
+        receiver_account.save(update_fields=['balance'])
+
+        PixTransaction.objects.create(
+            sender_account=payer_account,
+            receiver_account=receiver_account,
+            amount=amount,
+            description=qr_code.description,
+            status='COMPLETED'
+        )
+
+        Transaction.objects.create(
+            account=payer_account,
+            amount=amount,
+            balance_after_transaction=payer_account.balance,
+            transaction_type=PIX
+        )
+
+        Transaction.objects.create(
+            account=receiver_account,
+            amount=amount,
+            balance_after_transaction=receiver_account.balance,
+            transaction_type=PIX
+        )
+
+        if qr_code.amount:
+            qr_code.is_active = False
+            qr_code.save(update_fields=['is_active'])
+
+        messages.success(
+            self.request,
+            f'Pagamento PIX de ${amount} realizado com sucesso!'
+        )
+
+        return super().form_valid(form)
+
+
+class PixTransactionHistoryView(ListView):
+    template_name = 'transactions/pix_history.html'
+    model = PixTransaction
+    context_object_name = 'pix_transactions'
+
+    def get_queryset(self):
+        User = get_user_model()
+        demo_user = User.objects.filter(email='demo@example.com').first()
+        if not demo_user or not hasattr(demo_user, 'account'):
+            return PixTransaction.objects.none()
+        
+        return PixTransaction.objects.filter(
+            models.Q(sender_account=demo_user.account) | 
+            models.Q(receiver_account=demo_user.account)
+        ).order_by('-timestamp')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        User = get_user_model()
+        demo_user = User.objects.filter(email='demo@example.com').first()
+        context['account'] = demo_user.account if demo_user and hasattr(demo_user, 'account') else None
+        return context
