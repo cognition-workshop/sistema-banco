@@ -78,6 +78,18 @@ class UserBankAccount(models.Model):
         on_delete=models.CASCADE
     )
     account_no = models.PositiveIntegerField(unique=True)
+    agency = models.CharField(
+        max_length=4,
+        help_text='Agência bancária (4 dígitos)'
+    )
+    account_number = models.CharField(
+        max_length=7,
+        help_text='Número da conta (7 dígitos)'
+    )
+    check_digit = models.CharField(
+        max_length=1,
+        help_text='Dígito verificador (1 dígito)'
+    )
     gender = models.CharField(max_length=1, choices=GENDER_CHOICE)
     birth_date = models.DateField(null=True, blank=True)
     balance = models.DecimalField(
@@ -94,7 +106,8 @@ class UserBankAccount(models.Model):
     initial_deposit_date = models.DateField(null=True, blank=True)
 
     def __str__(self):
-        return str(self.account_no)
+        from .utils import format_account
+        return format_account(self.agency, self.account_number, self.check_digit)
 
     def get_interest_calculation_months(self):
         """
@@ -107,6 +120,38 @@ class UserBankAccount(models.Model):
         )
         start = self.interest_start_date.month
         return [i for i in range(start, 13, interval)]
+    
+    def get_formatted_account(self):
+        """Returns account in format AAAA-CCCCCCC-D"""
+        from .utils import format_account
+        return format_account(self.agency, self.account_number, self.check_digit)
+    
+    def clean(self):
+        from django.core.exceptions import ValidationError
+        from .utils import validate_dac10
+        
+        errors = {}
+        
+        if self.agency and not self.agency.isdigit():
+            errors['agency'] = 'Agência deve conter apenas dígitos.'
+        elif self.agency and len(self.agency) != 4:
+            errors['agency'] = 'Agência deve ter exatamente 4 dígitos.'
+        
+        if self.account_number and not self.account_number.isdigit():
+            errors['account_number'] = 'Número da conta deve conter apenas dígitos.'
+        elif self.account_number and len(self.account_number) != 7:
+            errors['account_number'] = 'Número da conta deve ter exatamente 7 dígitos.'
+        
+        if self.check_digit and not self.check_digit.isdigit():
+            errors['check_digit'] = 'Dígito verificador deve ser um dígito.'
+        elif self.check_digit and len(self.check_digit) != 1:
+            errors['check_digit'] = 'Dígito verificador deve ter exatamente 1 dígito.'
+        elif self.agency and self.account_number and self.check_digit:
+            if not validate_dac10(self.agency, self.account_number, self.check_digit):
+                errors['check_digit'] = 'Dígito verificador inválido.'
+        
+        if errors:
+            raise ValidationError(errors)
 
 
 class UserAddress(models.Model):

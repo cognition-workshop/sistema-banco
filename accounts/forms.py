@@ -73,6 +73,14 @@ class UserRegistrationForm(UserCreationForm):
             gender = self.cleaned_data.get('gender')
             birth_date = self.cleaned_data.get('birth_date')
 
+            from .utils import calculate_dac10
+            
+            agency = '0001'
+            
+            account_number = str(user.id).zfill(7)
+            
+            check_digit = calculate_dac10(agency, account_number)
+            
             UserBankAccount.objects.create(
                 user=user,
                 gender=gender,
@@ -81,6 +89,9 @@ class UserRegistrationForm(UserCreationForm):
                 account_no=(
                     user.id +
                     settings.ACCOUNT_NUMBER_START_FROM
-                )
+                ),
+                agency=agency,
+                account_number=account_number,
+                check_digit=check_digit
             )
         return user

@@ -47,11 +47,20 @@ if created:
     demo_user.save()
 
 # Create Bank Account
+from accounts.utils import calculate_dac10
+
+agency = '0001'
+account_number = '0001001'
+check_digit = calculate_dac10(agency, account_number)
+
 account, _ = UserBankAccount.objects.get_or_create(
     user=demo_user,
     defaults={
         'account_type': savings_type,
         'account_no': 1001,
+        'agency': agency,
+        'account_number': account_number,
+        'check_digit': check_digit,
         'gender': 'M',
         'birth_date': '1990-01-01',
         'balance': 5000.00,
@@ -106,6 +115,6 @@ account.save()
 
 print("✅ Demo data created successfully!")
 print(f"Demo User: demo@example.com / demo123")
-print(f"Account Number: {account.account_no}")
+print(f"Account Number: {account.get_formatted_account()}")
 print(f"Balance: ${account.balance}")
 print(f"Transactions: {Transaction.objects.filter(account=account).count()}")
