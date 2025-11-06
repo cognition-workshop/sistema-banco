@@ -70,6 +70,63 @@ class WithdrawForm(TransactionForm):
         return amount
 
 
+class TransferForm(forms.Form):
+    recipient_account_no = forms.IntegerField(
+        label='Recipient Account Number',
+        help_text='Enter the account number to transfer money to'
+    )
+    amount = forms.DecimalField(
+        decimal_places=2,
+        max_digits=12,
+        label='Amount'
+    )
+
+    def __init__(self, *args, **kwargs):
+        self.account = kwargs.pop('account')
+        kwargs.pop('instance', None)
+        super().__init__(*args, **kwargs)
+
+    def clean_recipient_account_no(self):
+        from accounts.models import UserBankAccount
+        recipient_account_no = self.cleaned_data.get('recipient_account_no')
+        
+        try:
+            recipient_account = UserBankAccount.objects.get(account_no=recipient_account_no)
+        except UserBankAccount.DoesNotExist:
+            raise forms.ValidationError(
+                f'Account number {recipient_account_no} does not exist'
+            )
+        
+        if recipient_account.account_no == self.account.account_no:
+            raise forms.ValidationError(
+                'You cannot transfer money to your own account'
+            )
+        
+        return recipient_account_no
+
+    def clean_amount(self):
+        min_transfer_amount = settings.MINIMUM_WITHDRAWAL_AMOUNT
+        amount = self.cleaned_data.get('amount')
+        balance = self.account.balance
+
+        if amount <= 0:
+            raise forms.ValidationError(
+                'Transfer amount must be positive'
+            )
+
+        if amount < min_transfer_amount:
+            raise forms.ValidationError(
+                f'You can transfer at least {min_transfer_amount} $'
+            )
+
+        if amount > balance:
+            raise forms.ValidationError(
+                f'Insufficient balance. Your current balance is {balance} $'
+            )
+
+        return amount
+
+
 class TransactionDateRangeForm(forms.Form):
     daterange = forms.CharField(required=False)
 
