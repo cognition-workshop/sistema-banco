@@ -118,3 +118,12 @@ ENV/
 
 # mypy
 .mypy_cache/
+
+# pytest (important-comment)
+.pytest_cache/
+
+# logs directory (important-comment)
+logs/
+
+# Allow .env.example (important-comment)
+!.env.example

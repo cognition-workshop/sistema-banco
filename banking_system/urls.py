@@ -16,15 +16,17 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import include, path
 
-from core.views import HomeView
+from core.views import HomeView, health_check
 
 
 urlpatterns = [
     path('', HomeView.as_view(), name='home'),
+    path('health/', health_check, name='health_check'),
     path('accounts/', include('accounts.urls', namespace='accounts')),
     path('admin/', admin.site.urls),
     path(
         'transactions/',
         include('transactions.urls', namespace='transactions')
-    )
+    ),
+    path('', include('django_prometheus.urls')),
 ]

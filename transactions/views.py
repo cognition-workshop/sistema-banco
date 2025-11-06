@@ -1,8 +1,9 @@
+import logging
 from dateutil.relativedelta import relativedelta
 
 from django.contrib import messages
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth import get_user_model
+from django.db import transaction
 from django.urls import reverse_lazy
 from django.utils import timezone
 from django.views.generic import CreateView, ListView
@@ -15,9 +16,11 @@ from transactions.forms import (
 )
 from transactions.models import Transaction
 
+logger = logging.getLogger(__name__)
+
 
 class TransactionRepostView(ListView):
-    template_name = 'transactions/transaction_report.html'
+    template_name = "transactions/transaction_report.html"
     model = Transaction
     form_data = {}
 
@@ -31,13 +34,11 @@ class TransactionRepostView(ListView):
     def get_queryset(self):
         # Bypass login - use demo user
         User = get_user_model()
-        demo_user = User.objects.filter(email='demo@example.com').first()
-        if not demo_user or not hasattr(demo_user, 'account'):
+        demo_user = User.objects.filter(email="demo@example.com").first()
+        if not demo_user or not hasattr(demo_user, "account"):
             return super().get_queryset().none()
-        
-        queryset = super().get_queryset().filter(
-            account=demo_user.account
-        )
+
+        queryset = super().get_queryset().filter(account=demo_user.account)
 
         daterange = self.form_data.get("daterange")
 
@@ -50,57 +51,72 @@ class TransactionRepostView(ListView):
         context = super().get_context_data(**kwargs)
         # Bypass login - use demo user
         User = get_user_model()
-        demo_user = User.objects.filter(email='demo@example.com').first()
-        context.update({
-            'account': demo_user.account if demo_user and hasattr(demo_user, 'account') else None,
-            'form': TransactionDateRangeForm(self.request.GET or None)
-        })
+        demo_user = User.objects.filter(email="demo@example.com").first()
+        context.update(
+            {
+                "account": (
+                    demo_user.account
+                    if demo_user and hasattr(demo_user, "account")
+                    else None
+                ),
+                "form": TransactionDateRangeForm(self.request.GET or None),
+            }
+        )
 
         return context
 
 
 class TransactionCreateMixin(CreateView):
-    template_name = 'transactions/transaction_form.html'
+    template_name = "transactions/transaction_form.html"
     model = Transaction
-    title = ''
-    success_url = reverse_lazy('transactions:transaction_report')
+    title = ""
+    success_url = reverse_lazy("transactions:transaction_report")
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
         # Bypass login - use demo user
         User = get_user_model()
-        demo_user = User.objects.filter(email='demo@example.com').first()
-        if demo_user and hasattr(demo_user, 'account'):
-            kwargs.update({
-                'account': demo_user.account
-            })
+        demo_user = User.objects.filter(email="demo@example.com").first()
+        if demo_user and hasattr(demo_user, "account"):
+            kwargs.update({"account": demo_user.account})
         return kwargs
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context.update({
-            'title': self.title
-        })
+        context.update({"title": self.title})
 
         return context
 
 
 class DepositMoneyView(TransactionCreateMixin):
     form_class = DepositForm
-    title = 'Deposit Money to Your Account'
+    title = "Deposit Money to Your Account"
 
     def get_initial(self):
-        initial = {'transaction_type': DEPOSIT}
+        initial = {"transaction_type": DEPOSIT}
         return initial
 
+    @transaction.atomic
     def form_valid(self, form):
-        amount = form.cleaned_data.get('amount')
-        # Bypass login - use demo user
+        amount = form.cleaned_data.get("amount")
         User = get_user_model()
-        demo_user = User.objects.filter(email='demo@example.com').first()
-        account = demo_user.account if demo_user and hasattr(demo_user, 'account') else None
+        demo_user = User.objects.filter(email="demo@example.com").first()
+        account = (
+            demo_user.account if demo_user and hasattr(demo_user, "account") else None
+        )
+
         if not account:
+            logger.error("No account found for demo user")
             return super().form_valid(form)
+
+        logger.info(
+            "Deposit initiated",
+            extra={
+                "user_id": demo_user.id,
+                "account_no": account.account_no,
+                "amount": float(amount),
+            },
+        )
 
         if not account.initial_deposit_date:
             now = timezone.now()
@@ -108,24 +124,28 @@ class DepositMoneyView(TransactionCreateMixin):
                 12 / account.account_type.interest_calculation_per_year
             )
             account.initial_deposit_date = now
-            account.interest_start_date = (
-                now + relativedelta(
-                    months=+next_interest_month
-                )
+            account.interest_start_date = now + relativedelta(
+                months=+next_interest_month
+            )
+            account.save(
+                update_fields=["initial_deposit_date", "interest_start_date"]
             )
 
-        account.balance += amount
-        account.save(
-            update_fields=[
-                'initial_deposit_date',
-                'balance',
-                'interest_start_date'
-            ]
+        form.save()
+
+        account.refresh_from_db()
+        logger.info(
+            "Deposit completed",
+            extra={
+                "user_id": demo_user.id,
+                "account_no": account.account_no,
+                "amount": float(amount),
+                "new_balance": float(account.balance),
+            },
         )
 
         messages.success(
-            self.request,
-            f'{amount}$ was deposited to your account successfully'
+            self.request, f"{amount}$ was deposited to your account successfully"
         )
 
         return super().form_valid(form)
@@ -133,24 +153,45 @@ class DepositMoneyView(TransactionCreateMixin):
 
 class WithdrawMoneyView(TransactionCreateMixin):
     form_class = WithdrawForm
-    title = 'Withdraw Money from Your Account'
+    title = "Withdraw Money from Your Account"
 
     def get_initial(self):
-        initial = {'transaction_type': WITHDRAWAL}
+        initial = {"transaction_type": WITHDRAWAL}
         return initial
 
+    @transaction.atomic
     def form_valid(self, form):
-        amount = form.cleaned_data.get('amount')
-        # Bypass login - use demo user
+        amount = form.cleaned_data.get("amount")
         User = get_user_model()
-        demo_user = User.objects.filter(email='demo@example.com').first()
-        if demo_user and hasattr(demo_user, 'account'):
-            demo_user.account.balance -= form.cleaned_data.get('amount')
-            demo_user.account.save(update_fields=['balance'])
+        demo_user = User.objects.filter(email="demo@example.com").first()
+
+        if demo_user and hasattr(demo_user, "account"):
+            account = demo_user.account
+
+            logger.info(
+                "Withdrawal initiated",
+                extra={
+                    "user_id": demo_user.id,
+                    "account_no": account.account_no,
+                    "amount": float(amount),
+                },
+            )
+
+            form.save()
+
+            account.refresh_from_db()
+            logger.info(
+                "Withdrawal completed",
+                extra={
+                    "user_id": demo_user.id,
+                    "account_no": account.account_no,
+                    "amount": float(amount),
+                    "new_balance": float(account.balance),
+                },
+            )
 
         messages.success(
-            self.request,
-            f'Successfully withdrawn {amount}$ from your account'
+            self.request, f"Successfully withdrawn {amount}$ from your account"
         )
 
         return super().form_valid(form)
