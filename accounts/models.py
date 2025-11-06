@@ -9,11 +9,18 @@ from django.db import models
 
 from .constants import GENDER_CHOICE
 from .managers import UserManager
+from .validators import validate_cpf
 
 
 class User(AbstractUser):
     username = None
     email = models.EmailField(unique=True, null=False, blank=False)
+    cpf = models.CharField(
+        max_length=14,
+        unique=True,
+        validators=[validate_cpf],
+        help_text='CPF no formato XXX.XXX.XXX-XX ou XXXXXXXXXXX'
+    )
 
     objects = UserManager()
 
@@ -77,7 +84,11 @@ class UserBankAccount(models.Model):
         related_name='accounts',
         on_delete=models.CASCADE
     )
-    account_no = models.PositiveIntegerField(unique=True)
+    agencia = models.CharField(max_length=4, help_text='4-digit agency number')
+    conta = models.CharField(max_length=8, help_text='8-digit account number')
+    digito_verificador = models.CharField(max_length=1, help_text='Check digit')
+    account_no = models.CharField(max_length=20, unique=True, editable=False)
+    
     gender = models.CharField(max_length=1, choices=GENDER_CHOICE)
     birth_date = models.DateField(null=True, blank=True)
     balance = models.DecimalField(
@@ -93,8 +104,16 @@ class UserBankAccount(models.Model):
     )
     initial_deposit_date = models.DateField(null=True, blank=True)
 
+    def save(self, *args, **kwargs):
+        if self.agencia and self.conta and self.digito_verificador:
+            from .utils import format_account_number
+            self.account_no = format_account_number(
+                self.agencia, self.conta, self.digito_verificador
+            )
+        super().save(*args, **kwargs)
+
     def __str__(self):
-        return str(self.account_no)
+        return self.account_no if self.account_no else f"Account-{self.id}"
 
     def get_interest_calculation_months(self):
         """

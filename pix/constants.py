@@ -1,0 +1,5 @@
+PIX_TRANSFER = 4
+
+PIX_TRANSACTION_TYPE = (
+    (PIX_TRANSFER, 'PIX Transfer'),
+)

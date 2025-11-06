@@ -14,6 +14,7 @@ from transactions.forms import (
     WithdrawForm,
 )
 from transactions.models import Transaction
+from banking_calendar.utils import is_banking_day, next_banking_day
 
 
 class TransactionRepostView(ListView):
@@ -95,15 +96,27 @@ class DepositMoneyView(TransactionCreateMixin):
 
     def form_valid(self, form):
         amount = form.cleaned_data.get('amount')
-        # Bypass login - use demo user
         User = get_user_model()
         demo_user = User.objects.filter(email='demo@example.com').first()
         account = demo_user.account if demo_user and hasattr(demo_user, 'account') else None
         if not account:
             return super().form_valid(form)
+        
+        balance_before = account.balance
 
         if not account.initial_deposit_date:
             now = timezone.now()
+            
+            if not is_banking_day(now.date()):
+                messages.warning(
+                    self.request,
+                    'Hoje não é dia útil bancário. O depósito será processado no próximo dia útil.'
+                )
+                now = timezone.datetime.combine(
+                    next_banking_day(now.date()),
+                    now.time()
+                )
+            
             next_interest_month = int(
                 12 / account.account_type.interest_calculation_per_year
             )
@@ -123,9 +136,18 @@ class DepositMoneyView(TransactionCreateMixin):
             ]
         )
 
+        if hasattr(self.request, 'create_audit_log'):
+            self.request.create_audit_log(
+                account=account,
+                transaction_type='DEPOSIT',
+                amount=amount,
+                balance_before=balance_before,
+                balance_after=account.balance
+            )
+
         messages.success(
             self.request,
-            f'{amount}$ was deposited to your account successfully'
+            f'R$ {amount} foi depositado em sua conta com sucesso'
         )
 
         return super().form_valid(form)
@@ -141,16 +163,27 @@ class WithdrawMoneyView(TransactionCreateMixin):
 
     def form_valid(self, form):
         amount = form.cleaned_data.get('amount')
-        # Bypass login - use demo user
         User = get_user_model()
         demo_user = User.objects.filter(email='demo@example.com').first()
         if demo_user and hasattr(demo_user, 'account'):
-            demo_user.account.balance -= form.cleaned_data.get('amount')
-            demo_user.account.save(update_fields=['balance'])
+            account = demo_user.account
+            balance_before = account.balance
+            
+            account.balance -= amount
+            account.save(update_fields=['balance'])
+            
+            if hasattr(self.request, 'create_audit_log'):
+                self.request.create_audit_log(
+                    account=account,
+                    transaction_type='WITHDRAWAL',
+                    amount=amount,
+                    balance_before=balance_before,
+                    balance_after=account.balance
+                )
 
         messages.success(
             self.request,
-            f'Successfully withdrawn {amount}$ from your account'
+            f'R$ {amount} foi sacado de sua conta com sucesso'
         )
 
         return super().form_valid(form)
