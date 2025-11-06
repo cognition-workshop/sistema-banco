@@ -40,9 +40,20 @@ class TransactionRepostView(ListView):
         )
 
         daterange = self.form_data.get("daterange")
-
         if daterange:
             queryset = queryset.filter(timestamp__date__range=daterange)
+        
+        transaction_type = self.request.GET.get('transaction_type')
+        if transaction_type:
+            queryset = queryset.filter(transaction_type=transaction_type)
+        
+        operation_source = self.request.GET.get('operation_source')
+        if operation_source:
+            queryset = queryset.filter(operation_source=operation_source)
+        
+        performed_by = self.request.GET.get('performed_by')
+        if performed_by:
+            queryset = queryset.filter(performed_by_id=performed_by)
 
         return queryset.distinct()
 
@@ -72,7 +83,8 @@ class TransactionCreateMixin(CreateView):
         demo_user = User.objects.filter(email='demo@example.com').first()
         if demo_user and hasattr(demo_user, 'account'):
             kwargs.update({
-                'account': demo_user.account
+                'account': demo_user.account,
+                'request': self.request,
             })
         return kwargs
 
