@@ -17,6 +17,32 @@ This is an Online Banking Concept created using Django Web Framework.
 * Modern UI with Tailwind CSS
 
 
+## 📋 Sistema de Rollback de Migrations
+
+O sistema inclui ferramentas robustas para gerenciamento seguro de migrations com capacidade de rollback.
+
+### Comandos Principais
+
+```bash
+# Ver histórico de migrations
+python manage.py migration_history
+
+# Rollback seguro (com validações e backup)
+python manage.py safe_migrate_rollback <app> <migration> --execute
+
+# Listar backups disponíveis
+python manage.py list_backups
+```
+
+📖 **Documentação completa**: [docs/MIGRATION_ROLLBACK.md](docs/MIGRATION_ROLLBACK.md)
+
+### Recursos
+- ✅ Backup automático antes de rollback
+- ✅ Validações de integridade de dados financeiros
+- ✅ Modo dry-run para simulação
+- ✅ Rastreamento completo de histórico
+
+
 ## Prerequisites
 
 Be sure you have the following installed on your development machine:
