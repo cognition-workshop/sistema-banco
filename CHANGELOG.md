@@ -1,3 +1,12 @@
+# Version: Unreleased
+
+### Added
+- Transfer between accounts with atomic balance updates
+
+### Fixed
+- Ensure Transaction.balance_after_transaction reflects post-transaction balance
+- Prevent overdraft withdrawals via validation
+
 # Version: 2.0.2
 
 * [#46](https://github.com/saadmk11/banking-system/pull/46): Bump django from 3.1.8 to 3.1.9

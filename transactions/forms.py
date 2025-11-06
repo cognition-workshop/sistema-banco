@@ -4,6 +4,7 @@ from django import forms
 from django.conf import settings
 
 from .models import Transaction
+from accounts.models import UserBankAccount
 
 
 class TransactionForm(forms.ModelForm):
@@ -64,8 +65,8 @@ class WithdrawForm(TransactionForm):
                 f'You can withdraw at most {max_withdraw_amount} $'
             )
 
-        # TODO: Add validation to prevent negative balances
-        # Bug: Users can currently withdraw more than their balance
+        if amount > balance:
+            raise forms.ValidationError('Insufficient funds')
 
         return amount
 
@@ -88,3 +89,37 @@ class TransactionDateRangeForm(forms.Form):
                 raise forms.ValidationError("Please select a date range.")
         except (ValueError, AttributeError):
             raise forms.ValidationError("Invalid date range")
+
+
+class TransferForm(forms.Form):
+    recipient_account_no = forms.IntegerField(label='Recipient Account Number')
+    amount = forms.DecimalField(decimal_places=2, max_digits=12)
+
+    def __init__(self, *args, **kwargs):
+        self.sender_account = kwargs.pop('sender_account')
+        super().__init__(*args, **kwargs)
+
+    def clean(self):
+        cleaned = super().clean()
+        amount = cleaned.get('amount')
+        recipient_no = cleaned.get('recipient_account_no')
+
+        if amount is None or amount <= 0:
+            raise forms.ValidationError('Transfer amount must be positive')
+
+        if recipient_no is None:
+            raise forms.ValidationError('Recipient account is required')
+
+        try:
+            recipient = UserBankAccount.objects.get(account_no=recipient_no)
+        except UserBankAccount.DoesNotExist:
+            raise forms.ValidationError('Recipient account does not exist')
+
+        if recipient.pk == self.sender_account.pk:
+            raise forms.ValidationError('Cannot transfer to the same account')
+
+        if amount > self.sender_account.balance:
+            raise forms.ValidationError('Insufficient funds')
+
+        cleaned['recipient'] = recipient
+        return cleaned
