@@ -1,0 +1,30 @@
+{% extends "admin/index.html" %}
+{% load static %}
+
+{% block content %}
+{{ block.super }}
+
+<div style="margin-top: 30px;">
+    <h2>Dashboards Personalizados</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-top: 20px;">
+        <a href="{% url 'admin_transaction_dashboard' %}" style="text-decoration: none;">
+            <div style="background: #417690; color: white; padding: 30px; border-radius: 8px; text-align: center;">
+                <h3>📊 Dashboard de Transações</h3>
+                <p>Monitore todas as transações do sistema</p>
+            </div>
+        </a>
+        <a href="{% url 'admin_analytics_dashboard' %}" style="text-decoration: none;">
+            <div style="background: #2c5f75; color: white; padding: 30px; border-radius: 8px; text-align: center;">
+                <h3>📈 Analytics e Relatórios</h3>
+                <p>Visualize estatísticas e métricas</p>
+            </div>
+        </a>
+        <a href="{% url 'admin_system_health' %}" style="text-decoration: none;">
+            <div style="background: #1a4556; color: white; padding: 30px; border-radius: 8px; text-align: center;">
+                <h3>🏥 Saúde do Sistema</h3>
+                <p>Monitore status dos serviços</p>
+            </div>
+        </a>
+    </div>
+</div>
+{% endblock %}

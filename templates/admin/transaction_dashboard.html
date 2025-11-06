@@ -1,0 +1,135 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block extrahead %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+    .dashboard-card {
+        background: white;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .stat-card {
+        text-align: center;
+        padding: 20px;
+    }
+    .stat-number {
+        font-size: 2em;
+        font-weight: bold;
+        color: #417690;
+    }
+    .stat-label {
+        color: #666;
+        margin-top: 5px;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    th, td {
+        padding: 10px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+    }
+    th {
+        background-color: #f5f5f5;
+        font-weight: bold;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<h1>{{ title }}</h1>
+
+<div class="dashboard-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin: 20px 0;">
+    <div class="dashboard-card stat-card">
+        <div class="stat-number">{{ total_transactions }}</div>
+        <div class="stat-label">Total de Transações</div>
+    </div>
+    <div class="dashboard-card stat-card">
+        <div class="stat-number">{{ today_transactions }}</div>
+        <div class="stat-label">Transações Hoje</div>
+    </div>
+    <div class="dashboard-card stat-card">
+        <div class="stat-number">{{ week_transactions }}</div>
+        <div class="stat-label">Últimos 7 Dias</div>
+    </div>
+</div>
+
+<div class="dashboard-card">
+    <h2>Tendência Diária (Últimos 30 Dias)</h2>
+    <canvas id="dailyTrendChart" height="80"></canvas>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+    <div class="dashboard-card">
+        <h2>Estatísticas de Depósitos</h2>
+        <p><strong>Total:</strong> R$ {{ deposit_stats.total|floatformat:2|default:"0.00" }}</p>
+        <p><strong>Quantidade:</strong> {{ deposit_stats.count|default:"0" }}</p>
+        <p><strong>Média:</strong> R$ {{ deposit_stats.avg|floatformat:2|default:"0.00" }}</p>
+    </div>
+    <div class="dashboard-card">
+        <h2>Estatísticas de Saques</h2>
+        <p><strong>Total:</strong> R$ {{ withdrawal_stats.total|floatformat:2|default:"0.00" }}</p>
+        <p><strong>Quantidade:</strong> {{ withdrawal_stats.count|default:"0" }}</p>
+        <p><strong>Média:</strong> R$ {{ withdrawal_stats.avg|floatformat:2|default:"0.00" }}</p>
+    </div>
+</div>
+
+<div class="dashboard-card">
+    <h2>Transações Recentes de Alto Valor (≥ R$ 5.000)</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Conta</th>
+                <th>Tipo</th>
+                <th>Valor</th>
+                <th>Data</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for trans in large_transactions %}
+            <tr>
+                <td>{{ trans.account.account_no }}</td>
+                <td>{{ trans.get_transaction_type_display }}</td>
+                <td>R$ {{ trans.amount|floatformat:2 }}</td>
+                <td>{{ trans.timestamp|date:"d/m/Y H:i" }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4">Nenhuma transação de alto valor encontrada</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<script>
+const ctx = document.getElementById('dailyTrendChart').getContext('2d');
+const dailyData = {{ daily_transactions|safe }};
+new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: dailyData.map(d => d.date),
+        datasets: [{
+            label: 'Transações por Dia',
+            data: dailyData.map(d => d.count),
+            borderColor: '#417690',
+            backgroundColor: 'rgba(65, 118, 144, 0.1)',
+            tension: 0.1
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+    }
+});
+</script>
+{% endblock %}
