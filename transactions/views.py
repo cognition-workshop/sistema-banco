@@ -44,6 +44,10 @@ class TransactionRepostView(ListView):
         if daterange:
             queryset = queryset.filter(timestamp__date__range=daterange)
 
+        transaction_type = self.request.GET.get('transaction_type')
+        if transaction_type and transaction_type.isdigit():
+            queryset = queryset.filter(transaction_type=int(transaction_type))
+
         return queryset.distinct()
 
     def get_context_data(self, **kwargs):
