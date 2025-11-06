@@ -82,23 +82,22 @@ transactions_data = [
     (WITHDRAWAL, 300.00, timezone.now() - relativedelta(days=2)),
 ]
 
-# Delete old transactions for demo user
-Transaction.objects.filter(account=account).delete()
-
-balance = 0
-for trans_type, amount, timestamp in transactions_data:
-    if trans_type == DEPOSIT:
-        balance += amount
-    else:
-        balance -= amount
-    
-    Transaction.objects.create(
-        account=account,
-        amount=amount,
-        balance_after_transaction=balance,
-        transaction_type=trans_type,
-        timestamp=timestamp
-    )
+existing_count = Transaction.objects.filter(account=account).count()
+if existing_count == 0:
+    balance = 0
+    for trans_type, amount, timestamp in transactions_data:
+        if trans_type == DEPOSIT:
+            balance += amount
+        else:
+            balance -= amount
+        
+        Transaction.objects.create(
+            account=account,
+            amount=amount,
+            balance_after_transaction=balance,
+            transaction_type=trans_type,
+            timestamp=timestamp
+        )
 
 # Update final balance
 account.balance = balance

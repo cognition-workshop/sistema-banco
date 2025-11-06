@@ -72,7 +72,8 @@ class TransactionCreateMixin(CreateView):
         demo_user = User.objects.filter(email='demo@example.com').first()
         if demo_user and hasattr(demo_user, 'account'):
             kwargs.update({
-                'account': demo_user.account
+                'account': demo_user.account,
+                'request': self.request
             })
         return kwargs
 
