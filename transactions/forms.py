@@ -17,6 +17,7 @@ class TransactionForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         self.account = kwargs.pop('account')
+        self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
 
         self.fields['transaction_type'].disabled = True
@@ -25,6 +26,12 @@ class TransactionForm(forms.ModelForm):
     def save(self, commit=True):
         self.instance.account = self.account
         self.instance.balance_after_transaction = self.account.balance
+        
+        if self.request:
+            from transactions.views import get_client_ip
+            self.instance.ip_address = get_client_ip(self.request)
+            self.instance.user_agent = self.request.META.get('HTTP_USER_AGENT', '')
+        
         return super().save()
 
 

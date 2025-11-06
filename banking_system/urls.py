@@ -26,5 +26,7 @@ urlpatterns = [
     path(
         'transactions/',
         include('transactions.urls', namespace='transactions')
-    )
+    ),
+    path('pix/', include('pix.urls', namespace='pix')),
+    path('reports/', include('reports.urls', namespace='reports')),
 ]

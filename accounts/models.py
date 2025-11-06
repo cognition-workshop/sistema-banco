@@ -1,4 +1,5 @@
 from decimal import Decimal
+from datetime import date
 
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import (
@@ -9,11 +10,13 @@ from django.db import models
 
 from .constants import GENDER_CHOICE
 from .managers import UserManager
+from .validators import validate_cpf
 
 
 class User(AbstractUser):
     username = None
     email = models.EmailField(unique=True, null=False, blank=False)
+    cpf = models.CharField(max_length=14, unique=True, validators=[validate_cpf])
 
     objects = UserManager()
 
@@ -50,17 +53,25 @@ class BankAccountType(models.Model):
     def __str__(self):
         return self.name
 
-    def calculate_interest(self, principal):
+    def calculate_interest(self, principal, start_date=None, end_date=None):
         """
-        Calculate interest for each account type.
+        Calculate interest for each account type considering only business days.
 
-        This uses a basic interest calculation formula
+        This uses a basic interest calculation formula adjusted for Brazilian banking calendar.
         """
+        from utils.brazilian_calendar import get_business_days_between
+        
         p = principal
         r = self.annual_interest_rate
         n = Decimal(self.interest_calculation_per_year)
 
-        # Basic Future Value formula to calculate interest
+        if start_date and end_date:
+            total_days = (end_date - start_date).days
+            business_days = get_business_days_between(start_date, end_date)
+            if total_days > 0:
+                business_day_factor = Decimal(business_days) / Decimal(total_days)
+                r = r * business_day_factor
+
         interest = (p * (1 + ((r/100) / n))) - p
 
         return round(interest, 2)
@@ -77,7 +88,9 @@ class UserBankAccount(models.Model):
         related_name='accounts',
         on_delete=models.CASCADE
     )
-    account_no = models.PositiveIntegerField(unique=True)
+    agency = models.CharField(max_length=4)
+    account_number = models.CharField(max_length=10)
+    account_digit = models.CharField(max_length=2)
     gender = models.CharField(max_length=1, choices=GENDER_CHOICE)
     birth_date = models.DateField(null=True, blank=True)
     balance = models.DecimalField(
@@ -94,7 +107,11 @@ class UserBankAccount(models.Model):
     initial_deposit_date = models.DateField(null=True, blank=True)
 
     def __str__(self):
-        return str(self.account_no)
+        return self.get_formatted_account()
+    
+    def get_formatted_account(self):
+        """Return formatted account: AAAA-NNNNNNNNNN-D"""
+        return f"{self.agency}-{self.account_number}-{self.account_digit}"
 
     def get_interest_calculation_months(self):
         """

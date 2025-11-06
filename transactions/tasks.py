@@ -1,17 +1,25 @@
 from django.utils import timezone
+from datetime import timedelta
 
 from celery.decorators import task
 
 from accounts.models import UserBankAccount
 from transactions.constants import INTEREST
 from transactions.models import Transaction
+from utils.brazilian_calendar import is_business_day
 
 
 @task(name="calculate_interest")
 def calculate_interest():
+    """Calculate interest only on business days."""
+    today = timezone.now().date()
+    
+    if not is_business_day(today):
+        return
+    
     accounts = UserBankAccount.objects.filter(
         balance__gt=0,
-        interest_start_date__gte=timezone.now(),
+        interest_start_date__lte=timezone.now(),
         initial_deposit_date__isnull=False
     ).select_related('account_type')
 
@@ -22,8 +30,11 @@ def calculate_interest():
 
     for account in accounts:
         if this_month in account.get_interest_calculation_months():
+            last_month_start = timezone.now() - timedelta(days=30)
             interest = account.account_type.calculate_interest(
-                account.balance
+                account.balance,
+                start_date=last_month_start.date(),
+                end_date=today
             )
             account.balance += interest
             account.save()
@@ -31,7 +42,8 @@ def calculate_interest():
             transaction_obj = Transaction(
                 account=account,
                 transaction_type=INTEREST,
-                amount=interest
+                amount=interest,
+                balance_after_transaction=account.balance
             )
             created_transactions.append(transaction_obj)
             updated_accounts.append(account)
