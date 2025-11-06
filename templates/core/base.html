@@ -9,7 +9,8 @@
         <title>
             {% block head_title %}Banking System{% endblock %}
         </title>
-        <link href="https://unpkg.com/tailwindcss@^1.0/dist/tailwind.min.css" rel="stylesheet">
+        <link href="{% static 'dist/output.css' %}" rel="stylesheet">
+        <script src="https://unpkg.com/htmx.org@2.0.0"></script>
 
         {% block head_extra %}{% endblock %}
     </head>
@@ -19,7 +20,6 @@
             <div class="lg:container lg:mx-auto">
                 {% include 'core/messages.html' %}
                 {% block content %}
-                <!-- Add content here -->
                 {% endblock %}
             </div>
             {% include 'core/footer.html' %}

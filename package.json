@@ -1,0 +1,12 @@
+{
+  "name": "sistema-banco",
+  "version": "1.0.0",
+  "description": "Banking System with Django",
+  "scripts": {
+    "build:css": "tailwindcss -i ./static/src/input.css -o ./static/dist/output.css",
+    "watch:css": "tailwindcss -i ./static/src/input.css -o ./static/dist/output.css --watch"
+  },
+  "devDependencies": {
+    "tailwindcss": "^4.0.0"
+  }
+}

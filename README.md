@@ -1,3 +1,108 @@
+# Sistema Banco - Modern Banking System
+
+A Django-based banking system with modern technology stack.
+
+## Technology Stack
+
+- **Backend:** Django 5.0, Django REST Framework 3.14
+- **Database:** PostgreSQL 15
+- **Cache:** Redis 7
+- **Task Queue:** Celery with Redis broker
+- **Frontend:** HTMX, Tailwind CSS v4
+- **Python:** 3.8+
+
+## Quick Start
+
+### Prerequisites
+- Python 3.8 or higher
+- Node.js 18 or higher
+- Docker and Docker Compose (recommended)
+
+### Installation
+
+1. Clone the repository:
+```bash
+git clone <repository-url>
+cd sistema-banco
+```
+
+2. Create and activate virtual environment:
+```bash
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+```
+
+3. Install Python dependencies:
+```bash
+pip install -r requirements.txt
+```
+
+4. Set up environment variables:
+```bash
+cp .env.example .env
+# Edit .env with your configuration
+```
+
+5. Start database and cache services:
+```bash
+docker-compose up -d
+```
+
+6. Run migrations:
+```bash
+python manage.py migrate
+```
+
+7. Install Node.js dependencies and build CSS:
+```bash
+npm install
+npm run build:css
+```
+
+8. Create a superuser (optional):
+```bash
+python manage.py createsuperuser
+```
+
+9. Run the development server:
+```bash
+python manage.py runserver
+```
+
+The application will be available at `http://localhost:8000`
+
+### Development
+
+To watch for CSS changes during development:
+```bash
+npm run watch:css
+```
+
+## API Documentation
+
+REST API is available at `/api/`:
+- `/api/users/` - User information
+- `/api/accounts/` - Bank account information  
+- `/api/transactions/` - Transaction history
+
+All endpoints require authentication. Use session authentication or obtain an API token.
+
+## Features (Updated)
+
+- User registration and authentication
+- Bank account management
+- Deposit and withdrawal transactions
+- Transaction history with date filtering
+- REST API for programmatic access
+- Redis caching for improved performance
+- Modern UI with HTMX and Tailwind CSS v4
+
+## Migration Guide
+
+If upgrading from an older version, see [docs/MIGRATION_GUIDE.md](docs/MIGRATION_GUIDE.md) for detailed migration instructions.
+
+---
+
 # Online Banking System V2.0.2
 
 This is an Online Banking Concept created using Django Web Framework.
