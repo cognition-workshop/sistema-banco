@@ -64,11 +64,6 @@ class WithdrawForm(TransactionForm):
                 f'You can withdraw at most {max_withdraw_amount} $'
             )
 
-        if amount > balance:
-            raise forms.ValidationError(
-                f'You have insufficient balance. Current balance: {balance} $'
-            )
-
         return amount
 
 
