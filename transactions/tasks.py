@@ -1,6 +1,6 @@
 from django.utils import timezone
 
-from celery.decorators import task
+from celery import shared_task
 
 from accounts.models import UserBankAccount
 from accounts.utils import is_banking_day
@@ -8,7 +8,7 @@ from transactions.constants import INTEREST
 from transactions.models import Transaction
 
 
-@task(name="calculate_interest")
+@shared_task(name="calculate_interest")
 def calculate_interest():
     today = timezone.now().date()
     
