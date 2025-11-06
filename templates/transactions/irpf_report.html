@@ -1,0 +1,107 @@
+{% extends 'core/base.html' %}
+
+{% block head_title %}Relatório IRPF - Informe de Rendimentos{% endblock %}
+
+{% block content %}
+    <h1 class="font-mono font-bold text-3xl text-center pb-5 pt-10">Relatório IRPF - Informe de Rendimentos</h1>
+    <hr />
+    
+    <form method="get" class="mt-10">
+        <div class="max-w-md mx-auto">
+            <label for="year" class="block text-sm font-medium text-gray-700 mb-2">Selecione o Ano</label>
+            <div class="flex gap-4">
+                {{ form.year }}
+                <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                    Filtrar
+                </button>
+            </div>
+            {% if form.year.errors %}
+                {% for error in form.year.errors %}
+                    <p class="text-red-600 text-sm italic mt-2">{{ error }}</p>
+                {% endfor %}
+            {% endif %}
+        </div>
+    </form>
+    
+    {% if selected_year %}
+        <div class="mt-10 bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+            <h2 class="text-xl font-bold mb-4">Dados do Titular</h2>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <p class="text-sm text-gray-600">Nome:</p>
+                    <p class="font-semibold">{{ user.first_name }} {{ user.last_name }}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-600">CPF:</p>
+                    <p class="font-semibold">{{ user.cpf }}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-600">Conta:</p>
+                    <p class="font-semibold">{{ account.account_no }}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-600">Ano de Referência:</p>
+                    <p class="font-semibold">{{ selected_year }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mt-6 bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+            <h2 class="text-xl font-bold mb-4">Resumo Anual</h2>
+            <div class="grid grid-cols-3 gap-4">
+                <div class="bg-green-100 p-4 rounded">
+                    <p class="text-sm text-gray-600">Total de Depósitos</p>
+                    <p class="text-2xl font-bold text-green-700">$ {{ annual_summary.total_deposits }}</p>
+                </div>
+                <div class="bg-red-100 p-4 rounded">
+                    <p class="text-sm text-gray-600">Total de Saques</p>
+                    <p class="text-2xl font-bold text-red-700">$ {{ annual_summary.total_withdrawals }}</p>
+                </div>
+                <div class="bg-blue-100 p-4 rounded">
+                    <p class="text-sm text-gray-600">Rendimentos (Juros)</p>
+                    <p class="text-2xl font-bold text-blue-700">$ {{ annual_summary.total_interest }}</p>
+                </div>
+            </div>
+            <div class="mt-4 p-4 bg-yellow-50 border-l-4 border-yellow-400">
+                <p class="text-sm text-gray-700">
+                    <strong>Importante:</strong> Os rendimentos de juros ($ {{ annual_summary.total_interest }}) 
+                    devem ser declarados no seu Imposto de Renda como rendimentos tributáveis.
+                </p>
+            </div>
+        </div>
+        
+        <div class="mt-6 bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+            <h2 class="text-xl font-bold mb-4">Detalhamento de Transações</h2>
+            <table class="table-auto w-full">
+                <thead class="bg-gray-800 text-white">
+                    <tr class="uppercase font-semibold text-sm">
+                        <th class="px-4 py-2">Tipo</th>
+                        <th class="px-4 py-2">Data</th>
+                        <th class="px-4 py-2">Valor</th>
+                        <th class="px-4 py-2">Saldo Após Transação</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for transaction in object_list %}
+                    <tr class="{% cycle 'bg-gray-100' 'bg-white' %}">
+                        <td class="border px-4 py-2 text-center">{{ transaction.get_transaction_type_display }}</td>
+                        <td class="border px-4 py-2 text-center">{{ transaction.timestamp|date:"d/m/Y H:i" }}</td>
+                        <td class="border px-4 py-2 text-center">$ {{ transaction.amount }}</td>
+                        <td class="border px-4 py-2 text-center">$ {{ transaction.balance_after_transaction }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="border px-4 py-2 text-center text-gray-500">
+                            Nenhuma transação encontrada para o ano selecionado.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="mt-10 text-center text-gray-500">
+            <p>Selecione um ano para visualizar o relatório IRPF.</p>
+        </div>
+    {% endif %}
+{% endblock %}

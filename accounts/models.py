@@ -9,11 +9,45 @@ from django.db import models
 
 from .constants import GENDER_CHOICE
 from .managers import UserManager
+from .validators import validate_cpf
+
+
+def calculate_check_digit(account_number):
+    """
+    Calculate check digit using modulo 11 algorithm (Brazilian standard).
+    
+    Args:
+        account_number: Account number as integer or string
+        
+    Returns:
+        Check digit as integer (0-9)
+    """
+    account_str = str(account_number)
+    weights = [2, 3, 4, 5, 6, 7, 8, 9]
+    total = 0
+    
+    for i, digit in enumerate(reversed(account_str)):
+        weight = weights[i % len(weights)]
+        total += int(digit) * weight
+    
+    remainder = total % 11
+    check_digit = 11 - remainder
+    
+    if check_digit >= 10:
+        check_digit = 0
+    
+    return check_digit
 
 
 class User(AbstractUser):
     username = None
     email = models.EmailField(unique=True, null=False, blank=False)
+    cpf = models.CharField(
+        max_length=11,
+        unique=True,
+        validators=[validate_cpf],
+        help_text='CPF com 11 dígitos (apenas números)'
+    )
 
     objects = UserManager()
 
@@ -78,6 +112,18 @@ class UserBankAccount(models.Model):
         on_delete=models.CASCADE
     )
     account_no = models.PositiveIntegerField(unique=True)
+    agencia = models.CharField(
+        max_length=4,
+        null=True,
+        blank=True,
+        help_text='Branch number (agência)'
+    )
+    conta_digito = models.CharField(
+        max_length=1,
+        null=True,
+        blank=True,
+        help_text='Check digit for account number'
+    )
     gender = models.CharField(max_length=1, choices=GENDER_CHOICE)
     birth_date = models.DateField(null=True, blank=True)
     balance = models.DecimalField(
@@ -94,6 +140,17 @@ class UserBankAccount(models.Model):
     initial_deposit_date = models.DateField(null=True, blank=True)
 
     def __str__(self):
+        if self.agencia and self.conta_digito:
+            return f"{self.agencia}-{self.account_no}-{self.conta_digito}"
+        return str(self.account_no)
+    
+    def get_formatted_account(self):
+        """
+        Returns the account in Brazilian format: agencia-conta-digito
+        Example: 0001-1000000001-5
+        """
+        if self.agencia and self.conta_digito:
+            return f"{self.agencia}-{self.account_no}-{self.conta_digito}"
         return str(self.account_no)
 
     def get_interest_calculation_months(self):

@@ -3,7 +3,7 @@ from django.conf import settings
 from django.contrib.auth.forms import UserCreationForm
 from django.db import transaction
 
-from .models import User, BankAccountType, UserBankAccount, UserAddress
+from .models import User, BankAccountType, UserBankAccount, UserAddress, calculate_check_digit
 from .constants import GENDER_CHOICE
 
 
@@ -45,6 +45,7 @@ class UserRegistrationForm(UserCreationForm):
             'first_name',
             'last_name',
             'email',
+            'cpf',
             'password1',
             'password2',
         ]
@@ -73,14 +74,19 @@ class UserRegistrationForm(UserCreationForm):
             gender = self.cleaned_data.get('gender')
             birth_date = self.cleaned_data.get('birth_date')
 
+            account_no = user.id + settings.ACCOUNT_NUMBER_START_FROM
+            
+            agencia = str(user.id % 9999 + 1).zfill(4)
+            
+            conta_digito = str(calculate_check_digit(account_no))
+
             UserBankAccount.objects.create(
                 user=user,
                 gender=gender,
                 birth_date=birth_date,
                 account_type=account_type,
-                account_no=(
-                    user.id +
-                    settings.ACCOUNT_NUMBER_START_FROM
-                )
+                account_no=account_no,
+                agencia=agencia,
+                conta_digito=conta_digito
             )
         return user
