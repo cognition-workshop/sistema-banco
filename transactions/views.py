@@ -3,6 +3,7 @@ from dateutil.relativedelta import relativedelta
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth import get_user_model
+from django.http import HttpResponseRedirect
 from django.urls import reverse_lazy
 from django.utils import timezone
 from django.views.generic import CreateView, ListView
@@ -95,7 +96,6 @@ class DepositMoneyView(TransactionCreateMixin):
 
     def form_valid(self, form):
         amount = form.cleaned_data.get('amount')
-        # Bypass login - use demo user
         User = get_user_model()
         demo_user = User.objects.filter(email='demo@example.com').first()
         account = demo_user.account if demo_user and hasattr(demo_user, 'account') else None
@@ -123,12 +123,18 @@ class DepositMoneyView(TransactionCreateMixin):
             ]
         )
 
+        transaction = form.save(commit=False)
+        transaction.balance_after_transaction = account.balance
+        transaction.save()
+        
+        self.object = transaction
+
         messages.success(
             self.request,
             f'{amount}$ was deposited to your account successfully'
         )
 
-        return super().form_valid(form)
+        return HttpResponseRedirect(self.get_success_url())
 
 
 class WithdrawMoneyView(TransactionCreateMixin):
@@ -141,16 +147,23 @@ class WithdrawMoneyView(TransactionCreateMixin):
 
     def form_valid(self, form):
         amount = form.cleaned_data.get('amount')
-        # Bypass login - use demo user
         User = get_user_model()
         demo_user = User.objects.filter(email='demo@example.com').first()
         if demo_user and hasattr(demo_user, 'account'):
-            demo_user.account.balance -= form.cleaned_data.get('amount')
+            demo_user.account.balance -= amount
             demo_user.account.save(update_fields=['balance'])
+            
+            transaction = form.save(commit=False)
+            transaction.balance_after_transaction = demo_user.account.balance
+            transaction.save()
+            
+            self.object = transaction
 
-        messages.success(
-            self.request,
-            f'Successfully withdrawn {amount}$ from your account'
-        )
+            messages.success(
+                self.request,
+                f'Successfully withdrawn {amount}$ from your account'
+            )
+
+            return HttpResponseRedirect(self.get_success_url())
 
         return super().form_valid(form)
