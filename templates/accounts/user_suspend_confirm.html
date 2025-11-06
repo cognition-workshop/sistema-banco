@@ -1,0 +1,42 @@
+{% extends 'core/base.html' %}
+
+{% block head_title %}Confirmar {% if user_to_suspend.is_active %}Suspensão{% else %}Ativação{% endif %}{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8 max-w-2xl">
+    <h1 class="font-mono font-bold text-3xl text-center pb-5">
+        Confirmar {% if user_to_suspend.is_active %}Suspensão{% else %}Ativação{% endif %}
+    </h1>
+    
+    <div class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+        <div class="mb-6">
+            <p class="text-gray-700 text-lg mb-4">
+                Você tem certeza que deseja {% if user_to_suspend.is_active %}suspender{% else %}ativar{% endif %} o usuário:
+            </p>
+            <div class="bg-gray-100 p-4 rounded mb-4">
+                <p class="font-bold">{{ user_to_suspend.email }}</p>
+                <p class="text-gray-600">{{ user_to_suspend.get_full_name|default:"Nome não informado" }}</p>
+            </div>
+            
+            {% if user_to_suspend.is_active %}
+            <div class="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded relative mb-4" role="alert">
+                <p class="font-bold">Atenção!</p>
+                <p class="text-sm">Usuários suspensos não poderão fazer login no sistema.</p>
+            </div>
+            {% endif %}
+        </div>
+        
+        <form method="post">
+            {% csrf_token %}
+            <div class="flex items-center justify-between">
+                <button type="submit" class="{% if user_to_suspend.is_active %}bg-red-500 hover:bg-red-700{% else %}bg-green-500 hover:bg-green-700{% endif %} text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                    Confirmar {% if user_to_suspend.is_active %}Suspensão{% else %}Ativação{% endif %}
+                </button>
+                <a href="{% url 'accounts:admin_user_list' %}" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                    Cancelar
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

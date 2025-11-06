@@ -1,0 +1,69 @@
+{% extends 'core/base.html' %}
+
+{% block head_title %}Editar Usuário{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8 max-w-2xl">
+    <h1 class="font-mono font-bold text-3xl text-center pb-5">Editar Usuário</h1>
+    
+    <div class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+        <form method="post">
+            {% csrf_token %}
+            
+            {% if form.non_field_errors %}
+                {% for error in form.non_field_errors %}
+                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+                    <p class="font-bold">Erro!</p>
+                    <p class="block sm:inline">{{ error }}</p>
+                </div>
+                {% endfor %}
+            {% endif %}
+            
+            <div class="mb-6">
+                <label class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" for="{{ form.email.id_for_label }}">
+                    {{ form.email.label }}
+                </label>
+                {{ form.email }}
+                {% if form.email.errors %}
+                    {% for error in form.email.errors %}
+                        <p class="text-red-600 text-sm italic mt-2">{{ error }}</p>
+                    {% endfor %}
+                {% endif %}
+            </div>
+            
+            <div class="mb-6">
+                <label class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" for="{{ form.first_name.id_for_label }}">
+                    {{ form.first_name.label }}
+                </label>
+                {{ form.first_name }}
+                {% if form.first_name.errors %}
+                    {% for error in form.first_name.errors %}
+                        <p class="text-red-600 text-sm italic mt-2">{{ error }}</p>
+                    {% endfor %}
+                {% endif %}
+            </div>
+            
+            <div class="mb-6">
+                <label class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" for="{{ form.last_name.id_for_label }}">
+                    {{ form.last_name.label }}
+                </label>
+                {{ form.last_name }}
+                {% if form.last_name.errors %}
+                    {% for error in form.last_name.errors %}
+                        <p class="text-red-600 text-sm italic mt-2">{{ error }}</p>
+                    {% endfor %}
+                {% endif %}
+            </div>
+            
+            <div class="flex items-center justify-between">
+                <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                    Salvar Alterações
+                </button>
+                <a href="{% url 'accounts:admin_user_list' %}" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                    Cancelar
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
