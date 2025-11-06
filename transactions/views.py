@@ -7,11 +7,12 @@ from django.urls import reverse_lazy
 from django.utils import timezone
 from django.views.generic import CreateView, ListView
 
-from transactions.constants import DEPOSIT, WITHDRAWAL
+from transactions.constants import DEPOSIT, WITHDRAWAL, TRANSFER
 from transactions.forms import (
     DepositForm,
     TransactionDateRangeForm,
     WithdrawForm,
+    TransferForm,
 )
 from transactions.models import Transaction
 
@@ -151,6 +152,29 @@ class WithdrawMoneyView(TransactionCreateMixin):
         messages.success(
             self.request,
             f'Successfully withdrawn {amount}$ from your account'
+        )
+
+        return super().form_valid(form)
+
+
+class TransferMoneyView(TransactionCreateMixin):
+    form_class = TransferForm
+    title = 'Transfer Money to Another Account'
+    template_name = 'transactions/transfer_form.html'
+
+    def get_initial(self):
+        initial = {'transaction_type': TRANSFER}
+        return initial
+
+    def form_valid(self, form):
+        amount = form.cleaned_data.get('amount')
+        recipient_account = form.cleaned_data.get('recipient_account')
+        
+        form.save()
+
+        messages.success(
+            self.request,
+            f'Successfully transferred {amount}$ to account {recipient_account.account_no}'
         )
 
         return super().form_valid(form)
