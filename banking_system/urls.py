@@ -17,14 +17,15 @@ from django.contrib import admin
 from django.urls import include, path
 
 from core.views import HomeView
+from .health_checks import health_check, readiness_check, liveness_check
 
 
 urlpatterns = [
-    path('', HomeView.as_view(), name='home'),
-    path('accounts/', include('accounts.urls', namespace='accounts')),
-    path('admin/', admin.site.urls),
-    path(
-        'transactions/',
-        include('transactions.urls', namespace='transactions')
-    )
+    path("", HomeView.as_view(), name="home"),
+    path("accounts/", include("accounts.urls", namespace="accounts")),
+    path("admin/", admin.site.urls),
+    path("transactions/", include("transactions.urls", namespace="transactions")),
+    path("health/", health_check, name="health_check"),
+    path("ready/", readiness_check, name="readiness_check"),
+    path("live/", liveness_check, name="liveness_check"),
 ]
