@@ -64,8 +64,10 @@ class WithdrawForm(TransactionForm):
                 f'You can withdraw at most {max_withdraw_amount} $'
             )
 
-        # TODO: Add validation to prevent negative balances
-        # Bug: Users can currently withdraw more than their balance
+        if amount > balance:
+            raise forms.ValidationError(
+                f'Insufficient funds. Your current balance is {balance} $'
+            )
 
         return amount
 
@@ -75,11 +77,9 @@ class TransactionDateRangeForm(forms.Form):
 
     def clean_daterange(self):
         daterange = self.cleaned_data.get("daterange")
-        print(daterange)
 
         try:
             daterange = daterange.split(' - ')
-            print(daterange)
             if len(daterange) == 2:
                 for date in daterange:
                     datetime.datetime.strptime(date, '%Y-%m-%d')
