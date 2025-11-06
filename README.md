@@ -29,11 +29,28 @@ Be sure you have the following installed on your development machine:
 
 ## Requirements
 
-+ celery==4.4.7
-+ Django==3.2
-+ django-celery-beat==2.0.0
-+ python-dateutil==2.8.1
-+ redis==3.5.3
++ celery==5.3.4
++ Django==5.0.9
++ django-celery-beat==2.5.0
++ djangorestframework==3.14.0
++ python-dateutil==2.8.2
++ redis==5.0.1
++ psycopg2-binary==2.9.9
++ django-redis==5.4.0
+
+## Install PostgreSQL
+
+For Ubuntu/Debian:
+```bash
+sudo apt-get update
+sudo apt-get install postgresql postgresql-contrib
+```
+
+Setup database:
+```bash
+chmod +x setup_postgres.sh
+./setup_postgres.sh
+```
 
 ## Install Redis Server
 
