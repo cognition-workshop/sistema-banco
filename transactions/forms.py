@@ -24,6 +24,7 @@ class TransactionForm(forms.ModelForm):
 
     def save(self, commit=True):
         self.instance.account = self.account
+        self.account.refresh_from_db()
         self.instance.balance_after_transaction = self.account.balance
         return super().save()
 
