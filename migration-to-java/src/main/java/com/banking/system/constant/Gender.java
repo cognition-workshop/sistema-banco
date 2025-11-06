@@ -1,0 +1,6 @@
+package com.banking.system.constant;
+
+public class Gender {
+    public static final String MALE = "M";
+    public static final String FEMALE = "F";
+}
