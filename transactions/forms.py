@@ -64,8 +64,10 @@ class WithdrawForm(TransactionForm):
                 f'You can withdraw at most {max_withdraw_amount} $'
             )
 
-        # TODO: Add validation to prevent negative balances
-        # Bug: Users can currently withdraw more than their balance
+        if amount > balance:
+            raise forms.ValidationError(
+                f'You have insufficient balance. Your current balance is {balance} $'
+            )
 
         return amount
 
@@ -88,3 +90,57 @@ class TransactionDateRangeForm(forms.Form):
                 raise forms.ValidationError("Please select a date range.")
         except (ValueError, AttributeError):
             raise forms.ValidationError("Invalid date range")
+
+
+class TransferForm(TransactionForm):
+    recipient_account_no = forms.IntegerField(
+        label='Recipient Account Number'
+    )
+
+    class Meta:
+        model = Transaction
+        fields = [
+            'amount',
+            'transaction_type',
+            'recipient_account_no'
+        ]
+
+    def clean_amount(self):
+        min_transfer_amount = getattr(settings, 'MINIMUM_TRANSFER_AMOUNT', 10)
+        amount = self.cleaned_data.get('amount')
+
+        if amount < min_transfer_amount:
+            raise forms.ValidationError(
+                f'You need to transfer at least {min_transfer_amount} $'
+            )
+
+        return amount
+
+    def clean_recipient_account_no(self):
+        from accounts.models import UserBankAccount
+        recipient_account_no = self.cleaned_data.get('recipient_account_no')
+
+        try:
+            recipient_account = UserBankAccount.objects.get(account_no=recipient_account_no)
+        except UserBankAccount.DoesNotExist:
+            raise forms.ValidationError(
+                f'Account number {recipient_account_no} does not exist'
+            )
+
+        if recipient_account == self.account:
+            raise forms.ValidationError(
+                'You cannot transfer money to your own account'
+            )
+
+        return recipient_account_no
+
+    def clean(self):
+        cleaned_data = super().clean()
+        amount = cleaned_data.get('amount')
+        
+        if amount and amount > self.account.balance:
+            raise forms.ValidationError(
+                f'You have insufficient balance. Your current balance is {self.account.balance} $'
+            )
+
+        return cleaned_data
