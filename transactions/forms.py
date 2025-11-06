@@ -4,6 +4,7 @@ from django import forms
 from django.conf import settings
 
 from .models import Transaction
+from accounts.models import UserBankAccount
 
 
 class TransactionForm(forms.ModelForm):
@@ -68,6 +69,48 @@ class WithdrawForm(TransactionForm):
         # Bug: Users can currently withdraw more than their balance
 
         return amount
+
+
+class TransferForm(TransactionForm):
+    recipient_account_no = forms.IntegerField()
+
+    def clean_amount(self):
+        amount = self.cleaned_data.get('amount')
+        
+        if amount <= 0:
+            raise forms.ValidationError(
+                'Transfer amount must be positive'
+            )
+
+        return amount
+
+    def clean_recipient_account_no(self):
+        recipient_account_no = self.cleaned_data.get('recipient_account_no')
+        
+        if not UserBankAccount.objects.filter(account_no=recipient_account_no).exists():
+            raise forms.ValidationError(
+                f'Account number {recipient_account_no} does not exist'
+            )
+
+        return recipient_account_no
+
+    def clean(self):
+        cleaned_data = super().clean()
+        amount = cleaned_data.get('amount')
+        recipient_account_no = cleaned_data.get('recipient_account_no')
+        
+        if amount and self.account:
+            if self.account.balance < amount:
+                raise forms.ValidationError(
+                    f'Insufficient balance. Your current balance is {self.account.balance}$'
+                )
+            
+            if recipient_account_no and self.account.account_no == recipient_account_no:
+                raise forms.ValidationError(
+                    'Cannot transfer to the same account'
+                )
+
+        return cleaned_data
 
 
 class TransactionDateRangeForm(forms.Form):
