@@ -16,7 +16,7 @@ class TransactionForm(forms.ModelForm):
         ]
 
     def __init__(self, *args, **kwargs):
-        self.account = kwargs.pop('account')
+        self.account = kwargs.pop('account', None)
         super().__init__(*args, **kwargs)
 
         self.fields['transaction_type'].disabled = True

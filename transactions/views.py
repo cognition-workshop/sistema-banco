@@ -3,6 +3,7 @@ from dateutil.relativedelta import relativedelta
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth import get_user_model
+from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.utils import timezone
 from django.views.generic import CreateView, ListView
@@ -64,6 +65,17 @@ class TransactionCreateMixin(CreateView):
     model = Transaction
     title = ''
     success_url = reverse_lazy('transactions:transaction_report')
+
+    def get(self, request, *args, **kwargs):
+        User = get_user_model()
+        demo_user = User.objects.filter(email='demo@example.com').first()
+        if not demo_user or not hasattr(demo_user, 'account'):
+            messages.error(
+                request,
+                'Demo user account not found. Please set up the demo account first.'
+            )
+            return redirect('transactions:transaction_report')
+        return super().get(request, *args, **kwargs)
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
