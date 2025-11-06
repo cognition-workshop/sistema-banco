@@ -3,6 +3,7 @@ from dateutil.relativedelta import relativedelta
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth import get_user_model
+from django.core.cache import cache
 from django.urls import reverse_lazy
 from django.utils import timezone
 from django.views.generic import CreateView, ListView
@@ -35,16 +36,34 @@ class TransactionRepostView(ListView):
         if not demo_user or not hasattr(demo_user, 'account'):
             return super().get_queryset().none()
         
-        queryset = super().get_queryset().filter(
-            account=demo_user.account
-        )
-
+        account = demo_user.account
         daterange = self.form_data.get("daterange")
+        
+        if daterange:
+            cache_key = f'transaction_report_{account.id}_{daterange[0]}_{daterange[1]}'
+        else:
+            cache_key = f'transaction_report_{account.id}_all'
+        
+        cached_queryset = cache.get(cache_key)
+        if cached_queryset is not None:
+            return cached_queryset
+        
+        queryset = super().get_queryset().filter(
+            account=account
+        ).select_related('account', 'account__account_type').only(
+            'id', 'account_id', 'amount', 'timestamp', 
+            'transaction_type', 'balance_after_transaction'
+        )
 
         if daterange:
             queryset = queryset.filter(timestamp__date__range=daterange)
 
-        return queryset.distinct()
+        queryset = queryset.distinct()
+        
+        queryset_list = list(queryset)
+        cache.set(cache_key, queryset_list, timeout=300)
+        
+        return queryset_list
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -128,7 +147,11 @@ class DepositMoneyView(TransactionCreateMixin):
             f'{amount}$ was deposited to your account successfully'
         )
 
-        return super().form_valid(form)
+        response = super().form_valid(form)
+        
+        cache.delete(f'transaction_report_{account.id}_all')
+        
+        return response
 
 
 class WithdrawMoneyView(TransactionCreateMixin):
@@ -144,7 +167,9 @@ class WithdrawMoneyView(TransactionCreateMixin):
         # Bypass login - use demo user
         User = get_user_model()
         demo_user = User.objects.filter(email='demo@example.com').first()
+        account = None
         if demo_user and hasattr(demo_user, 'account'):
+            account = demo_user.account
             demo_user.account.balance -= form.cleaned_data.get('amount')
             demo_user.account.save(update_fields=['balance'])
 
@@ -153,4 +178,9 @@ class WithdrawMoneyView(TransactionCreateMixin):
             f'Successfully withdrawn {amount}$ from your account'
         )
 
-        return super().form_valid(form)
+        response = super().form_valid(form)
+        
+        if account:
+            cache.delete(f'transaction_report_{account.id}_all')
+        
+        return response
