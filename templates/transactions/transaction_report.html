@@ -56,15 +56,32 @@
 {% block footer_extra %}
     <script type="text/javascript">
         $(function () {
+            const today = new Date();
+            today.setHours(23, 59, 59, 999);
+            
             $('input[name="daterange"]').daterangepicker({
                 autoUpdateInput: false,
+                maxDate: today,
                 locale: {
                     cancelLabel: "Clear",
                 },
             });
 
             $('input[name="daterange"]').on("apply.daterangepicker", function (ev, picker) {
-                $(this).val(picker.startDate.format("YYYY-MM-DD") + " - " + picker.endDate.format("YYYY-MM-DD"));
+                const startDate = picker.startDate;
+                const endDate = picker.endDate;
+                
+                if (endDate.isAfter(today)) {
+                    alert('End date cannot be in the future');
+                    return;
+                }
+                
+                if (startDate.isAfter(endDate)) {
+                    alert('Start date must be before or equal to end date');
+                    return;
+                }
+                
+                $(this).val(startDate.format("YYYY-MM-DD") + " - " + endDate.format("YYYY-MM-DD"));
             });
 
             $('input[name="daterange"]').on("cancel.daterangepicker", function (ev, picker) {

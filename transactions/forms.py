@@ -1,4 +1,5 @@
 import datetime
+from datetime import date
 
 from django import forms
 from django.conf import settings
@@ -22,6 +23,20 @@ class TransactionForm(forms.ModelForm):
         self.fields['transaction_type'].disabled = True
         self.fields['transaction_type'].widget = forms.HiddenInput()
 
+    def clean_amount(self):
+        amount = self.cleaned_data.get('amount')
+        
+        if amount is None:
+            raise forms.ValidationError('Amount is required')
+        
+        if amount <= 0:
+            raise forms.ValidationError('Amount must be greater than zero')
+        
+        if amount * 100 != int(amount * 100):
+            raise forms.ValidationError('Amount cannot have more than 2 decimal places')
+        
+        return amount
+
     def save(self, commit=True):
         self.instance.account = self.account
         self.instance.balance_after_transaction = self.account.balance
@@ -31,12 +46,18 @@ class TransactionForm(forms.ModelForm):
 class DepositForm(TransactionForm):
 
     def clean_amount(self):
+        amount = super().clean_amount()
         min_deposit_amount = settings.MINIMUM_DEPOSIT_AMOUNT
-        amount = self.cleaned_data.get('amount')
+        max_deposit_amount = 100000
 
         if amount < min_deposit_amount:
             raise forms.ValidationError(
                 f'You need to deposit at least {min_deposit_amount} $'
+            )
+
+        if amount > max_deposit_amount:
+            raise forms.ValidationError(
+                f'You cannot deposit more than {max_deposit_amount} $ at once'
             )
 
         return amount
@@ -45,14 +66,13 @@ class DepositForm(TransactionForm):
 class WithdrawForm(TransactionForm):
 
     def clean_amount(self):
+        amount = super().clean_amount()
         account = self.account
         min_withdraw_amount = settings.MINIMUM_WITHDRAWAL_AMOUNT
         max_withdraw_amount = (
             account.account_type.maximum_withdrawal_amount
         )
         balance = account.balance
-
-        amount = self.cleaned_data.get('amount')
 
         if amount < min_withdraw_amount:
             raise forms.ValidationError(
@@ -64,8 +84,10 @@ class WithdrawForm(TransactionForm):
                 f'You can withdraw at most {max_withdraw_amount} $'
             )
 
-        # TODO: Add validation to prevent negative balances
-        # Bug: Users can currently withdraw more than their balance
+        if amount > balance:
+            raise forms.ValidationError(
+                f'You have insufficient balance. Current balance is {balance} $'
+            )
 
         return amount
 
@@ -75,15 +97,24 @@ class TransactionDateRangeForm(forms.Form):
 
     def clean_daterange(self):
         daterange = self.cleaned_data.get("daterange")
-        print(daterange)
+
+        if not daterange:
+            return None
 
         try:
             daterange = daterange.split(' - ')
-            print(daterange)
             if len(daterange) == 2:
-                for date in daterange:
-                    datetime.datetime.strptime(date, '%Y-%m-%d')
-                return daterange
+                start_date = datetime.datetime.strptime(daterange[0], '%Y-%m-%d').date()
+                end_date = datetime.datetime.strptime(daterange[1], '%Y-%m-%d').date()
+                
+                today = date.today()
+                if start_date > today or end_date > today:
+                    raise forms.ValidationError("Dates cannot be in the future")
+                
+                if start_date > end_date:
+                    raise forms.ValidationError("Start date must be before or equal to end date")
+                
+                return [daterange[0], daterange[1]]
             else:
                 raise forms.ValidationError("Please select a date range.")
         except (ValueError, AttributeError):
