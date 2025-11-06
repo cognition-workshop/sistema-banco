@@ -22,6 +22,7 @@ This is an Online Banking Concept created using Django Web Framework.
 Be sure you have the following installed on your development machine:
 
 + Python >= 3.7
++ PostgreSQL >= 12
 + Redis Server
 + Git
 + pip
@@ -32,6 +33,7 @@ Be sure you have the following installed on your development machine:
 + celery==4.4.7
 + Django==3.2
 + django-celery-beat==2.0.0
++ psycopg2-binary==2.9.9
 + python-dateutil==2.8.1
 + redis==3.5.3
 
@@ -42,6 +44,24 @@ Be sure you have the following installed on your development machine:
 Run Redis server
 ```bash
 redis-server
+```
+
+## Install PostgreSQL
+
+Install PostgreSQL:
+```bash
+sudo apt update
+sudo apt install postgresql postgresql-contrib
+```
+
+Create database:
+```bash
+sudo -u postgres createdb banking_system
+```
+
+Set password for postgres user (optional for local development):
+```bash
+sudo -u postgres psql -c "ALTER USER postgres PASSWORD 'postgres';"
 ```
 
 ## Project Installation
