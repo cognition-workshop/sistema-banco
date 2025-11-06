@@ -1,6 +1,7 @@
 from dateutil.relativedelta import relativedelta
 
 from django.contrib import messages
+from django.core.cache import cache
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth import get_user_model
 from django.urls import reverse_lazy
@@ -29,22 +30,44 @@ class TransactionRepostView(ListView):
         return super().get(request, *args, **kwargs)
 
     def get_queryset(self):
-        # Bypass login - use demo user
         User = get_user_model()
         demo_user = User.objects.filter(email='demo@example.com').first()
         if not demo_user or not hasattr(demo_user, 'account'):
             return super().get_queryset().none()
         
-        queryset = super().get_queryset().filter(
-            account=demo_user.account
-        )
-
+        account = demo_user.account
         daterange = self.form_data.get("daterange")
+        
+        daterange_str = f"{daterange[0]}_{daterange[1]}" if daterange else "all"
+        cache_key = f'transaction_report_{account.id}_{daterange_str}'
+        
+        cached_queryset = cache.get(cache_key)
+        if cached_queryset is not None:
+            return cached_queryset
+        
+        queryset = super().get_queryset().filter(
+            account=account
+        ).select_related(
+            'account__account_type'
+        ).only(
+            'id',
+            'amount',
+            'timestamp',
+            'transaction_type',
+            'balance_after_transaction',
+            'account_id'
+        )
 
         if daterange:
             queryset = queryset.filter(timestamp__date__range=daterange)
 
-        return queryset.distinct()
+        queryset = queryset.distinct()
+        
+        queryset_list = list(queryset)
+        
+        cache.set(cache_key, queryset_list, 300)
+        
+        return queryset_list
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
