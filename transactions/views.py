@@ -13,7 +13,7 @@ from transactions.forms import (
     TransactionDateRangeForm,
     WithdrawForm,
 )
-from transactions.models import Transaction
+from transactions.models import Transaction, create_audit_log
 
 
 class TransactionRepostView(ListView):
@@ -102,6 +102,8 @@ class DepositMoneyView(TransactionCreateMixin):
         if not account:
             return super().form_valid(form)
 
+        balance_before = account.balance
+
         if not account.initial_deposit_date:
             now = timezone.now()
             next_interest_month = int(
@@ -115,12 +117,23 @@ class DepositMoneyView(TransactionCreateMixin):
             )
 
         account.balance += amount
+        balance_after = account.balance
         account.save(
             update_fields=[
                 'initial_deposit_date',
                 'balance',
                 'interest_start_date'
             ]
+        )
+
+        create_audit_log(
+            account=account,
+            action_type=DEPOSIT,
+            amount=amount,
+            balance_before=balance_before,
+            balance_after=balance_after,
+            user=demo_user,
+            request=self.request
         )
 
         messages.success(
@@ -145,8 +158,23 @@ class WithdrawMoneyView(TransactionCreateMixin):
         User = get_user_model()
         demo_user = User.objects.filter(email='demo@example.com').first()
         if demo_user and hasattr(demo_user, 'account'):
-            demo_user.account.balance -= form.cleaned_data.get('amount')
-            demo_user.account.save(update_fields=['balance'])
+            account = demo_user.account
+            
+            balance_before = account.balance
+            
+            account.balance -= amount
+            balance_after = account.balance
+            account.save(update_fields=['balance'])
+            
+            create_audit_log(
+                account=account,
+                action_type=WITHDRAWAL,
+                amount=amount,
+                balance_before=balance_before,
+                balance_after=balance_after,
+                user=demo_user,
+                request=self.request
+            )
 
         messages.success(
             self.request,
