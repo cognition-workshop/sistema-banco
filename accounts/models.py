@@ -108,6 +108,26 @@ class UserBankAccount(models.Model):
         start = self.interest_start_date.month
         return [i for i in range(start, 13, interval)]
 
+    def withdraw(self, amount):
+        """
+        Withdraw money from the account if sufficient balance is available.
+
+        Args:
+            amount: The amount to withdraw
+
+        Returns:
+            tuple: (success: bool, message: str)
+        """
+        if self.balance >= amount:
+            self.balance -= amount
+            return (True, 'Withdrawal successful')
+        else:
+            message = (
+                f'Insufficient funds. '
+                f'Your current balance is {self.balance} $'
+            )
+            return (False, message)
+
 
 class UserAddress(models.Model):
     user = models.OneToOneField(

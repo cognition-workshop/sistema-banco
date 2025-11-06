@@ -141,12 +141,24 @@ class WithdrawMoneyView(TransactionCreateMixin):
 
     def form_valid(self, form):
         amount = form.cleaned_data.get('amount')
-        # Bypass login - use demo user
         User = get_user_model()
         demo_user = User.objects.filter(email='demo@example.com').first()
-        if demo_user and hasattr(demo_user, 'account'):
-            demo_user.account.balance -= form.cleaned_data.get('amount')
-            demo_user.account.save(update_fields=['balance'])
+        account = (
+            demo_user.account
+            if demo_user and hasattr(demo_user, 'account')
+            else None
+        )
+
+        if not account:
+            return super().form_valid(form)
+
+        success, message = account.withdraw(amount)
+
+        if not success:
+            messages.error(self.request, message)
+            return self.form_invalid(form)
+
+        account.save(update_fields=['balance'])
 
         messages.success(
             self.request,
