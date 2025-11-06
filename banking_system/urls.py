@@ -15,16 +15,26 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import include, path
+from rest_framework.authtoken.views import obtain_auth_token
 
-from core.views import HomeView
+from core.views import HomeView, HealthDashboardView, AnalyticsDashboardView, AnalyticsExportView, health_check
 
 
 urlpatterns = [
     path('', HomeView.as_view(), name='home'),
+    path('health/', health_check, name='health_check'),
+    path('health/dashboard/', HealthDashboardView.as_view(), name='health_dashboard'),
+    path('analytics/', AnalyticsDashboardView.as_view(), name='analytics_dashboard'),
+    path('analytics/export/', AnalyticsExportView.as_view(), name='analytics_export'),
     path('accounts/', include('accounts.urls', namespace='accounts')),
     path('admin/', admin.site.urls),
     path(
         'transactions/',
         include('transactions.urls', namespace='transactions')
-    )
+    ),
+    path('', include('django_prometheus.urls')),
+    path('api/accounts/', include('accounts.api_urls')),
+    path('api/transactions/', include('transactions.api_urls')),
+    path('api-auth/', include('rest_framework.urls')),
+    path('api/token/', obtain_auth_token, name='api_token_auth'),
 ]

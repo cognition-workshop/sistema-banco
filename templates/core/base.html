@@ -8,7 +8,21 @@
         <title>
             {% block head_title %}Banking System{% endblock %}
         </title>
-        <link href="https://unpkg.com/tailwindcss@^1.0/dist/tailwind.min.css" rel="stylesheet">
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap">
+        <style>
+            body {
+                font-family: 'Roboto', sans-serif;
+            }
+            .material-card {
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1), 0 4px 8px rgba(0,0,0,0.1);
+                transition: box-shadow 0.3s ease;
+            }
+            .material-card:hover {
+                box-shadow: 0 4px 8px rgba(0,0,0,0.15), 0 8px 16px rgba(0,0,0,0.15);
+            }
+        </style>
 
         {% block head_extra %}{% endblock %}
     </head>
@@ -18,7 +32,6 @@
             <div class="lg:container lg:mx-auto">
                 {% include 'core/messages.html' %}
                 {% block content %}
-                <!-- Add content here -->
                 {% endblock %}
             </div>
             {% include 'core/footer.html' %}

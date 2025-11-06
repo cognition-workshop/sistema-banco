@@ -1,3 +1,4 @@
+import logging
 from django.contrib import messages
 from django.contrib.auth import get_user_model, login, logout
 from django.contrib.auth.views import LoginView
@@ -7,6 +8,7 @@ from django.views.generic import TemplateView, RedirectView
 
 from .forms import UserRegistrationForm, UserAddressForm
 
+logger = logging.getLogger('security')
 
 User = get_user_model()
 
@@ -37,8 +39,8 @@ class UserRegistrationView(TemplateView):
             messages.success(
                 self.request,
                 (
-                    f'Thank You For Creating A Bank Account. '
-                    f'Your Account Number is {user.account.account_no}. '
+                    f'Obrigado por criar uma conta bancária. '
+                    f'Seu número de conta é {user.account.get_account_number()}. '
                 )
             )
             return HttpResponseRedirect(
@@ -64,6 +66,14 @@ class UserRegistrationView(TemplateView):
 class UserLoginView(LoginView):
     template_name='accounts/user_login.html'
     redirect_authenticated_user = True
+
+    def form_valid(self, form):
+        logger.info(f'Successful login for user: {form.get_user().email}')
+        return super().form_valid(form)
+
+    def form_invalid(self, form):
+        logger.warning(f'Failed login attempt for user: {form.data.get("username")}')
+        return super().form_invalid(form)
 
 
 class LogoutView(RedirectView):
