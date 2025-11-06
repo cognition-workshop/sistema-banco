@@ -18,10 +18,12 @@ def calculate_interest():
     this_month = timezone.now().month
 
     created_transactions = []
-    updated_accounts = []
+    audit_log_data = []
 
     for account in accounts:
         if this_month in account.get_interest_calculation_months():
+            balance_before = account.balance
+            
             interest = account.account_type.calculate_interest(
                 account.balance
             )
@@ -31,15 +33,35 @@ def calculate_interest():
             transaction_obj = Transaction(
                 account=account,
                 transaction_type=INTEREST,
-                amount=interest
+                amount=interest,
+                balance_after_transaction=account.balance
             )
             created_transactions.append(transaction_obj)
-            updated_accounts.append(account)
+            
+            audit_log_data.append({
+                'account': account,
+                'balance_before': balance_before,
+                'balance_after': account.balance,
+                'amount': interest,
+            })
 
     if created_transactions:
         Transaction.objects.bulk_create(created_transactions)
+        
+        from transactions.models import create_audit_log
+        for i, transaction in enumerate(created_transactions):
+            data = audit_log_data[i]
+            create_audit_log(
+                account=data['account'],
+                transaction_type=INTEREST,
+                amount=data['amount'],
+                balance_before=data['balance_before'],
+                balance_after=data['balance_after'],
+                transaction=transaction,
+                metadata={'source': 'system', 'task': 'calculate_interest'}
+            )
 
-    if updated_accounts:
+    if accounts:
         UserBankAccount.objects.bulk_update(
-            updated_accounts, ['balance']
+            list(accounts), ['balance']
         )

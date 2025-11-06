@@ -102,6 +102,8 @@ class DepositMoneyView(TransactionCreateMixin):
         if not account:
             return super().form_valid(form)
 
+        balance_before = account.balance
+
         if not account.initial_deposit_date:
             now = timezone.now()
             next_interest_month = int(
@@ -128,7 +130,24 @@ class DepositMoneyView(TransactionCreateMixin):
             f'{amount}$ was deposited to your account successfully'
         )
 
-        return super().form_valid(form)
+        response = super().form_valid(form)
+        
+        from transactions.models import create_audit_log
+        create_audit_log(
+            account=account,
+            transaction_type=DEPOSIT,
+            amount=amount,
+            balance_before=balance_before,
+            balance_after=account.balance,
+            transaction=form.instance,
+            metadata={
+                'ip_address': self.request.META.get('REMOTE_ADDR', ''),
+                'user_agent': self.request.META.get('HTTP_USER_AGENT', ''),
+                'source': 'web'
+            }
+        )
+
+        return response
 
 
 class WithdrawMoneyView(TransactionCreateMixin):
@@ -145,6 +164,8 @@ class WithdrawMoneyView(TransactionCreateMixin):
         User = get_user_model()
         demo_user = User.objects.filter(email='demo@example.com').first()
         if demo_user and hasattr(demo_user, 'account'):
+            balance_before = demo_user.account.balance
+            
             demo_user.account.balance -= form.cleaned_data.get('amount')
             demo_user.account.save(update_fields=['balance'])
 
@@ -153,4 +174,22 @@ class WithdrawMoneyView(TransactionCreateMixin):
             f'Successfully withdrawn {amount}$ from your account'
         )
 
-        return super().form_valid(form)
+        response = super().form_valid(form)
+        
+        if demo_user and hasattr(demo_user, 'account'):
+            from transactions.models import create_audit_log
+            create_audit_log(
+                account=demo_user.account,
+                transaction_type=WITHDRAWAL,
+                amount=amount,
+                balance_before=balance_before,
+                balance_after=demo_user.account.balance,
+                transaction=form.instance,
+                metadata={
+                    'ip_address': self.request.META.get('REMOTE_ADDR', ''),
+                    'user_agent': self.request.META.get('HTTP_USER_AGENT', ''),
+                    'source': 'web'
+                }
+            )
+
+        return response
