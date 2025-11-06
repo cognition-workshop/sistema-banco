@@ -9,6 +9,7 @@ from django.db import models
 
 from .constants import GENDER_CHOICE
 from .managers import UserManager
+from .validators import validate_cpf
 
 
 def calculate_check_digit(account_number):
@@ -41,6 +42,12 @@ def calculate_check_digit(account_number):
 class User(AbstractUser):
     username = None
     email = models.EmailField(unique=True, null=False, blank=False)
+    cpf = models.CharField(
+        max_length=11,
+        unique=True,
+        validators=[validate_cpf],
+        help_text='CPF com 11 dígitos (apenas números)'
+    )
 
     objects = UserManager()
 
