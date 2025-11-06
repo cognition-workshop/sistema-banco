@@ -3,26 +3,79 @@
 {% block head_title %}{{ title }}{% endblock %}
 
 {% block content %}
-<h1 class="font-mono font-bold text-3xl text-center pb-5 pt-10">{{ title }}</h1>
-<hr />
-<div class="w-full mt-5">
-    <form method="post" class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
-        {% csrf_token %}
-
-        <div class="mb-4">
-            <label class="block text-gray-700 text-sm font-bold mb-2" for="amount">
-                Amount
-            </label>
-            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight border rounded-md border-gray-500 focus:outline-none focus:shadow-outline" name="amount" id="amount" type="number" required placeholder="Amount">
+<div class="container mx-auto px-4 py-12">
+    <div class="max-w-2xl mx-auto">
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-gray-900 mb-2">{{ title }}</h1>
+            <p class="text-gray-600">Enter the amount you wish to {% if 'Deposit' in title %}deposit into{% else %}withdraw from{% endif %} your account</p>
         </div>
-        {% if form.amount.errors %}
-            {% for error in form.amount.errors %}
-                <p class="text-red-600 text-sm italic pb-2">{{ error }}</p>
-            {% endfor %}
-        {% endif %}
-        <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit">
-            Submit
-        </button>
-    </form>
+
+        <div class="bg-white rounded-2xl shadow-xl p-8 card-hover" x-data="{ showModal: false, amount: '' }">
+            <form method="post" @submit.prevent="showModal = true">
+                {% csrf_token %}
+
+                <div class="mb-6">
+                    <label class="block text-gray-700 text-sm font-semibold mb-3" for="amount">
+                        <div class="flex items-center space-x-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-[#0052CC]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span>Amount</span>
+                        </div>
+                    </label>
+                    <div class="relative">
+                        <span class="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 text-lg font-semibold">$</span>
+                        <input 
+                            class="w-full pl-10 pr-4 py-4 text-lg border-2 border-gray-300 rounded-xl focus:border-[#0052CC] focus:ring-2 focus:ring-[#0052CC]/20 transition-all outline-none" 
+                            name="amount" 
+                            id="amount" 
+                            type="number" 
+                            step="0.01"
+                            required 
+                            placeholder="0.00"
+                            x-model="amount">
+                    </div>
+                </div>
+                
+                {% if form.amount.errors %}
+                    {% for error in form.amount.errors %}
+                        <div class="bg-red-50 border-l-4 border-red-500 p-4 mb-4 rounded-lg flex items-start space-x-3">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-500 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                            </svg>
+                            <p class="text-red-700 font-medium">{{ error }}</p>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <button class="w-full btn-primary text-white font-bold py-4 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 text-lg" 
+                        type="submit">
+                    {% if 'Deposit' in title %}Deposit Money{% else %}Withdraw Money{% endif %}
+                </button>
+            </form>
+
+            <div x-show="showModal" 
+                 x-transition:enter="transition ease-out duration-300"
+                 x-transition:enter-start="opacity-0"
+                 x-transition:enter-end="opacity-100"
+                 class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+                 style="display: none;"
+                 @click.self="showModal = false">
+                <div class="bg-white rounded-2xl p-8 max-w-md mx-4 shadow-2xl"
+                     @click.away="showModal = false">
+                    <h3 class="text-2xl font-bold text-gray-900 mb-4">Confirm Transaction</h3>
+                    <p class="text-gray-600 mb-6">Are you sure you want to {% if 'Deposit' in title %}deposit{% else %}withdraw{% endif %} <span class="font-bold text-[#0052CC]" x-text="'$' + amount"></span>?</p>
+                    <div class="flex space-x-4">
+                        <button @click="showModal = false" class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-3 px-6 rounded-xl transition-colors">
+                            Cancel
+                        </button>
+                        <button @click="$el.closest('div').previousElementSibling.submit()" class="flex-1 btn-primary text-white font-semibold py-3 px-6 rounded-xl">
+                            Confirm
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}
