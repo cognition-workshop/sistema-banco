@@ -50,18 +50,12 @@ class BankAccountType(models.Model):
     def __str__(self):
         return self.name
 
-    def calculate_interest(self, principal):
-        """
-        Calculate interest for each account type.
-
-        This uses a basic interest calculation formula
-        """
+    def calculate_interest(self, principal, business_days_ratio=1.0):
         p = principal
         r = self.annual_interest_rate
         n = Decimal(self.interest_calculation_per_year)
 
-        # Basic Future Value formula to calculate interest
-        interest = (p * (1 + ((r/100) / n))) - p
+        interest = (p * (1 + ((r/100) / n)) - p) * Decimal(str(business_days_ratio))
 
         return round(interest, 2)
 
