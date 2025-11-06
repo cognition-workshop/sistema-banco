@@ -16,15 +16,13 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import include, path
 
-from core.views import HomeView
+from core.views import HomeView, HealthCheckView
 
 
 urlpatterns = [
-    path('', HomeView.as_view(), name='home'),
-    path('accounts/', include('accounts.urls', namespace='accounts')),
-    path('admin/', admin.site.urls),
-    path(
-        'transactions/',
-        include('transactions.urls', namespace='transactions')
-    )
+    path("", HomeView.as_view(), name="home"),
+    path("health/", HealthCheckView.as_view(), name="health_check"),
+    path("accounts/", include("accounts.urls", namespace="accounts")),
+    path("admin/", admin.site.urls),
+    path("transactions/", include("transactions.urls", namespace="transactions")),
 ]

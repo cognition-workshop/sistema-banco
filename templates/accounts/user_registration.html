@@ -1,6 +1,11 @@
 {% extends 'core/base.html' %}
+{% load static %}
 
 {% block head_title %}Banking System{% endblock %}
+
+{% block head_extra %}
+<script src="{% static 'js/form-validation.js' %}" defer></script>
+{% endblock %}
 
 {% block content %}
 {% if registration_form.non_field_errors %}

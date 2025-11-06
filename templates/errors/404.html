@@ -1,0 +1,16 @@
+{% extends 'core/base.html' %}
+
+{% block head_title %}404 - Page Not Found{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-center min-h-screen">
+    <div class="text-center">
+        <h1 class="text-6xl font-bold text-gray-800 mb-4">404</h1>
+        <h2 class="text-3xl font-semibold text-gray-700 mb-4">Page Not Found</h2>
+        <p class="text-gray-600 mb-8">The page you are looking for doesn't exist or has been moved.</p>
+        <a href="{% url 'home' %}" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+            Return Home
+        </a>
+    </div>
+</div>
+{% endblock %}

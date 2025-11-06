@@ -1,7 +1,9 @@
+import logging
 from dateutil.relativedelta import relativedelta
 
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db import DatabaseError, transaction
 from django.urls import reverse_lazy
 from django.utils import timezone
 from django.views.generic import CreateView, ListView
@@ -14,9 +16,11 @@ from transactions.forms import (
 )
 from transactions.models import Transaction
 
+logger = logging.getLogger(__name__)
+
 
 class TransactionRepostView(LoginRequiredMixin, ListView):
-    template_name = 'transactions/transaction_report.html'
+    template_name = "transactions/transaction_report.html"
     model = Transaction
     form_data = {}
 
@@ -28,9 +32,7 @@ class TransactionRepostView(LoginRequiredMixin, ListView):
         return super().get(request, *args, **kwargs)
 
     def get_queryset(self):
-        queryset = super().get_queryset().filter(
-            account=self.request.user.account
-        )
+        queryset = super().get_queryset().filter(account=self.request.user.account)
 
         daterange = self.form_data.get("daterange")
 
@@ -41,94 +43,154 @@ class TransactionRepostView(LoginRequiredMixin, ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context.update({
-            'account': self.request.user.account,
-            'form': TransactionDateRangeForm(self.request.GET or None)
-        })
+        context.update(
+            {
+                "account": self.request.user.account,
+                "form": TransactionDateRangeForm(self.request.GET or None),
+            }
+        )
 
         return context
 
 
 class TransactionCreateMixin(LoginRequiredMixin, CreateView):
-    template_name = 'transactions/transaction_form.html'
+    template_name = "transactions/transaction_form.html"
     model = Transaction
-    title = ''
-    success_url = reverse_lazy('transactions:transaction_report')
+    title = ""
+    success_url = reverse_lazy("transactions:transaction_report")
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
-        kwargs.update({
-            'account': self.request.user.account
-        })
+        kwargs.update({"account": self.request.user.account})
         return kwargs
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context.update({
-            'title': self.title
-        })
+        context.update({"title": self.title})
 
         return context
 
 
 class DepositMoneyView(TransactionCreateMixin):
     form_class = DepositForm
-    title = 'Deposit Money to Your Account'
+    title = "Deposit Money to Your Account"
 
     def get_initial(self):
-        initial = {'transaction_type': DEPOSIT}
+        initial = {"transaction_type": DEPOSIT}
         return initial
 
     def form_valid(self, form):
-        amount = form.cleaned_data.get('amount')
+        amount = form.cleaned_data.get("amount")
         account = self.request.user.account
 
-        if not account.initial_deposit_date:
-            now = timezone.now()
-            next_interest_month = int(
-                12 / account.account_type.interest_calculation_per_year
-            )
-            account.initial_deposit_date = now
-            account.interest_start_date = (
-                now + relativedelta(
-                    months=+next_interest_month
+        try:
+            with transaction.atomic():
+                if not account.initial_deposit_date:
+                    now = timezone.now()
+                    next_interest_month = int(
+                        12 / account.account_type.interest_calculation_per_year
+                    )
+                    account.initial_deposit_date = now
+                    account.interest_start_date = now + relativedelta(
+                        months=+next_interest_month
+                    )
+
+                account.balance += amount
+                account.save(
+                    update_fields=[
+                        "initial_deposit_date",
+                        "balance",
+                        "interest_start_date",
+                    ]
                 )
+
+                logger.info(
+                    f"Deposit successful: ${amount}",
+                    extra={
+                        "user": self.request.user.email,
+                        "account_no": account.account_no,
+                        "amount": float(amount),
+                    },
+                )
+                messages.success(
+                    self.request,
+                    f"{amount}$ was deposited to your account successfully",
+                )
+
+                return super().form_valid(form)
+        except DatabaseError as e:
+            logger.error(
+                f"Database error during deposit: {str(e)}",
+                extra={
+                    "user": self.request.user.email,
+                    "account_no": account.account_no,
+                },
             )
-
-        account.balance += amount
-        account.save(
-            update_fields=[
-                'initial_deposit_date',
-                'balance',
-                'interest_start_date'
-            ]
-        )
-
-        messages.success(
-            self.request,
-            f'{amount}$ was deposited to your account successfully'
-        )
-
-        return super().form_valid(form)
+            messages.error(
+                self.request,
+                "An error occurred while processing your deposit. Please try again.",
+            )
+            return self.form_invalid(form)
+        except Exception as e:
+            logger.error(
+                f"Unexpected error during deposit: {str(e)}",
+                extra={"user": self.request.user.email},
+            )
+            messages.error(
+                self.request, "An unexpected error occurred. Please try again."
+            )
+            return self.form_invalid(form)
 
 
 class WithdrawMoneyView(TransactionCreateMixin):
     form_class = WithdrawForm
-    title = 'Withdraw Money from Your Account'
+    title = "Withdraw Money from Your Account"
 
     def get_initial(self):
-        initial = {'transaction_type': WITHDRAWAL}
+        initial = {"transaction_type": WITHDRAWAL}
         return initial
 
     def form_valid(self, form):
-        amount = form.cleaned_data.get('amount')
+        amount = form.cleaned_data.get("amount")
+        account = self.request.user.account
 
-        self.request.user.account.balance -= form.cleaned_data.get('amount')
-        self.request.user.account.save(update_fields=['balance'])
+        try:
+            with transaction.atomic():
+                account.balance -= amount
+                account.save(update_fields=["balance"])
 
-        messages.success(
-            self.request,
-            f'Successfully withdrawn {amount}$ from your account'
-        )
+                logger.info(
+                    f"Withdrawal successful: ${amount}",
+                    extra={
+                        "user": self.request.user.email,
+                        "account_no": account.account_no,
+                        "amount": float(amount),
+                    },
+                )
+                messages.success(
+                    self.request, f"Successfully withdrawn {amount}$ from your account"
+                )
 
-        return super().form_valid(form)
+                return super().form_valid(form)
+        except DatabaseError as e:
+            logger.error(
+                f"Database error during withdrawal: {str(e)}",
+                extra={
+                    "user": self.request.user.email,
+                    "account_no": account.account_no,
+                },
+            )
+            messages.error(
+                self.request,
+                "An error occurred while processing your withdrawal. Please try again.",
+            )
+            return self.form_invalid(form)
+        except Exception as e:
+            logger.error(
+                f"Unexpected error during withdrawal: {str(e)}",
+                extra={"user": self.request.user.email},
+            )
+            messages.error(
+                self.request, "An unexpected error occurred. Please try again."
+            )
+            return self.form_invalid(form)

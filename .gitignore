@@ -18,6 +18,19 @@ staticfiles/
 celerybeat.pid
 celerybeat-schedule
 
+logs/
+*.log
+
+backups/
+
+docker-compose.override.yml
+
+.coverage
+htmlcov/
+coverage.xml
+
+.pytest_cache/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
