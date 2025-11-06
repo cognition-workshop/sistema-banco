@@ -1,0 +1,74 @@
+{% extends 'admin_panel/base.html' %}
+
+{% block title %}Fraud Detection{% endblock %}
+
+{% block content %}
+<h1 class="text-3xl font-bold mb-6">Fraud Detection</h1>
+
+<div class="bg-white rounded-lg shadow p-6 mb-6">
+    <div class="flex gap-4">
+        <a href="?status=pending" class="px-4 py-2 {% if request.GET.status == 'pending' %}bg-blue-600 text-white{% else %}bg-gray-200{% endif %} rounded-md">
+            Pending ({{ pending_count }})
+        </a>
+        <a href="?status=reviewed" class="px-4 py-2 {% if request.GET.status == 'reviewed' %}bg-blue-600 text-white{% else %}bg-gray-200{% endif %} rounded-md">
+            Reviewed
+        </a>
+        <a href="?status=confirmed_fraud" class="px-4 py-2 {% if request.GET.status == 'confirmed_fraud' %}bg-blue-600 text-white{% else %}bg-gray-200{% endif %} rounded-md">
+            Confirmed Fraud
+        </a>
+        <a href="?" class="px-4 py-2 {% if not request.GET.status %}bg-blue-600 text-white{% else %}bg-gray-200{% endif %} rounded-md">
+            All
+        </a>
+    </div>
+</div>
+
+<div class="bg-white rounded-lg shadow">
+    <table class="min-w-full">
+        <thead class="bg-gray-800 text-white">
+            <tr>
+                <th class="px-4 py-2 text-left">ID</th>
+                <th class="px-4 py-2 text-left">User</th>
+                <th class="px-4 py-2 text-left">Rule</th>
+                <th class="px-4 py-2 text-left">Severity</th>
+                <th class="px-4 py-2 text-left">Status</th>
+                <th class="px-4 py-2 text-left">Created</th>
+                <th class="px-4 py-2 text-left">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for alert in alerts %}
+            <tr class="border-b hover:bg-gray-50">
+                <td class="px-4 py-2">{{ alert.id }}</td>
+                <td class="px-4 py-2">{{ alert.transaction.account.user.email }}</td>
+                <td class="px-4 py-2">{{ alert.rule_triggered }}</td>
+                <td class="px-4 py-2">
+                    <span class="px-2 py-1 rounded {% if alert.severity == 'high' %}bg-red-200 text-red-800{% else %}bg-yellow-200 text-yellow-800{% endif %}">
+                        {{ alert.severity }}
+                    </span>
+                </td>
+                <td class="px-4 py-2">{{ alert.get_status_display }}</td>
+                <td class="px-4 py-2">{{ alert.created_at|date:"Y-m-d H:i" }}</td>
+                <td class="px-4 py-2">
+                    <a href="{% url 'admin_panel:fraud_alert_detail' alert.pk %}" class="text-blue-600 hover:underline">View</a>
+                    {% if perms.accounts.review_fraud_alerts %}
+                    | <a href="{% url 'admin_panel:review_fraud_alert' alert.pk %}" class="text-green-600 hover:underline">Review</a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    {% if is_paginated %}
+    <div class="p-4 flex justify-center">
+        {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}&{{ request.GET.urlencode }}" class="px-4 py-2 border rounded-l">Previous</a>
+        {% endif %}
+        <span class="px-4 py-2 border-t border-b">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}&{{ request.GET.urlencode }}" class="px-4 py-2 border rounded-r">Next</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

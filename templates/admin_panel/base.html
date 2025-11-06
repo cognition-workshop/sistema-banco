@@ -1,0 +1,53 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <title>{% block title %}Admin Portal{% endblock %} - Banking System</title>
+    <link href="https://unpkg.com/tailwindcss@^1.0/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="bg-gray-100">
+    <nav class="bg-gray-800 text-white p-4">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-2xl font-bold">Admin Portal</h1>
+            <div class="space-x-4">
+                <a href="{% url 'admin_panel:dashboard' %}" class="hover:text-gray-300">Dashboard</a>
+                {% if perms.accounts.view_all_users %}
+                <a href="{% url 'admin_panel:user_management' %}" class="hover:text-gray-300">Users</a>
+                {% endif %}
+                {% if perms.accounts.view_all_transactions %}
+                <a href="{% url 'admin_panel:transaction_monitoring' %}" class="hover:text-gray-300">Transactions</a>
+                <a href="{% url 'admin_panel:analytics' %}" class="hover:text-gray-300">Analytics</a>
+                {% endif %}
+                {% if perms.accounts.view_fraud_alerts %}
+                <a href="{% url 'admin_panel:fraud_detection' %}" class="hover:text-gray-300">Fraud Detection</a>
+                {% endif %}
+                {% if perms.accounts.view_system_health %}
+                <a href="{% url 'admin_panel:system_health' %}" class="hover:text-gray-300">System Health</a>
+                {% endif %}
+                <span class="text-gray-400">|</span>
+                <span>{{ user.email }}</span>
+            </div>
+        </div>
+    </nav>
+
+    {% if messages %}
+    <div class="container mx-auto mt-4">
+        {% for message in messages %}
+        <div class="bg-{% if message.tags == 'error' %}red{% elif message.tags == 'success' %}green{% else %}blue{% endif %}-100 border border-{% if message.tags == 'error' %}red{% elif message.tags == 'success' %}green{% else %}blue{% endif %}-400 text-{% if message.tags == 'error' %}red{% elif message.tags == 'success' %}green{% else %}blue{% endif %}-700 px-4 py-3 rounded relative mb-4" role="alert">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="container mx-auto mt-6">
+        {% block content %}{% endblock %}
+    </div>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

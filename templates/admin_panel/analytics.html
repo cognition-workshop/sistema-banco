@@ -1,0 +1,86 @@
+{% extends 'admin_panel/base.html' %}
+
+{% block title %}Analytics{% endblock %}
+
+{% block content %}
+<h1 class="text-3xl font-bold mb-6">Analytics Dashboard</h1>
+
+<div class="bg-white rounded-lg shadow p-6 mb-6">
+    <form method="get" class="flex gap-4">
+        {{ date_form.date_from }}
+        {{ date_form.date_to }}
+        <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700">
+            Update
+        </button>
+    </form>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+    <div class="bg-white p-6 rounded-lg shadow">
+        <h3 class="text-gray-500 text-sm font-semibold">Total Transactions</h3>
+        <p class="text-3xl font-bold">{{ total_transactions }}</p>
+    </div>
+    <div class="bg-white p-6 rounded-lg shadow">
+        <h3 class="text-gray-500 text-sm font-semibold">Total Volume</h3>
+        <p class="text-3xl font-bold">${{ total_volume|floatformat:2 }}</p>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-xl font-bold mb-4">Transaction Volume Over Time</h2>
+        <canvas id="volumeChart"></canvas>
+    </div>
+    
+    <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-xl font-bold mb-4">Transactions by Type</h2>
+        <canvas id="typeChart"></canvas>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const volumeCtx = document.getElementById('volumeChart').getContext('2d');
+const volumeChart = new Chart(volumeCtx, {
+    type: 'line',
+    data: {
+        labels: {{ chart_dates|safe }},
+        datasets: [{
+            label: 'Transaction Volume ($)',
+            data: {{ chart_volumes|safe }},
+            borderColor: 'rgb(75, 192, 192)',
+            tension: 0.1
+        }]
+    },
+    options: {
+        responsive: true,
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+    }
+});
+
+const typeCtx = document.getElementById('typeChart').getContext('2d');
+const typeData = {{ transactions_by_type|safe }};
+const typeChart = new Chart(typeCtx, {
+    type: 'pie',
+    data: {
+        labels: Object.keys(typeData),
+        datasets: [{
+            data: Object.values(typeData),
+            backgroundColor: [
+                'rgb(54, 162, 235)',
+                'rgb(255, 99, 132)',
+                'rgb(255, 205, 86)'
+            ]
+        }]
+    },
+    options: {
+        responsive: true
+    }
+});
+</script>
+{% endblock %}
