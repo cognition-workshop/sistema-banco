@@ -1,0 +1,45 @@
+accounts
+ [X] 0001_initial
+admin
+ [X] 0001_initial
+ [X] 0002_logentry_remove_auto_add
+ [X] 0003_logentry_add_action_flag_choices
+auth
+ [X] 0001_initial
+ [X] 0002_alter_permission_name_max_length
+ [X] 0003_alter_user_email_max_length
+ [X] 0004_alter_user_username_opts
+ [X] 0005_alter_user_last_login_null
+ [X] 0006_require_contenttypes_0002
+ [X] 0007_alter_validators_add_error_messages
+ [X] 0008_alter_user_username_max_length
+ [X] 0009_alter_user_last_name_max_length
+ [X] 0010_alter_group_name_max_length
+ [X] 0011_update_proxy_permissions
+ [X] 0012_alter_user_first_name_max_length
+contenttypes
+ [X] 0001_initial
+ [X] 0002_remove_content_type_name
+core
+ (no migrations)
+django_celery_beat
+ [X] 0001_initial
+ [X] 0002_auto_20161118_0346
+ [X] 0003_auto_20161209_0049
+ [X] 0004_auto_20170221_0000
+ [X] 0005_add_solarschedule_events_choices
+ [X] 0006_auto_20180322_0932
+ [X] 0007_auto_20180521_0826
+ [X] 0008_auto_20180914_1922
+ [X] 0006_auto_20180210_1226
+ [X] 0006_periodictask_priority
+ [X] 0009_periodictask_headers
+ [X] 0010_auto_20190429_0326
+ [X] 0011_auto_20190508_0153
+ [X] 0012_periodictask_expire_seconds
+ [X] 0013_auto_20200609_0727
+ [X] 0014_remove_clockedschedule_enabled
+sessions
+ [X] 0001_initial
+transactions
+ [X] 0001_initial
