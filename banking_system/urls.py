@@ -23,6 +23,7 @@ urlpatterns = [
     path('', HomeView.as_view(), name='home'),
     path('accounts/', include('accounts.urls', namespace='accounts')),
     path('admin/', admin.site.urls),
+    path('api/', include('banking_system.api_urls')),
     path(
         'transactions/',
         include('transactions.urls', namespace='transactions')
