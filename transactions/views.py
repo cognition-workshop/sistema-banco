@@ -1,4 +1,5 @@
 from dateutil.relativedelta import relativedelta
+import logging
 
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -14,6 +15,8 @@ from transactions.forms import (
     WithdrawForm,
 )
 from transactions.models import Transaction
+
+logger = logging.getLogger(__name__)
 
 
 class TransactionRepostView(ListView):
@@ -94,41 +97,47 @@ class DepositMoneyView(TransactionCreateMixin):
         return initial
 
     def form_valid(self, form):
-        amount = form.cleaned_data.get('amount')
-        # Bypass login - use demo user
-        User = get_user_model()
-        demo_user = User.objects.filter(email='demo@example.com').first()
-        account = demo_user.account if demo_user and hasattr(demo_user, 'account') else None
-        if not account:
-            return super().form_valid(form)
+        try:
+            amount = form.cleaned_data.get('amount')
+            # Bypass login - use demo user
+            User = get_user_model()
+            demo_user = User.objects.filter(email='demo@example.com').first()
+            account = demo_user.account if demo_user and hasattr(demo_user, 'account') else None
+            if not account:
+                return super().form_valid(form)
 
-        if not account.initial_deposit_date:
-            now = timezone.now()
-            next_interest_month = int(
-                12 / account.account_type.interest_calculation_per_year
-            )
-            account.initial_deposit_date = now
-            account.interest_start_date = (
-                now + relativedelta(
-                    months=+next_interest_month
+            if not account.initial_deposit_date:
+                now = timezone.now()
+                next_interest_month = int(
+                    12 / account.account_type.interest_calculation_per_year
                 )
+                account.initial_deposit_date = now
+                account.interest_start_date = (
+                    now + relativedelta(
+                        months=+next_interest_month
+                    )
+                )
+
+            account.balance += amount
+            account.save(
+                update_fields=[
+                    'initial_deposit_date',
+                    'balance',
+                    'interest_start_date'
+                ]
             )
 
-        account.balance += amount
-        account.save(
-            update_fields=[
-                'initial_deposit_date',
-                'balance',
-                'interest_start_date'
-            ]
-        )
+            logger.info(f'Depósito de {amount}$ realizado com sucesso para conta {account.account_no}')
+            messages.success(
+                self.request,
+                f'{amount}$ was deposited to your account successfully'
+            )
 
-        messages.success(
-            self.request,
-            f'{amount}$ was deposited to your account successfully'
-        )
-
-        return super().form_valid(form)
+            return super().form_valid(form)
+        except Exception as e:
+            logger.error(f'Erro ao processar depósito: {str(e)}', exc_info=True)
+            messages.error(self.request, 'Erro ao processar depósito. Tente novamente.')
+            return self.form_invalid(form)
 
 
 class WithdrawMoneyView(TransactionCreateMixin):
@@ -140,17 +149,24 @@ class WithdrawMoneyView(TransactionCreateMixin):
         return initial
 
     def form_valid(self, form):
-        amount = form.cleaned_data.get('amount')
-        # Bypass login - use demo user
-        User = get_user_model()
-        demo_user = User.objects.filter(email='demo@example.com').first()
-        if demo_user and hasattr(demo_user, 'account'):
-            demo_user.account.balance -= form.cleaned_data.get('amount')
-            demo_user.account.save(update_fields=['balance'])
+        try:
+            amount = form.cleaned_data.get('amount')
+            # Bypass login - use demo user
+            User = get_user_model()
+            demo_user = User.objects.filter(email='demo@example.com').first()
+            if demo_user and hasattr(demo_user, 'account'):
+                demo_user.account.balance -= form.cleaned_data.get('amount')
+                demo_user.account.save(update_fields=['balance'])
+                
+                logger.info(f'Saque de {amount}$ realizado com sucesso para conta {demo_user.account.account_no}')
 
-        messages.success(
-            self.request,
-            f'Successfully withdrawn {amount}$ from your account'
-        )
+            messages.success(
+                self.request,
+                f'Successfully withdrawn {amount}$ from your account'
+            )
 
-        return super().form_valid(form)
+            return super().form_valid(form)
+        except Exception as e:
+            logger.error(f'Erro ao processar saque: {str(e)}', exc_info=True)
+            messages.error(self.request, 'Erro ao processar saque. Tente novamente.')
+            return self.form_invalid(form)
