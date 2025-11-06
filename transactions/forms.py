@@ -70,6 +70,45 @@ class WithdrawForm(TransactionForm):
         return amount
 
 
+class PixTransferForm(TransactionForm):
+    pix_key = forms.CharField(max_length=255, required=True)
+
+    class Meta:
+        model = Transaction
+        fields = [
+            'amount',
+            'transaction_type',
+            'pix_key'
+        ]
+
+    def clean_amount(self):
+        account = self.account
+        amount = self.cleaned_data.get('amount')
+
+        if amount > account.balance:
+            raise forms.ValidationError('Saldo insuficiente para transferência')
+
+        if amount < settings.MINIMUM_WITHDRAWAL_AMOUNT:
+            raise forms.ValidationError(
+                f'Valor mínimo para PIX: {settings.MINIMUM_WITHDRAWAL_AMOUNT}$'
+            )
+
+        return amount
+
+    def clean_pix_key(self):
+        from accounts.models import PixKey
+        
+        pix_key = self.cleaned_data.get('pix_key')
+        
+        try:
+            destination_key = PixKey.objects.get(key_value=pix_key)
+            self.destination_account = destination_key.account
+        except PixKey.DoesNotExist:
+            raise forms.ValidationError('Chave PIX não encontrada')
+
+        return pix_key
+
+
 class TransactionDateRangeForm(forms.Form):
     daterange = forms.CharField(required=False)
 
