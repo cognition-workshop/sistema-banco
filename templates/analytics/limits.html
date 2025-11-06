@@ -1,0 +1,130 @@
+{% extends 'core/base.html' %}
+
+{% block head_title %}Limits & Restrictions - Analytics{% endblock %}
+
+{% block head_extra %}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+{% endblock %}
+
+{% block content %}
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="font-mono font-bold text-3xl text-center pb-5 pt-10">Limits & Restrictions Dashboard</h1>
+        <hr class="mb-8" />
+
+        <div class="flex justify-between mb-4">
+            <a href="{% url 'analytics:financial_overview' %}" class="text-gray-600 hover:text-gray-800">Financial Overview</a>
+            <a href="{% url 'analytics:transaction_analysis' %}" class="text-gray-600 hover:text-gray-800">Transaction Analysis</a>
+            <a href="{% url 'analytics:account_types' %}" class="text-gray-600 hover:text-gray-800">Account Types</a>
+            <a href="{% url 'analytics:interest' %}" class="text-gray-600 hover:text-gray-800">Interest</a>
+            <a href="{% url 'analytics:limits' %}" class="text-blue-600 hover:text-blue-800 font-semibold">Limits</a>
+            <a href="{% url 'analytics:users' %}" class="text-gray-600 hover:text-gray-800">Users</a>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+            <div class="bg-white rounded-lg shadow p-6">
+                <h3 class="text-gray-500 text-sm font-semibold uppercase">Minimum Deposit</h3>
+                <p class="text-3xl font-bold text-blue-600">$ {{ min_deposit|floatformat:2 }}</p>
+            </div>
+            <div class="bg-white rounded-lg shadow p-6">
+                <h3 class="text-gray-500 text-sm font-semibold uppercase">Minimum Withdrawal</h3>
+                <p class="text-3xl font-bold text-red-600">$ {{ min_withdrawal|floatformat:2 }}</p>
+            </div>
+            <div class="bg-white rounded-lg shadow p-6">
+                <h3 class="text-gray-500 text-sm font-semibold uppercase">Low Balance Threshold</h3>
+                <p class="text-3xl font-bold text-orange-600">$ {{ low_balance_threshold|floatformat:2 }}</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div class="bg-white rounded-lg shadow p-6">
+                <h3 class="text-xl font-semibold mb-4">Withdrawals Near Maximum Limit (≥80%)</h3>
+                <div class="overflow-auto max-h-96">
+                    <table class="table-auto w-full">
+                        <thead class="bg-gray-800 text-white sticky top-0">
+                            <tr class="uppercase font-semibold text-sm">
+                                <th class="px-4 py-2">Date</th>
+                                <th class="px-4 py-2">User</th>
+                                <th class="px-4 py-2">Amount</th>
+                                <th class="px-4 py-2">% of Max</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in near_limit_withdrawals %}
+                            <tr class="{% cycle 'bg-gray-300' 'bg-white-100' %}">
+                                <td class="border px-4 py-2 text-center">{{ item.transaction.timestamp|date:"Y-m-d H:i" }}</td>
+                                <td class="border px-4 py-2 text-center">{{ item.transaction.account.user.email }}</td>
+                                <td class="border px-4 py-2 text-center">$ {{ item.transaction.amount|floatformat:2 }}</td>
+                                <td class="border px-4 py-2 text-center text-red-600 font-semibold">{{ item.percentage }}%</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="border px-4 py-2 text-center text-gray-500">No withdrawals near limit</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow p-6">
+                <h3 class="text-xl font-semibold mb-4">Low Balance Accounts</h3>
+                <div class="overflow-auto max-h-96">
+                    <table class="table-auto w-full">
+                        <thead class="bg-gray-800 text-white sticky top-0">
+                            <tr class="uppercase font-semibold text-sm">
+                                <th class="px-4 py-2">Account</th>
+                                <th class="px-4 py-2">User</th>
+                                <th class="px-4 py-2">Balance</th>
+                                <th class="px-4 py-2">Type</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for account in low_balance_accounts %}
+                            <tr class="{% cycle 'bg-gray-300' 'bg-white-100' %}">
+                                <td class="border px-4 py-2 text-center">{{ account.account_no }}</td>
+                                <td class="border px-4 py-2 text-center">{{ account.user.email }}</td>
+                                <td class="border px-4 py-2 text-center text-orange-600 font-semibold">$ {{ account.balance|floatformat:2 }}</td>
+                                <td class="border px-4 py-2 text-center">{{ account.account_type.name }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="border px-4 py-2 text-center text-gray-500">No low balance accounts</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-6">
+            <h3 class="text-xl font-semibold mb-4">Recent Large Transactions (≥$1000)</h3>
+            <div class="overflow-auto max-h-96">
+                <table class="table-auto w-full">
+                    <thead class="bg-gray-800 text-white sticky top-0">
+                        <tr class="uppercase font-semibold text-sm">
+                            <th class="px-4 py-2">Date</th>
+                            <th class="px-4 py-2">User</th>
+                            <th class="px-4 py-2">Type</th>
+                            <th class="px-4 py-2">Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for txn in recent_large_transactions %}
+                        <tr class="{% cycle 'bg-gray-300' 'bg-white-100' %}">
+                            <td class="border px-4 py-2 text-center">{{ txn.timestamp|date:"Y-m-d H:i" }}</td>
+                            <td class="border px-4 py-2 text-center">{{ txn.account.user.email }}</td>
+                            <td class="border px-4 py-2 text-center">{{ txn.get_transaction_type_display }}</td>
+                            <td class="border px-4 py-2 text-center font-semibold">$ {{ txn.amount|floatformat:2 }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="border px-4 py-2 text-center text-gray-500">No large transactions</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}

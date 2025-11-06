@@ -1,0 +1,179 @@
+{% extends 'core/base.html' %}
+
+{% block head_title %}Account Types - Analytics{% endblock %}
+
+{% block head_extra %}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+{% endblock %}
+
+{% block content %}
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="font-mono font-bold text-3xl text-center pb-5 pt-10">Account Types Dashboard</h1>
+        <hr class="mb-8" />
+
+        <div class="flex justify-between mb-4">
+            <a href="{% url 'analytics:financial_overview' %}" class="text-gray-600 hover:text-gray-800">Financial Overview</a>
+            <a href="{% url 'analytics:transaction_analysis' %}" class="text-gray-600 hover:text-gray-800">Transaction Analysis</a>
+            <a href="{% url 'analytics:account_types' %}" class="text-blue-600 hover:text-blue-800 font-semibold">Account Types</a>
+            <a href="{% url 'analytics:interest' %}" class="text-gray-600 hover:text-gray-800">Interest</a>
+            <a href="{% url 'analytics:limits' %}" class="text-gray-600 hover:text-gray-800">Limits</a>
+            <a href="{% url 'analytics:users' %}" class="text-gray-600 hover:text-gray-800">Users</a>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div class="bg-white rounded-lg shadow p-6">
+                <h3 class="text-xl font-semibold mb-4">Account Distribution by Type</h3>
+                <canvas id="accountDistributionChart"></canvas>
+            </div>
+
+            <div class="bg-white rounded-lg shadow p-6">
+                <h3 class="text-xl font-semibold mb-4">Average Balance by Account Type</h3>
+                <canvas id="avgBalanceChart"></canvas>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div class="bg-white rounded-lg shadow p-6">
+                <h3 class="text-xl font-semibold mb-4">Annual Interest Rates</h3>
+                <canvas id="interestRatesChart"></canvas>
+            </div>
+
+            <div class="bg-white rounded-lg shadow p-6">
+                <h3 class="text-xl font-semibold mb-4">Interest Calculation Frequency</h3>
+                <canvas id="interestFrequencyChart"></canvas>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-6">
+            <h3 class="text-xl font-semibold mb-4">Account Type Details</h3>
+            <table class="table-auto w-full">
+                <thead class="bg-gray-800 text-white">
+                    <tr class="uppercase font-semibold text-sm">
+                        <th class="px-4 py-2">Account Type</th>
+                        <th class="px-4 py-2">Count</th>
+                        <th class="px-4 py-2">Average Balance</th>
+                        <th class="px-4 py-2">Total Balance</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in accounts_by_type %}
+                    <tr class="{% cycle 'bg-gray-300' 'bg-white-100' %}">
+                        <td class="border px-4 py-2 text-center">{{ item.account_type__name }}</td>
+                        <td class="border px-4 py-2 text-center">{{ item.count }}</td>
+                        <td class="border px-4 py-2 text-center">$ {{ item.avg_balance|floatformat:2 }}</td>
+                        <td class="border px-4 py-2 text-center">$ {{ item.total_balance|floatformat:2 }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}
+
+{% block footer_extra %}
+    <script>
+        const accountDistributionCtx = document.getElementById('accountDistributionChart').getContext('2d');
+        new Chart(accountDistributionCtx, {
+            type: 'pie',
+            data: {
+                labels: {{ type_labels|safe }},
+                datasets: [{
+                    label: 'Number of Accounts',
+                    data: {{ type_counts|safe }},
+                    backgroundColor: [
+                        'rgba(59, 130, 246, 0.7)',
+                        'rgba(34, 197, 94, 0.7)',
+                        'rgba(249, 115, 22, 0.7)',
+                        'rgba(168, 85, 247, 0.7)'
+                    ],
+                    borderColor: [
+                        'rgba(59, 130, 246, 1)',
+                        'rgba(34, 197, 94, 1)',
+                        'rgba(249, 115, 22, 1)',
+                        'rgba(168, 85, 247, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true
+            }
+        });
+
+        const avgBalanceCtx = document.getElementById('avgBalanceChart').getContext('2d');
+        new Chart(avgBalanceCtx, {
+            type: 'bar',
+            data: {
+                labels: {{ type_labels|safe }},
+                datasets: [{
+                    label: 'Average Balance ($)',
+                    data: {{ type_avg_balances|safe }},
+                    backgroundColor: 'rgba(34, 197, 94, 0.7)',
+                    borderColor: 'rgba(34, 197, 94, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        const interestRatesCtx = document.getElementById('interestRatesChart').getContext('2d');
+        new Chart(interestRatesCtx, {
+            type: 'bar',
+            data: {
+                labels: {{ interest_rate_labels|safe }},
+                datasets: [{
+                    label: 'Annual Interest Rate (%)',
+                    data: {{ interest_rate_data|safe }},
+                    backgroundColor: 'rgba(59, 130, 246, 0.7)',
+                    borderColor: 'rgba(59, 130, 246, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        const interestFrequencyCtx = document.getElementById('interestFrequencyChart').getContext('2d');
+        new Chart(interestFrequencyCtx, {
+            type: 'bar',
+            data: {
+                labels: {{ interest_rate_labels|safe }},
+                datasets: [{
+                    label: 'Calculations Per Year',
+                    data: {{ interest_freq_data|safe }},
+                    backgroundColor: 'rgba(168, 85, 247, 0.7)',
+                    borderColor: 'rgba(168, 85, 247, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+{% endblock %}

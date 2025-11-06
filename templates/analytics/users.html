@@ -1,0 +1,180 @@
+{% extends 'core/base.html' %}
+
+{% block head_title %}Users - Analytics{% endblock %}
+
+{% block head_extra %}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+{% endblock %}
+
+{% block content %}
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="font-mono font-bold text-3xl text-center pb-5 pt-10">Users Dashboard</h1>
+        <hr class="mb-8" />
+
+        <div class="flex justify-between mb-4">
+            <a href="{% url 'analytics:financial_overview' %}" class="text-gray-600 hover:text-gray-800">Financial Overview</a>
+            <a href="{% url 'analytics:transaction_analysis' %}" class="text-gray-600 hover:text-gray-800">Transaction Analysis</a>
+            <a href="{% url 'analytics:account_types' %}" class="text-gray-600 hover:text-gray-800">Account Types</a>
+            <a href="{% url 'analytics:interest' %}" class="text-gray-600 hover:text-gray-800">Interest</a>
+            <a href="{% url 'analytics:limits' %}" class="text-gray-600 hover:text-gray-800">Limits</a>
+            <a href="{% url 'analytics:users' %}" class="text-blue-600 hover:text-blue-800 font-semibold">Users</a>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+            <div class="bg-white rounded-lg shadow p-6">
+                <h3 class="text-gray-500 text-sm font-semibold uppercase">Total Users</h3>
+                <p class="text-3xl font-bold text-blue-600">{{ total_users }}</p>
+            </div>
+            <div class="bg-white rounded-lg shadow p-6">
+                <h3 class="text-gray-500 text-sm font-semibold uppercase">Users with Accounts</h3>
+                <p class="text-3xl font-bold text-green-600">{{ users_with_accounts }}</p>
+            </div>
+            <div class="bg-white rounded-lg shadow p-6">
+                <h3 class="text-gray-500 text-sm font-semibold uppercase">Active Users</h3>
+                <p class="text-3xl font-bold text-purple-600">{{ active_users }}</p>
+            </div>
+            <div class="bg-white rounded-lg shadow p-6">
+                <h3 class="text-gray-500 text-sm font-semibold uppercase">Inactive Users</h3>
+                <p class="text-3xl font-bold text-red-600">{{ inactive_users }}</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div class="bg-white rounded-lg shadow p-6">
+                <h3 class="text-xl font-semibold mb-4">User Registrations by Month</h3>
+                <canvas id="registrationsByMonthChart"></canvas>
+            </div>
+
+            <div class="bg-white rounded-lg shadow p-6">
+                <h3 class="text-xl font-semibold mb-4">Active vs Inactive Users</h3>
+                <canvas id="activeInactiveChart"></canvas>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div class="bg-white rounded-lg shadow p-6">
+                <h3 class="text-xl font-semibold mb-4">Gender Distribution</h3>
+                <canvas id="genderDistributionChart"></canvas>
+            </div>
+
+            <div class="bg-white rounded-lg shadow p-6">
+                <h3 class="text-xl font-semibold mb-4">Recent User Registrations</h3>
+                <div class="overflow-auto max-h-96">
+                    <table class="table-auto w-full">
+                        <thead class="bg-gray-800 text-white sticky top-0">
+                            <tr class="uppercase font-semibold text-sm">
+                                <th class="px-4 py-2">Email</th>
+                                <th class="px-4 py-2">Joined</th>
+                                <th class="px-4 py-2">Active</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in recent_users %}
+                            <tr class="{% cycle 'bg-gray-300' 'bg-white-100' %}">
+                                <td class="border px-4 py-2 text-center">{{ user.email }}</td>
+                                <td class="border px-4 py-2 text-center">{{ user.date_joined|date:"Y-m-d" }}</td>
+                                <td class="border px-4 py-2 text-center">
+                                    {% if user.is_active %}
+                                        <span class="text-green-600 font-semibold">Yes</span>
+                                    {% else %}
+                                        <span class="text-red-600 font-semibold">No</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="3" class="border px-4 py-2 text-center text-gray-500">No users registered yet</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block footer_extra %}
+    <script>
+        const registrationsByMonthCtx = document.getElementById('registrationsByMonthChart').getContext('2d');
+        new Chart(registrationsByMonthCtx, {
+            type: 'line',
+            data: {
+                labels: {{ month_labels|safe }},
+                datasets: [{
+                    label: 'New Users',
+                    data: {{ month_data|safe }},
+                    borderColor: 'rgba(59, 130, 246, 1)',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
+                }
+            }
+        });
+
+        const activeInactiveCtx = document.getElementById('activeInactiveChart').getContext('2d');
+        new Chart(activeInactiveCtx, {
+            type: 'pie',
+            data: {
+                labels: ['Active', 'Inactive'],
+                datasets: [{
+                    label: 'Users',
+                    data: [{{ active_users }}, {{ inactive_users }}],
+                    backgroundColor: [
+                        'rgba(34, 197, 94, 0.7)',
+                        'rgba(239, 68, 68, 0.7)'
+                    ],
+                    borderColor: [
+                        'rgba(34, 197, 94, 1)',
+                        'rgba(239, 68, 68, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true
+            }
+        });
+
+        const genderDistributionCtx = document.getElementById('genderDistributionChart').getContext('2d');
+        new Chart(genderDistributionCtx, {
+            type: 'doughnut',
+            data: {
+                labels: {{ gender_labels|safe }},
+                datasets: [{
+                    label: 'Users',
+                    data: {{ gender_data|safe }},
+                    backgroundColor: [
+                        'rgba(59, 130, 246, 0.7)',
+                        'rgba(236, 72, 153, 0.7)',
+                        'rgba(168, 85, 247, 0.7)'
+                    ],
+                    borderColor: [
+                        'rgba(59, 130, 246, 1)',
+                        'rgba(236, 72, 153, 1)',
+                        'rgba(168, 85, 247, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true
+            }
+        });
+    </script>
+{% endblock %}

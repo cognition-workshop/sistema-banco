@@ -1,0 +1,179 @@
+{% extends 'core/base.html' %}
+
+{% block head_title %}Transaction Analysis - Analytics{% endblock %}
+
+{% block head_extra %}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+{% endblock %}
+
+{% block content %}
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="font-mono font-bold text-3xl text-center pb-5 pt-10">Transaction Analysis Dashboard</h1>
+        <hr class="mb-8" />
+
+        <div class="flex justify-between mb-4">
+            <a href="{% url 'analytics:financial_overview' %}" class="text-gray-600 hover:text-gray-800">Financial Overview</a>
+            <a href="{% url 'analytics:transaction_analysis' %}" class="text-blue-600 hover:text-blue-800 font-semibold">Transaction Analysis</a>
+            <a href="{% url 'analytics:account_types' %}" class="text-gray-600 hover:text-gray-800">Account Types</a>
+            <a href="{% url 'analytics:interest' %}" class="text-gray-600 hover:text-gray-800">Interest</a>
+            <a href="{% url 'analytics:limits' %}" class="text-gray-600 hover:text-gray-800">Limits</a>
+            <a href="{% url 'analytics:users' %}" class="text-gray-600 hover:text-gray-800">Users</a>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div class="bg-white rounded-lg shadow p-6">
+                <h3 class="text-xl font-semibold mb-4">Transaction Volume by Type</h3>
+                <canvas id="volumeByTypeChart"></canvas>
+            </div>
+
+            <div class="bg-white rounded-lg shadow p-6">
+                <h3 class="text-xl font-semibold mb-4">Transaction Amount by Type</h3>
+                <canvas id="amountByTypeChart"></canvas>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div class="bg-white rounded-lg shadow p-6">
+                <h3 class="text-xl font-semibold mb-4">Transactions by Hour of Day</h3>
+                <canvas id="transactionsByHourChart"></canvas>
+            </div>
+
+            <div class="bg-white rounded-lg shadow p-6">
+                <h3 class="text-xl font-semibold mb-4">Transactions by Day of Week</h3>
+                <canvas id="transactionsByWeekdayChart"></canvas>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-6">
+            <h3 class="text-xl font-semibold mb-4">Top 10 Users by Transaction Count</h3>
+            <canvas id="topUsersChart"></canvas>
+        </div>
+    </div>
+{% endblock %}
+
+{% block footer_extra %}
+    <script>
+        const volumeByTypeCtx = document.getElementById('volumeByTypeChart').getContext('2d');
+        new Chart(volumeByTypeCtx, {
+            type: 'bar',
+            data: {
+                labels: {{ type_labels|safe }},
+                datasets: [{
+                    label: 'Number of Transactions',
+                    data: {{ type_counts|safe }},
+                    backgroundColor: 'rgba(59, 130, 246, 0.7)',
+                    borderColor: 'rgba(59, 130, 246, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        const amountByTypeCtx = document.getElementById('amountByTypeChart').getContext('2d');
+        new Chart(amountByTypeCtx, {
+            type: 'bar',
+            data: {
+                labels: {{ type_labels|safe }},
+                datasets: [{
+                    label: 'Total Amount ($)',
+                    data: {{ type_amounts|safe }},
+                    backgroundColor: 'rgba(34, 197, 94, 0.7)',
+                    borderColor: 'rgba(34, 197, 94, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        const transactionsByHourCtx = document.getElementById('transactionsByHourChart').getContext('2d');
+        new Chart(transactionsByHourCtx, {
+            type: 'line',
+            data: {
+                labels: {{ hour_labels|safe }},
+                datasets: [{
+                    label: 'Transaction Count',
+                    data: {{ hour_data|safe }},
+                    borderColor: 'rgba(168, 85, 247, 1)',
+                    backgroundColor: 'rgba(168, 85, 247, 0.1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        const transactionsByWeekdayCtx = document.getElementById('transactionsByWeekdayChart').getContext('2d');
+        new Chart(transactionsByWeekdayCtx, {
+            type: 'bar',
+            data: {
+                labels: {{ weekday_labels|safe }},
+                datasets: [{
+                    label: 'Transaction Count',
+                    data: {{ weekday_data|safe }},
+                    backgroundColor: 'rgba(249, 115, 22, 0.7)',
+                    borderColor: 'rgba(249, 115, 22, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        const topUsersCtx = document.getElementById('topUsersChart').getContext('2d');
+        new Chart(topUsersCtx, {
+            type: 'bar',
+            data: {
+                labels: {{ user_labels|safe }},
+                datasets: [{
+                    label: 'Transaction Count',
+                    data: {{ user_counts|safe }},
+                    backgroundColor: 'rgba(236, 72, 153, 0.7)',
+                    borderColor: 'rgba(236, 72, 153, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: true,
+                scales: {
+                    x: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    </script>
+{% endblock %}

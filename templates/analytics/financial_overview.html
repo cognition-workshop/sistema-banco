@@ -1,0 +1,114 @@
+{% extends 'core/base.html' %}
+
+{% block head_title %}Financial Overview - Analytics{% endblock %}
+
+{% block head_extra %}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+{% endblock %}
+
+{% block content %}
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="font-mono font-bold text-3xl text-center pb-5 pt-10">Financial Overview Dashboard</h1>
+        <hr class="mb-8" />
+
+        <div class="flex justify-between mb-4">
+            <a href="{% url 'analytics:financial_overview' %}" class="text-blue-600 hover:text-blue-800 font-semibold">Financial Overview</a>
+            <a href="{% url 'analytics:transaction_analysis' %}" class="text-gray-600 hover:text-gray-800">Transaction Analysis</a>
+            <a href="{% url 'analytics:account_types' %}" class="text-gray-600 hover:text-gray-800">Account Types</a>
+            <a href="{% url 'analytics:interest' %}" class="text-gray-600 hover:text-gray-800">Interest</a>
+            <a href="{% url 'analytics:limits' %}" class="text-gray-600 hover:text-gray-800">Limits</a>
+            <a href="{% url 'analytics:users' %}" class="text-gray-600 hover:text-gray-800">Users</a>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+            <div class="bg-white rounded-lg shadow p-6">
+                <h3 class="text-gray-500 text-sm font-semibold uppercase">Total Balance</h3>
+                <p class="text-3xl font-bold text-green-600">$ {{ total_balance|floatformat:2 }}</p>
+            </div>
+            <div class="bg-white rounded-lg shadow p-6">
+                <h3 class="text-gray-500 text-sm font-semibold uppercase">Total Deposits</h3>
+                <p class="text-3xl font-bold text-blue-600">$ {{ deposits_total|floatformat:2 }}</p>
+            </div>
+            <div class="bg-white rounded-lg shadow p-6">
+                <h3 class="text-gray-500 text-sm font-semibold uppercase">Total Withdrawals</h3>
+                <p class="text-3xl font-bold text-red-600">$ {{ withdrawals_total|floatformat:2 }}</p>
+            </div>
+            <div class="bg-white rounded-lg shadow p-6">
+                <h3 class="text-gray-500 text-sm font-semibold uppercase">Active Accounts</h3>
+                <p class="text-3xl font-bold text-purple-600">{{ active_accounts }} / {{ total_accounts }}</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="bg-white rounded-lg shadow p-6">
+                <h3 class="text-xl font-semibold mb-4">Deposits vs Withdrawals</h3>
+                <canvas id="depositsVsWithdrawalsChart"></canvas>
+            </div>
+
+            <div class="bg-white rounded-lg shadow p-6">
+                <h3 class="text-xl font-semibold mb-4">Balance Evolution (Last 30 Days)</h3>
+                <canvas id="balanceEvolutionChart"></canvas>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block footer_extra %}
+    <script>
+        const depositsVsWithdrawalsCtx = document.getElementById('depositsVsWithdrawalsChart').getContext('2d');
+        new Chart(depositsVsWithdrawalsCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Deposits', 'Withdrawals'],
+                datasets: [{
+                    label: 'Amount ($)',
+                    data: [{{ deposits_total }}, {{ withdrawals_total }}],
+                    backgroundColor: [
+                        'rgba(59, 130, 246, 0.7)',
+                        'rgba(239, 68, 68, 0.7)'
+                    ],
+                    borderColor: [
+                        'rgba(59, 130, 246, 1)',
+                        'rgba(239, 68, 68, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        const balanceEvolutionCtx = document.getElementById('balanceEvolutionChart').getContext('2d');
+        new Chart(balanceEvolutionCtx, {
+            type: 'line',
+            data: {
+                labels: {{ evolution_labels|safe }},
+                datasets: [{
+                    label: 'Balance ($)',
+                    data: {{ evolution_data|safe }},
+                    borderColor: 'rgba(34, 197, 94, 1)',
+                    backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    </script>
+{% endblock %}
