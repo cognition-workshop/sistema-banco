@@ -1,3 +1,4 @@
+import logging
 from django.contrib import messages
 from django.contrib.auth import get_user_model, login, logout
 from django.contrib.auth.views import LoginView
@@ -7,7 +8,7 @@ from django.views.generic import TemplateView, RedirectView
 
 from .forms import UserRegistrationForm, UserAddressForm
 
-
+logger = logging.getLogger(__name__)
 User = get_user_model()
 
 
@@ -28,22 +29,35 @@ class UserRegistrationView(TemplateView):
         address_form = UserAddressForm(self.request.POST)
 
         if registration_form.is_valid() and address_form.is_valid():
-            user = registration_form.save()
-            address = address_form.save(commit=False)
-            address.user = user
-            address.save()
+            try:
+                user = registration_form.save()
+                address = address_form.save(commit=False)
+                address.user = user
+                address.save()
 
-            login(self.request, user)
-            messages.success(
-                self.request,
-                (
-                    f'Thank You For Creating A Bank Account. '
-                    f'Your Account Number is {user.account.account_no}. '
+                login(self.request, user)
+                
+                logger.info(f"User registration successful: {user.email}, account_no: {user.account.account_no}")
+                
+                messages.success(
+                    self.request,
+                    (
+                        f'Thank You For Creating A Bank Account. '
+                        f'Your Account Number is {user.account.account_no}. '
+                    )
                 )
-            )
-            return HttpResponseRedirect(
-                reverse_lazy('transactions:deposit_money')
-            )
+                return HttpResponseRedirect(
+                    reverse_lazy('transactions:deposit_money')
+                )
+            except Exception as e:
+                logger.error(f"User registration failed: {str(e)}", exc_info=True)
+                messages.error(self.request, 'Registration failed. Please try again.')
+                return self.render_to_response(
+                    self.get_context_data(
+                        registration_form=registration_form,
+                        address_form=address_form
+                    )
+                )
 
         return self.render_to_response(
             self.get_context_data(
