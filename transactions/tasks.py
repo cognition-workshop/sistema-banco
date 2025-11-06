@@ -11,7 +11,7 @@ from transactions.models import Transaction
 def calculate_interest():
     accounts = UserBankAccount.objects.filter(
         balance__gt=0,
-        interest_start_date__gte=timezone.now(),
+        interest_start_date__lte=timezone.now(),
         initial_deposit_date__isnull=False
     ).select_related('account_type')
 
