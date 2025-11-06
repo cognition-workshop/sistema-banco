@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'accounts',
     'core',
     'transactions',
+    'pix',
 ]
 
 MIDDLEWARE = [
@@ -53,6 +54,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'banking_system.middleware.AuditMiddleware',
 ]
 
 ROOT_URLCONF = 'banking_system.urls'

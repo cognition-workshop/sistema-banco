@@ -1,6 +1,9 @@
 celery==4.4.7
 Django==3.2.9
 django-celery-beat==2.1.0
+django-ipware==4.0.2
 djangorestframework==3.14.0
 python-dateutil==2.8.2
+qrcode==7.4.2
+pyzbar==0.1.9
 redis==3.5.3
