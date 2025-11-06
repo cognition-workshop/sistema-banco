@@ -13,7 +13,7 @@ from transactions.forms import (
     TransactionDateRangeForm,
     WithdrawForm,
 )
-from transactions.models import Transaction
+from transactions.models import Transaction, AuditLog
 
 
 class TransactionRepostView(ListView):
@@ -102,6 +102,8 @@ class DepositMoneyView(TransactionCreateMixin):
         if not account:
             return super().form_valid(form)
 
+        balance_before = account.balance
+
         if not account.initial_deposit_date:
             now = timezone.now()
             next_interest_month = int(
@@ -128,7 +130,20 @@ class DepositMoneyView(TransactionCreateMixin):
             f'{amount}$ was deposited to your account successfully'
         )
 
-        return super().form_valid(form)
+        response = super().form_valid(form)
+        
+        AuditLog.objects.create(
+            user=account.user,
+            account=account,
+            transaction=self.object,
+            operation_type=DEPOSIT,
+            amount=amount,
+            balance_before=balance_before,
+            balance_after=account.balance,
+            description=f'Deposit of ${amount}'
+        )
+
+        return response
 
 
 class WithdrawMoneyView(TransactionCreateMixin):
@@ -144,13 +159,33 @@ class WithdrawMoneyView(TransactionCreateMixin):
         # Bypass login - use demo user
         User = get_user_model()
         demo_user = User.objects.filter(email='demo@example.com').first()
+        
+        balance_before = None
+        account = None
+        
         if demo_user and hasattr(demo_user, 'account'):
-            demo_user.account.balance -= form.cleaned_data.get('amount')
-            demo_user.account.save(update_fields=['balance'])
+            account = demo_user.account
+            balance_before = account.balance
+            account.balance -= form.cleaned_data.get('amount')
+            account.save(update_fields=['balance'])
 
         messages.success(
             self.request,
             f'Successfully withdrawn {amount}$ from your account'
         )
 
-        return super().form_valid(form)
+        response = super().form_valid(form)
+        
+        if account:
+            AuditLog.objects.create(
+                user=account.user,
+                account=account,
+                transaction=self.object,
+                operation_type=WITHDRAWAL,
+                amount=amount,
+                balance_before=balance_before,
+                balance_after=account.balance,
+                description=f'Withdrawal of ${amount}'
+            )
+
+        return response
