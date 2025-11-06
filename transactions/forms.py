@@ -23,9 +23,22 @@ class TransactionForm(forms.ModelForm):
         self.fields['transaction_type'].widget = forms.HiddenInput()
 
     def save(self, commit=True):
+        from core.middleware import get_current_request, get_client_ip
+        
         self.instance.account = self.account
+        self.instance.previous_balance = self.account.balance
         self.instance.balance_after_transaction = self.account.balance
-        return super().save()
+        
+        request = get_current_request()
+        if request and request.user.is_authenticated:
+            self.instance.user = request.user
+            self.instance.ip_address = get_client_ip(request)
+            self.instance.metadata = {
+                'user_agent': request.META.get('HTTP_USER_AGENT', ''),
+                'request_method': request.method,
+            }
+        
+        return super().save(commit=commit)
 
 
 class DepositForm(TransactionForm):
@@ -64,8 +77,10 @@ class WithdrawForm(TransactionForm):
                 f'You can withdraw at most {max_withdraw_amount} $'
             )
 
-        # TODO: Add validation to prevent negative balances
-        # Bug: Users can currently withdraw more than their balance
+        if amount > balance:
+            raise forms.ValidationError(
+                f'Insufficient funds. Your current balance is {balance} $'
+            )
 
         return amount
 

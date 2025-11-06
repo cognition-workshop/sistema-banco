@@ -101,6 +101,8 @@ class DepositMoneyView(TransactionCreateMixin):
         account = demo_user.account if demo_user and hasattr(demo_user, 'account') else None
         if not account:
             return super().form_valid(form)
+        
+        form.instance.previous_balance = account.balance
 
         if not account.initial_deposit_date:
             now = timezone.now()
@@ -115,6 +117,9 @@ class DepositMoneyView(TransactionCreateMixin):
             )
 
         account.balance += amount
+        
+        form.instance.balance_after_transaction = account.balance
+        
         account.save(
             update_fields=[
                 'initial_deposit_date',
@@ -145,7 +150,12 @@ class WithdrawMoneyView(TransactionCreateMixin):
         User = get_user_model()
         demo_user = User.objects.filter(email='demo@example.com').first()
         if demo_user and hasattr(demo_user, 'account'):
-            demo_user.account.balance -= form.cleaned_data.get('amount')
+            form.instance.previous_balance = demo_user.account.balance
+            
+            demo_user.account.balance -= amount
+            
+            form.instance.balance_after_transaction = demo_user.account.balance
+            
             demo_user.account.save(update_fields=['balance'])
 
         messages.success(
