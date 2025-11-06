@@ -7,17 +7,11 @@ from accounts.models import UserBankAccount
 class Transaction(models.Model):
     account = models.ForeignKey(
         UserBankAccount,
-        related_name='transactions',
+        related_name="transactions",
         on_delete=models.CASCADE,
     )
-    amount = models.DecimalField(
-        decimal_places=2,
-        max_digits=12
-    )
-    balance_after_transaction = models.DecimalField(
-        decimal_places=2,
-        max_digits=12
-    )
+    amount = models.DecimalField(decimal_places=2, max_digits=12)
+    balance_after_transaction = models.DecimalField(decimal_places=2, max_digits=12)
     transaction_type = models.PositiveSmallIntegerField(
         choices=TRANSACTION_TYPE_CHOICES
     )
@@ -27,4 +21,4 @@ class Transaction(models.Model):
         return str(self.account.account_no)
 
     class Meta:
-        ordering = ['timestamp']
+        ordering = ["timestamp"]
