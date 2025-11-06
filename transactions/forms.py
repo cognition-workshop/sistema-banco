@@ -2,6 +2,7 @@ import datetime
 
 from django import forms
 from django.conf import settings
+from django.core.cache import cache
 
 from .models import Transaction
 
@@ -25,7 +26,11 @@ class TransactionForm(forms.ModelForm):
     def save(self, commit=True):
         self.instance.account = self.account
         self.instance.balance_after_transaction = self.account.balance
-        return super().save()
+        result = super().save(commit=commit)
+        
+        cache.delete_pattern(f"transaction_report:{self.account.id}:*")
+        
+        return result
 
 
 class DepositForm(TransactionForm):
