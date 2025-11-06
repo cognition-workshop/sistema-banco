@@ -27,4 +27,4 @@ class Transaction(models.Model):
         return str(self.account.account_no)
 
     class Meta:
-        ordering = ['timestamp']
+        ordering = ['-timestamp']
