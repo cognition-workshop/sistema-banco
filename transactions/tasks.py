@@ -31,7 +31,8 @@ def calculate_interest():
             transaction_obj = Transaction(
                 account=account,
                 transaction_type=INTEREST,
-                amount=interest
+                amount=interest,
+                balance_after_transaction=account.balance
             )
             created_transactions.append(transaction_obj)
             updated_accounts.append(account)
