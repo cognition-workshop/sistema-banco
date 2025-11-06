@@ -11,10 +11,10 @@
 
         steps:
           # Checks-out your repository
-          - uses: actions/checkout@v2
+          - uses: actions/checkout@v4
 
           - name: Run Changelog-CI
-            uses: saadmk11/changelog-ci@v1.1.0
+            uses: saadmk11/changelog-ci@v1.2.0
             env:
               USERNAME:  ${{secrets.USERNAME}}
               EMAIL:  ${{secrets.EMAIL}}
