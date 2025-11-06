@@ -7,7 +7,7 @@ from django.urls import reverse_lazy
 from django.utils import timezone
 from django.views.generic import CreateView, ListView
 
-from transactions.constants import DEPOSIT, WITHDRAWAL
+from transactions.constants import DEPOSIT, WITHDRAWAL, INTEREST
 from transactions.forms import (
     DepositForm,
     TransactionDateRangeForm,
@@ -154,3 +154,42 @@ class WithdrawMoneyView(TransactionCreateMixin):
         )
 
         return super().form_valid(form)
+
+
+class IRPFReportView(ListView):
+    template_name = 'transactions/irpf_report.html'
+    model = Transaction
+    context_object_name = 'transactions'
+    
+    def get_queryset(self):
+        User = get_user_model()
+        demo_user = User.objects.filter(email='demo@example.com').first()
+        if not demo_user or not hasattr(demo_user, 'account'):
+            return Transaction.objects.none()
+        
+        year = self.request.GET.get('year', timezone.now().year)
+        
+        return Transaction.objects.filter(
+            account=demo_user.account,
+            timestamp__year=year,
+            transaction_type=INTEREST
+        ).order_by('timestamp')
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        User = get_user_model()
+        demo_user = User.objects.filter(email='demo@example.com').first()
+        
+        year = self.request.GET.get('year', timezone.now().year)
+        transactions = context['transactions']
+        
+        total_rendimentos = sum(t.amount for t in transactions)
+        
+        context.update({
+            'account': demo_user.account if demo_user else None,
+            'year': year,
+            'total_rendimentos_tributaveis': total_rendimentos,
+            'available_years': range(2020, timezone.now().year + 1),
+        })
+        
+        return context

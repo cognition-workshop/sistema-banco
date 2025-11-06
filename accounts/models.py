@@ -9,6 +9,8 @@ from django.db import models
 
 from .constants import GENDER_CHOICE
 from .managers import UserManager
+from .validators import validate_cpf, format_cpf
+from .utils import format_account_number
 
 
 class User(AbstractUser):
@@ -77,7 +79,18 @@ class UserBankAccount(models.Model):
         related_name='accounts',
         on_delete=models.CASCADE
     )
-    account_no = models.PositiveIntegerField(unique=True)
+    
+    cpf = models.CharField(
+        max_length=14,
+        unique=True,
+        validators=[validate_cpf],
+        help_text='CPF no formato XXX.XXX.XXX-XX'
+    )
+    agencia = models.CharField(max_length=4, help_text='Código da agência (4 dígitos)')
+    agencia_digito = models.CharField(max_length=1, help_text='Dígito verificador da agência')
+    conta = models.CharField(max_length=8, help_text='Número da conta')
+    conta_digito = models.CharField(max_length=1, help_text='Dígito verificador da conta')
+    
     gender = models.CharField(max_length=1, choices=GENDER_CHOICE)
     birth_date = models.DateField(null=True, blank=True)
     balance = models.DecimalField(
@@ -93,15 +106,30 @@ class UserBankAccount(models.Model):
     )
     initial_deposit_date = models.DateField(null=True, blank=True)
 
+    class Meta:
+        unique_together = [['agencia', 'conta']]
+        indexes = [
+            models.Index(fields=['cpf']),
+            models.Index(fields=['agencia', 'conta']),
+        ]
+
     def __str__(self):
-        return str(self.account_no)
+        return self.get_account_number()
+    
+    def get_account_number(self):
+        return format_account_number(
+            int(self.agencia), 
+            int(self.agencia_digito),
+            int(self.conta), 
+            int(self.conta_digito)
+        )
+    
+    def save(self, *args, **kwargs):
+        if self.cpf:
+            self.cpf = format_cpf(validate_cpf(self.cpf))
+        super().save(*args, **kwargs)
 
     def get_interest_calculation_months(self):
-        """
-        List of month numbers for which the interest will be calculated
-
-        returns [2, 4, 6, 8, 10, 12] for every 2 months interval
-        """
         interval = int(
             12 / self.account_type.interest_calculation_per_year
         )
