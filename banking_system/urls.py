@@ -17,11 +17,12 @@ from django.contrib import admin
 from django.urls import include, path
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
-from core.views import HomeView
+from core.views import HomeView, DashboardView
 
 
 urlpatterns = [
     path('', HomeView.as_view(), name='home'),
+    path('dashboard/', DashboardView.as_view(), name='dashboard'),
     path('accounts/', include('accounts.urls', namespace='accounts')),
     path('admin/', admin.site.urls),
     path('api/', include('api.urls', namespace='api')),

@@ -1,0 +1,13 @@
+{% comment %}
+Usage: {% include 'components/_card.html' with title='Card Title' %}
+Content goes between include tags
+{% endcomment %}
+
+<div class="card bg-white rounded-lg shadow-md p-6 transition-all duration-200 hover:shadow-lg">
+  {% if title %}
+  <h3 class="text-xl font-bold mb-4 text-gray-800 font-[Poppins]">{{ title }}</h3>
+  {% endif %}
+  <div class="card-content">
+    {{ content|safe }}
+  </div>
+</div>

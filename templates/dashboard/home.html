@@ -1,0 +1,227 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<div class="dashboard flex flex-col md:flex-row min-h-screen">
+  <aside class="sidebar hidden md:block w-64 bg-white shadow-lg fixed h-full overflow-y-auto">
+    <div class="p-6">
+      <h1 class="text-2xl font-bold text-blue-700 font-[Poppins]">Banking System</h1>
+    </div>
+    
+    <nav class="px-4 pb-4" aria-label="Navegação principal">
+      {% include 'components/_nav_item.html' with icon='home' label='Dashboard' url='dashboard' active=True %}
+      {% include 'components/_nav_item.html' with icon='receipt' label='Transações' url='transactions:transaction_report' %}
+      {% include 'components/_nav_item.html' with icon='arrow-right' label='Transferir' url='transactions:deposit_money' %}
+      {% include 'components/_nav_item.html' with icon='qrcode' label='PIX' url='transactions:pix_form' %}
+    </nav>
+  </aside>
+  
+  <button class="md:hidden fixed top-4 left-4 z-50 p-2 bg-white rounded-lg shadow-md" aria-label="Abrir menu" onclick="document.getElementById('mobile-menu').classList.toggle('hidden')">
+    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+    </svg>
+  </button>
+  
+  <div id="mobile-menu" class="hidden md:hidden fixed inset-0 z-40 bg-white">
+    <div class="p-6">
+      <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold text-blue-700 font-[Poppins]">Banking System</h1>
+        <button onclick="document.getElementById('mobile-menu').classList.add('hidden')" aria-label="Fechar menu">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+      <nav aria-label="Navegação principal">
+        {% include 'components/_nav_item.html' with icon='home' label='Dashboard' url='dashboard' active=True %}
+        {% include 'components/_nav_item.html' with icon='receipt' label='Transações' url='transactions:transaction_report' %}
+        {% include 'components/_nav_item.html' with icon='arrow-right' label='Transferir' url='transactions:deposit_money' %}
+        {% include 'components/_nav_item.html' with icon='qrcode' label='PIX' url='transactions:pix_form' %}
+      </nav>
+    </div>
+  </div>
+  
+  <main role="main" class="flex-1 md:ml-64 p-4 md:p-8">
+    <header class="mb-8">
+      <div class="flex justify-between items-center">
+        <div>
+          <h2 class="text-3xl font-bold text-gray-800 font-[Poppins]">Bem-vindo de volta!</h2>
+          <p class="text-gray-600">Aqui está um resumo da sua conta</p>
+        </div>
+        <div class="flex items-center gap-4">
+          <button class="p-2 rounded-full hover:bg-gray-100" aria-label="Notificações">
+            <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+            </svg>
+          </button>
+          <div class="flex items-center gap-2">
+            <div class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-semibold">
+              U
+            </div>
+            <span class="hidden md:block text-sm font-semibold text-gray-700">Demo User</span>
+          </div>
+        </div>
+      </div>
+    </header>
+    
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+      <div class="card-saldo lg:col-span-2" hx-get="{% url 'api_balance' %}" hx-trigger="every 30s" hx-swap="innerHTML">
+        <h2 class="text-sm font-semibold text-gray-600 mb-2">Saldo Disponível</h2>
+        <p class="text-4xl font-bold text-gray-900 mb-4" aria-live="polite">R$ {{ balance|floatformat:2 }}</p>
+        <a href="{% url 'transactions:transaction_report' %}" class="text-blue-600 hover:text-blue-800 font-medium transition-colors">
+          Ver extrato →
+        </a>
+      </div>
+      
+      <div class="card bg-gradient-to-br from-blue-500 to-blue-700 text-white">
+        <h3 class="text-sm font-semibold mb-2 opacity-90">Conta Corrente</h3>
+        <p class="text-2xl font-bold">{{ account.account_no|default:'N/A' }}</p>
+      </div>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+      <div class="card bg-green-50 border border-green-200">
+        <p class="text-green-600 font-semibold mb-1">Recebido</p>
+        <p class="text-2xl font-bold text-green-700">R$ {{ total_received|floatformat:2 }}</p>
+      </div>
+      <div class="card bg-red-50 border border-red-200">
+        <p class="text-red-600 font-semibold mb-1">Gasto</p>
+        <p class="text-2xl font-bold text-red-700">R$ {{ total_spent|floatformat:2 }}</p>
+      </div>
+      <div class="card bg-blue-50 border border-blue-200">
+        <p class="text-blue-600 font-semibold mb-1">Saldo</p>
+        <p class="text-2xl font-bold text-blue-700">R$ {{ balance|floatformat:2 }}</p>
+      </div>
+    </div>
+    
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+      <div class="card">
+        <h3 class="text-xl font-bold mb-4 font-[Poppins]">Últimas Transações</h3>
+        <div class="space-y-2">
+          {% for transaction in recent_transactions %}
+            {% include 'components/_transaction_item.html' with transaction=transaction %}
+          {% empty %}
+            <div class="text-center py-8 text-gray-500">
+              <svg class="w-16 h-16 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+              </svg>
+              <p>Nenhuma transação encontrada</p>
+            </div>
+          {% endfor %}
+        </div>
+        <a href="{% url 'transactions:transaction_report' %}" class="block mt-4 text-center text-blue-600 hover:text-blue-800 font-medium transition-colors">
+          Ver todas →
+        </a>
+      </div>
+      
+      <div class="card">
+        <h3 class="text-xl font-bold mb-4 font-[Poppins]">Evolução do Saldo</h3>
+        <canvas id="balanceChart" class="w-full" style="height: 300px;"></canvas>
+      </div>
+    </div>
+    
+    <div class="card">
+      <h3 class="text-xl font-bold mb-4 font-[Poppins]">Ações Rápidas</h3>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <a href="{% url 'transactions:deposit_money' %}" class="flex flex-col items-center justify-center p-6 bg-gray-50 hover:bg-gray-100 rounded-lg transition-all duration-200 hover:shadow-md">
+          <span class="text-4xl mb-2">💰</span>
+          <span class="font-semibold text-gray-700">Depositar</span>
+        </a>
+        <a href="{% url 'transactions:withdraw_money' %}" class="flex flex-col items-center justify-center p-6 bg-gray-50 hover:bg-gray-100 rounded-lg transition-all duration-200 hover:shadow-md">
+          <span class="text-4xl mb-2">💵</span>
+          <span class="font-semibold text-gray-700">Sacar</span>
+        </a>
+        <a href="{% url 'transactions:pix_form' %}" class="flex flex-col items-center justify-center p-6 bg-gray-50 hover:bg-gray-100 rounded-lg transition-all duration-200 hover:shadow-md">
+          <span class="text-4xl mb-2">📱</span>
+          <span class="font-semibold text-gray-700">PIX</span>
+        </a>
+        <a href="#" class="flex flex-col items-center justify-center p-6 bg-gray-50 hover:bg-gray-100 rounded-lg transition-all duration-200 hover:shadow-md">
+          <span class="text-4xl mb-2">📄</span>
+          <span class="font-semibold text-gray-700">Pagar Conta</span>
+        </a>
+      </div>
+    </div>
+  </main>
+  
+  <nav class="md:hidden fixed bottom-0 inset-x-0 bg-white shadow-lg border-t border-gray-200 z-30">
+    <div class="flex justify-around py-2">
+      <a href="{% url 'dashboard' %}" class="flex flex-col items-center py-2 px-3 text-blue-600">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+        </svg>
+        <span class="text-xs mt-1">Início</span>
+      </a>
+      <a href="{% url 'transactions:transaction_report' %}" class="flex flex-col items-center py-2 px-3 text-gray-600">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+        </svg>
+        <span class="text-xs mt-1">Extrato</span>
+      </a>
+      <a href="{% url 'transactions:pix_form' %}" class="flex flex-col items-center py-2 px-3 text-gray-600">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path>
+        </svg>
+        <span class="text-xs mt-1">PIX</span>
+      </a>
+    </div>
+  </nav>
+</div>
+
+<script>
+  {% if dates and balances %}
+  const ctx = document.getElementById('balanceChart');
+  if (ctx) {
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: {{ dates|safe }},
+        datasets: [{
+          label: 'Saldo',
+          data: {{ balances|safe }},
+          borderColor: '#3B82F6',
+          backgroundColor: 'rgba(59, 130, 246, 0.1)',
+          tension: 0.4,
+          fill: true
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: false
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: false,
+            ticks: {
+              callback: function(value) {
+                return 'R$ ' + value.toFixed(2);
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+  {% endif %}
+  
+  function animateValue(elem, start, end, duration) {
+    if (!elem) return;
+    let startTime = null;
+    const step = (timestamp) => {
+      if (!startTime) startTime = timestamp;
+      const progress = Math.min((timestamp - startTime) / duration, 1);
+      elem.textContent = 'R$ ' + (progress * (end - start) + start).toFixed(2);
+      if (progress < 1) window.requestAnimationFrame(step);
+    };
+    window.requestAnimationFrame(step);
+  }
+  
+  const balanceElem = document.querySelector('.card-saldo p');
+  if (balanceElem) {
+    const currentBalance = {{ balance|default:0 }};
+    animateValue(balanceElem, 0, currentBalance, 1000);
+  }
+</script>
+{% endblock %}
