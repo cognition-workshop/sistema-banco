@@ -1,22 +1,15 @@
 from django.contrib import admin
 from django.utils.html import format_html
 
-<<<<<<< HEAD
-from .models import Transaction, FraudAlert
-||||||| 3b88f86
-from transactions.models import Transaction
-=======
-from transactions.models import Transaction, ChavePix, TransferenciaPix
->>>>>>> 95130f10c6c0e6762b41f261beb96f020e992ef9
+from .models import Transaction, FraudAlert, ChavePix, TransferenciaPix
 
-<<<<<<< HEAD
 
 @admin.register(Transaction)
 class TransactionAdmin(admin.ModelAdmin):
-    list_display = ['account_no', 'transaction_type_display', 'amount', 'balance_after_transaction', 'timestamp']
+    list_display = ['account_no', 'transaction_type_display', 'amount', 'balance_after_transaction', 'timestamp', 'transaction_hash']
     list_filter = ['transaction_type', 'timestamp']
-    search_fields = ['account__account_no', 'account__user__email']
-    readonly_fields = ['account', 'amount', 'balance_after_transaction', 'transaction_type', 'timestamp']
+    search_fields = ['account__account_no', 'account__user__email', 'transaction_hash', 'account__cpf']
+    readonly_fields = ['account', 'amount', 'balance_after_transaction', 'transaction_type', 'timestamp', 'transaction_hash']
     date_hierarchy = 'timestamp'
     
     def account_no(self, obj):
@@ -31,6 +24,9 @@ class TransactionAdmin(admin.ModelAdmin):
             obj.get_transaction_type_display()
         )
     transaction_type_display.short_description = 'Type'
+    
+    def has_delete_permission(self, request, obj=None):
+        return False
 
 
 @admin.register(FraudAlert)
@@ -56,19 +52,6 @@ class FraudAlertAdmin(admin.ModelAdmin):
         updated = queryset.update(is_resolved=False, resolved_at=None)
         self.message_user(request, f'{updated} alert(s) marked as unresolved.')
     mark_unresolved.short_description = 'Mark selected alerts as unresolved'
-||||||| 3b88f86
-admin.site.register(Transaction)
-=======
-
-@admin.register(Transaction)
-class TransactionAdmin(admin.ModelAdmin):
-    list_display = ['id', 'account', 'transaction_type', 'amount', 'timestamp', 'transaction_hash']
-    list_filter = ['transaction_type', 'timestamp']
-    search_fields = ['transaction_hash', 'account__cpf']
-    readonly_fields = ['transaction_hash', 'timestamp']
-    
-    def has_delete_permission(self, request, obj=None):
-        return False
 
 
 @admin.register(ChavePix)
@@ -82,4 +65,3 @@ class ChavePixAdmin(admin.ModelAdmin):
 class TransferenciaPixAdmin(admin.ModelAdmin):
     list_display = ['transaction', 'chave_destino_valor', 'status']
     list_filter = ['status']
->>>>>>> 95130f10c6c0e6762b41f261beb96f020e992ef9
