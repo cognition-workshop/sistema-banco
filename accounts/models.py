@@ -9,6 +9,7 @@ from django.db import models
 
 from .constants import GENDER_CHOICE
 from .managers import UserManager
+from .utils import calculate_compound_interest
 
 
 class User(AbstractUser):
@@ -56,14 +57,11 @@ class BankAccountType(models.Model):
 
         This uses a basic interest calculation formula
         """
-        p = principal
-        r = self.annual_interest_rate
-        n = Decimal(self.interest_calculation_per_year)
-
-        # Basic Future Value formula to calculate interest
-        interest = (p * (1 + ((r/100) / n))) - p
-
-        return round(interest, 2)
+        return calculate_compound_interest(
+            principal,
+            self.annual_interest_rate,
+            self.interest_calculation_per_year
+        )
 
 
 class UserBankAccount(models.Model):
