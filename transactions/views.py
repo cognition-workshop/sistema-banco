@@ -3,8 +3,11 @@ from dateutil.relativedelta import relativedelta
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth import get_user_model
+from django.shortcuts import render
 from django.urls import reverse_lazy
 from django.utils import timezone
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
 from django.views.generic import CreateView, ListView
 
 from transactions.constants import DEPOSIT, WITHDRAWAL
@@ -16,6 +19,7 @@ from transactions.forms import (
 from transactions.models import Transaction
 
 
+@method_decorator(cache_page(3600), name='dispatch')
 class TransactionRepostView(ListView):
     template_name = 'transactions/transaction_report.html'
     model = Transaction
@@ -128,6 +132,12 @@ class DepositMoneyView(TransactionCreateMixin):
             f'{amount}$ was deposited to your account successfully'
         )
 
+        if self.request.headers.get('HX-Request'):
+            return render(self.request, 'transactions/_transaction_result.html', {
+                'success': True,
+                'message': f'{amount}$ was deposited to your account successfully'
+            })
+
         return super().form_valid(form)
 
 
@@ -152,5 +162,11 @@ class WithdrawMoneyView(TransactionCreateMixin):
             self.request,
             f'Successfully withdrawn {amount}$ from your account'
         )
+
+        if self.request.headers.get('HX-Request'):
+            return render(self.request, 'transactions/_transaction_result.html', {
+                'success': True,
+                'message': f'Successfully withdrawn {amount}$ from your account'
+            })
 
         return super().form_valid(form)
