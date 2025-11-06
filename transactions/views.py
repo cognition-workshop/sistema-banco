@@ -16,7 +16,7 @@ from transactions.forms import (
 from transactions.models import Transaction
 
 
-class TransactionRepostView(ListView):
+class TransactionRepostView(LoginRequiredMixin, ListView):
     template_name = 'transactions/transaction_report.html'
     model = Transaction
     form_data = {}
@@ -29,14 +29,8 @@ class TransactionRepostView(ListView):
         return super().get(request, *args, **kwargs)
 
     def get_queryset(self):
-        # Bypass login - use demo user
-        User = get_user_model()
-        demo_user = User.objects.filter(email='demo@example.com').first()
-        if not demo_user or not hasattr(demo_user, 'account'):
-            return super().get_queryset().none()
-        
         queryset = super().get_queryset().filter(
-            account=demo_user.account
+            account=self.request.user.account
         )
 
         daterange = self.form_data.get("daterange")
@@ -48,18 +42,15 @@ class TransactionRepostView(ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # Bypass login - use demo user
-        User = get_user_model()
-        demo_user = User.objects.filter(email='demo@example.com').first()
         context.update({
-            'account': demo_user.account if demo_user and hasattr(demo_user, 'account') else None,
+            'account': self.request.user.account,
             'form': TransactionDateRangeForm(self.request.GET or None)
         })
 
         return context
 
 
-class TransactionCreateMixin(CreateView):
+class TransactionCreateMixin(LoginRequiredMixin, CreateView):
     template_name = 'transactions/transaction_form.html'
     model = Transaction
     title = ''
@@ -67,13 +58,9 @@ class TransactionCreateMixin(CreateView):
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
-        # Bypass login - use demo user
-        User = get_user_model()
-        demo_user = User.objects.filter(email='demo@example.com').first()
-        if demo_user and hasattr(demo_user, 'account'):
-            kwargs.update({
-                'account': demo_user.account
-            })
+        kwargs.update({
+            'account': self.request.user.account
+        })
         return kwargs
 
     def get_context_data(self, **kwargs):
@@ -95,12 +82,7 @@ class DepositMoneyView(TransactionCreateMixin):
 
     def form_valid(self, form):
         amount = form.cleaned_data.get('amount')
-        # Bypass login - use demo user
-        User = get_user_model()
-        demo_user = User.objects.filter(email='demo@example.com').first()
-        account = demo_user.account if demo_user and hasattr(demo_user, 'account') else None
-        if not account:
-            return super().form_valid(form)
+        account = self.request.user.account
 
         if not account.initial_deposit_date:
             now = timezone.now()
@@ -141,12 +123,9 @@ class WithdrawMoneyView(TransactionCreateMixin):
 
     def form_valid(self, form):
         amount = form.cleaned_data.get('amount')
-        # Bypass login - use demo user
-        User = get_user_model()
-        demo_user = User.objects.filter(email='demo@example.com').first()
-        if demo_user and hasattr(demo_user, 'account'):
-            demo_user.account.balance -= form.cleaned_data.get('amount')
-            demo_user.account.save(update_fields=['balance'])
+        
+        self.request.user.account.balance -= amount
+        self.request.user.account.save(update_fields=['balance'])
 
         messages.success(
             self.request,

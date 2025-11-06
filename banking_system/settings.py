@@ -132,6 +132,7 @@ MINIMUM_WITHDRAWAL_AMOUNT = 10
 
 # Login redirect
 LOGIN_REDIRECT_URL = 'home'
+LOGIN_URL = 'accounts:user_login'
 
 # Celery Settings
 CELERY_BROKER_URL = 'redis://localhost:6379'
