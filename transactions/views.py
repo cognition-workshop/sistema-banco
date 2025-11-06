@@ -20,6 +20,7 @@ class TransactionRepostView(ListView):
     template_name = 'transactions/transaction_report.html'
     model = Transaction
     form_data = {}
+    paginate_by = 25
 
     def get(self, request, *args, **kwargs):
         form = TransactionDateRangeForm(request.GET or None)
@@ -37,7 +38,7 @@ class TransactionRepostView(ListView):
         
         queryset = super().get_queryset().filter(
             account=demo_user.account
-        )
+        ).select_related('account')
 
         daterange = self.form_data.get("daterange")
 
