@@ -27,6 +27,34 @@ Be sure you have the following installed on your development machine:
 + pip
 + Virtualenv (virtualenvwrapper is recommended)
 
+## Environment Setup
+
+The application uses environment variables for configuration. Follow these steps:
+
+1. Copy the example environment file:
+```bash
+cp .env.example .env
+```
+
+2. Edit `.env` and configure the following variables:
+
+**Required for Development:**
+- `SECRET_KEY`: Django secret key (use default for dev, generate new for production)
+- `DEBUG`: Set to `True` for development, `False` for production
+- `ALLOWED_HOSTS`: Comma-separated list of allowed hosts
+- `CELERY_BROKER_URL`: Redis connection URL (default: `redis://localhost:6379`)
+- `CELERY_RESULT_BACKEND`: Redis connection URL (default: `redis://localhost:6379`)
+
+**Production Security Settings:**
+For production deployment, enable these security headers:
+- `SECURE_SSL_REDIRECT=True`: Redirect HTTP to HTTPS
+- `SESSION_COOKIE_SECURE=True`: Send cookies only over HTTPS
+- `CSRF_COOKIE_SECURE=True`: Send CSRF cookies only over HTTPS
+- `SECURE_HSTS_SECONDS=31536000`: Enable HSTS for 1 year
+- `SECURE_HSTS_INCLUDE_SUBDOMAINS=True`: Apply HSTS to subdomains
+
+**Note:** The application will work with default values if no `.env` file is present, but you should always create one for production deployments with secure values.
+
 ## Requirements
 
 + celery==4.4.7
