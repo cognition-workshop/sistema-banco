@@ -1,22 +1,232 @@
 {% extends 'core/base.html' %}
 
-{% block head_title %}Banking System{% endblock %}
+{% block head_title %}Dashboard - SecureBank{% endblock %}
 
 {% block content %}
-    <div class="container mx-auto flex flex-col md:flex-row items-center my-12 md:my-24">
-        <!--Left Col-->
-        <div class="flex flex-col w-full lg:w-1/2 justify-center items-start pt-12 pb-24 px-6">
-            <h1 class="font-bold text-4xl my-4">Banking System</h1>
-            <p class="leading-normal mb-4">
-                A modern web application for managing your banking transactions.
-            </p>
-            <div>
-            <a href="{% url 'transactions:transaction_report' %}" class="bg-transparent hover:bg-gray-800 text-gray-800 hover:text-white rounded shadow hover:shadow-lg py-2 px-4 border border-gray-900 hover:border-transparent">View Transactions</a>
+    <div class="py-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="mb-8">
+                <h1 class="text-3xl font-bold text-gray-800">
+                    <i class="fas fa-chart-line mr-2 text-blue-600"></i>
+                    Account Dashboard
+                </h1>
+                <p class="text-gray-600 mt-2">Welcome back, {{ user.first_name }}! Here's your account overview.</p>
             </div>
-        </div>
-        <!--Right Col-->
-        <div class="w-full lg:w-1/2 lg:py-6 text-center">
-            <h1 style="font-size: 12rem" class="font-black text-gray-800">$$$</h1>
+
+            {% if account %}
+            <div class="bg-gradient-to-r from-blue-600 to-blue-800 rounded-lg shadow-xl p-8 mb-8 text-white">
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+                    <div>
+                        <p class="text-blue-200 text-sm font-semibold uppercase tracking-wide">Current Balance</p>
+                        <h2 class="text-5xl font-bold mt-2">${{ account.balance }}</h2>
+                        <p class="text-blue-200 mt-2">
+                            <i class="fas fa-credit-card mr-2"></i>
+                            {{ account.account_type.name }} - Account #{{ account.account_no }}
+                        </p>
+                    </div>
+                    <div class="mt-6 md:mt-0">
+                        <div class="flex flex-col space-y-3">
+                            <a href="{% url 'transactions:deposit_money' %}" class="bg-green-500 hover:bg-green-600 text-white font-semibold py-3 px-6 rounded-lg shadow-lg transition duration-200 text-center">
+                                <i class="fas fa-plus-circle mr-2"></i>Deposit Money
+                            </a>
+                            <a href="{% url 'transactions:withdraw_money' %}" class="bg-red-500 hover:bg-red-600 text-white font-semibold py-3 px-6 rounded-lg shadow-lg transition duration-200 text-center">
+                                <i class="fas fa-minus-circle mr-2"></i>Withdraw Money
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-green-500">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm font-semibold uppercase">Total Deposits</p>
+                            <p class="text-2xl font-bold text-gray-800 mt-2">${{ total_deposits }}</p>
+                        </div>
+                        <div class="bg-green-100 rounded-full p-3">
+                            <i class="fas fa-arrow-up text-green-600 text-2xl"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-red-500">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm font-semibold uppercase">Total Withdrawals</p>
+                            <p class="text-2xl font-bold text-gray-800 mt-2">${{ total_withdrawals }}</p>
+                        </div>
+                        <div class="bg-red-100 rounded-full p-3">
+                            <i class="fas fa-arrow-down text-red-600 text-2xl"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-blue-500">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm font-semibold uppercase">Transactions</p>
+                            <p class="text-2xl font-bold text-gray-800 mt-2">{{ transaction_count }}</p>
+                        </div>
+                        <div class="bg-blue-100 rounded-full p-3">
+                            <i class="fas fa-exchange-alt text-blue-600 text-2xl"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-purple-500">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm font-semibold uppercase">Account Age</p>
+                            <p class="text-2xl font-bold text-gray-800 mt-2">{{ account_age }} days</p>
+                        </div>
+                        <div class="bg-purple-100 rounded-full p-3">
+                            <i class="fas fa-calendar-alt text-purple-600 text-2xl"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">
+                        <i class="fas fa-chart-area mr-2 text-blue-600"></i>
+                        Transaction Trends (Last 30 Days)
+                    </h3>
+                    <canvas id="transactionChart" class="w-full" style="max-height: 300px;"></canvas>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-xl font-bold text-gray-800">
+                            <i class="fas fa-history mr-2 text-blue-600"></i>
+                            Recent Transactions
+                        </h3>
+                        <a href="{% url 'transactions:transaction_report' %}" class="text-blue-600 hover:text-blue-800 text-sm font-semibold">
+                            View All <i class="fas fa-arrow-right ml-1"></i>
+                        </a>
+                    </div>
+                    <div class="space-y-3">
+                        {% for transaction in recent_transactions %}
+                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition duration-200">
+                            <div class="flex items-center">
+                                {% if transaction.transaction_type == 1 %}
+                                <div class="bg-green-100 rounded-full p-2 mr-3">
+                                    <i class="fas fa-arrow-up text-green-600"></i>
+                                </div>
+                                {% elif transaction.transaction_type == 2 %}
+                                <div class="bg-red-100 rounded-full p-2 mr-3">
+                                    <i class="fas fa-arrow-down text-red-600"></i>
+                                </div>
+                                {% else %}
+                                <div class="bg-yellow-100 rounded-full p-2 mr-3">
+                                    <i class="fas fa-star text-yellow-600"></i>
+                                </div>
+                                {% endif %}
+                                <div>
+                                    <p class="font-semibold text-gray-800">{{ transaction.get_transaction_type_display }}</p>
+                                    <p class="text-sm text-gray-500">{{ transaction.timestamp|date:"M d, Y - H:i" }}</p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <p class="font-bold {% if transaction.transaction_type == 1 %}text-green-600{% elif transaction.transaction_type == 2 %}text-red-600{% else %}text-yellow-600{% endif %}">
+                                    {% if transaction.transaction_type == 1 %}+{% elif transaction.transaction_type == 2 %}-{% endif %}${{ transaction.amount }}
+                                </p>
+                                <p class="text-sm text-gray-500">Balance: ${{ transaction.balance_after_transaction }}</p>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <p class="text-gray-500 text-center py-8">No transactions yet. Start by making a deposit!</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-blue-50 border-l-4 border-blue-500 p-6 rounded-lg mt-8">
+                <div class="flex items-start">
+                    <i class="fas fa-info-circle text-blue-600 text-2xl mr-4 mt-1"></i>
+                    <div>
+                        <h4 class="text-lg font-semibold text-blue-900 mb-2">Account Information</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-blue-800">
+                            <p><strong>Account Type:</strong> {{ account.account_type.name }}</p>
+                            <p><strong>Interest Rate:</strong> {{ account.account_type.annual_interest_rate }}% annually</p>
+                            <p><strong>Max Withdrawal:</strong> ${{ account.account_type.maximum_withdrawal_amount }}</p>
+                            <p><strong>Interest Frequency:</strong> {{ account.account_type.interest_calculation_per_year }}x per year</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="bg-yellow-50 border-l-4 border-yellow-500 p-6 rounded-lg">
+                <div class="flex items-center">
+                    <i class="fas fa-exclamation-triangle text-yellow-600 text-2xl mr-4"></i>
+                    <div>
+                        <h4 class="text-lg font-semibold text-yellow-900">No Account Found</h4>
+                        <p class="text-yellow-800">Please contact support to set up your account.</p>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
         </div>
     </div>
+{% endblock %}
+
+{% block footer_extra %}
+{% if chart_transactions %}
+<script>
+    const ctx = document.getElementById('transactionChart');
+    
+    const labels = [
+        {% for transaction in chart_transactions %}
+        '{{ transaction.timestamp|date:"M d" }}'{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ];
+    
+    const data = {
+        labels: labels,
+        datasets: [{
+            label: 'Balance',
+            data: [
+                {% for transaction in chart_transactions %}
+                {{ transaction.balance_after_transaction }}{% if not forloop.last %},{% endif %}
+                {% endfor %}
+            ],
+            borderColor: 'rgb(37, 99, 235)',
+            backgroundColor: 'rgba(37, 99, 235, 0.1)',
+            tension: 0.4,
+            fill: true
+        }]
+    };
+    
+    const config = {
+        type: 'line',
+        data: data,
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false,
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: false,
+                    ticks: {
+                        callback: function(value) {
+                            return '$' + value;
+                        }
+                    }
+                }
+            }
+        }
+    };
+    
+    new Chart(ctx, config);
+</script>
+{% endif %}
 {% endblock %}
