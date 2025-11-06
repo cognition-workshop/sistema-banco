@@ -4,8 +4,14 @@ from django.contrib.auth.views import LoginView
 from django.shortcuts import HttpResponseRedirect
 from django.urls import reverse_lazy
 from django.views.generic import TemplateView, RedirectView
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from rest_framework import status
 
 from .forms import UserRegistrationForm, UserAddressForm
+from .models import UserBankAccount
+from .serializers import UserBankAccountSerializer
 
 
 User = get_user_model()
@@ -73,3 +79,30 @@ class LogoutView(RedirectView):
         if self.request.user.is_authenticated:
             logout(self.request)
         return super().get_redirect_url(*args, **kwargs)
+
+
+class AccountBalanceAPIView(APIView):
+    
+    def get(self, request, account_no):
+        if not request.user.is_authenticated:
+            return Response(
+                {'detail': 'Authentication credentials were not provided.'},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+        
+        try:
+            account = UserBankAccount.objects.get(account_no=account_no)
+        except UserBankAccount.DoesNotExist:
+            return Response(
+                {'detail': 'Account not found.'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        if account.user != request.user:
+            return Response(
+                {'detail': 'You do not have permission to access this account.'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        serializer = UserBankAccountSerializer(account)
+        return Response(serializer.data, status=status.HTTP_200_OK)
