@@ -8,11 +8,42 @@
         <title>
             {% block head_title %}Banking System{% endblock %}
         </title>
-        <link href="https://unpkg.com/tailwindcss@^1.0/dist/tailwind.min.css" rel="stylesheet">
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link href="https://cdn.jsdelivr.net/npm/daisyui@4.4.19/dist/full.min.css" rel="stylesheet" type="text/css" />
+        <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
+        <style>
+            :root {
+                --primary-blue: #0052CC;
+                --dark-blue: #091E42;
+                --secondary-blue: #0066FF;
+                --light-blue: #E3F2FD;
+                --success-green: #22C55E;
+                --error-red: #EF4444;
+                --gray-50: #F9FAFB;
+                --gray-100: #F3F4F6;
+                --gray-800: #1F2937;
+            }
+            
+            .btn-primary {
+                background: linear-gradient(135deg, var(--primary-blue) 0%, var(--secondary-blue) 100%);
+            }
+            
+            .btn-primary:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 10px 20px rgba(0, 82, 204, 0.3);
+                transition: all 0.3s ease;
+            }
+            
+            .card-hover:hover {
+                transform: translateY(-4px);
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+                transition: all 0.3s ease;
+            }
+        </style>
 
         {% block head_extra %}{% endblock %}
     </head>
-    <body class="bg-gray-100">
+    <body class="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
         {% block body %}
             {% include 'core/navbar.html' %}
             <div class="lg:container lg:mx-auto">
