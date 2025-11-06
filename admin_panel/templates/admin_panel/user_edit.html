@@ -1,0 +1,61 @@
+{% extends 'admin_panel/base.html' %}
+
+{% block title %}Edit User{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <a href="{% url 'admin_panel:user_detail' object.id %}" class="text-blue-600 hover:text-blue-800">&larr; Back to User Detail</a>
+</div>
+
+<h1 class="text-3xl font-bold mb-6">Edit User</h1>
+
+<div class="bg-white rounded-lg shadow p-6 max-w-2xl">
+    <form method="post">
+        {% csrf_token %}
+        <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="{{ form.first_name.id_for_label }}">
+                First Name
+            </label>
+            {{ form.first_name }}
+            {% if form.first_name.errors %}
+                {% for error in form.first_name.errors %}
+                    <p class="text-red-600 text-sm italic">{{ error }}</p>
+                {% endfor %}
+            {% endif %}
+        </div>
+        
+        <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="{{ form.last_name.id_for_label }}">
+                Last Name
+            </label>
+            {{ form.last_name }}
+            {% if form.last_name.errors %}
+                {% for error in form.last_name.errors %}
+                    <p class="text-red-600 text-sm italic">{{ error }}</p>
+                {% endfor %}
+            {% endif %}
+        </div>
+        
+        <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="{{ form.email.id_for_label }}">
+                Email
+            </label>
+            {{ form.email }}
+            {% if form.email.errors %}
+                {% for error in form.email.errors %}
+                    <p class="text-red-600 text-sm italic">{{ error }}</p>
+                {% endfor %}
+            {% endif %}
+        </div>
+        
+        <div class="flex space-x-2">
+            <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                Save Changes
+            </button>
+            <a href="{% url 'admin_panel:user_detail' object.id %}" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
+                Cancel
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

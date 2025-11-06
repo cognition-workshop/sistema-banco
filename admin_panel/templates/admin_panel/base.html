@@ -1,0 +1,47 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <title>{% block title %}Admin Panel{% endblock %} - Banking System</title>
+    <link href="https://unpkg.com/tailwindcss@^1.0/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
+    <script src="https://cdn.jsdelivr.net/jquery/latest/jquery.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    {% block head_extra %}{% endblock %}
+</head>
+<body class="bg-gray-100">
+    <nav class="bg-gray-900 text-white p-4">
+        <div class="container mx-auto flex justify-between items-center">
+            <div class="flex items-center space-x-6">
+                <a href="{% url 'admin_panel:dashboard' %}" class="text-xl font-bold">Admin Panel</a>
+                <a href="{% url 'admin_panel:users_dashboard' %}" class="hover:text-gray-300">Users</a>
+                <a href="{% url 'admin_panel:transactions_dashboard' %}" class="hover:text-gray-300">Transactions</a>
+                <a href="{% url 'admin_panel:analytics_dashboard' %}" class="hover:text-gray-300">Analytics</a>
+                <a href="{% url 'admin_panel:fraud_dashboard' %}" class="hover:text-gray-300">Fraud</a>
+                <a href="{% url 'admin_panel:health_dashboard' %}" class="hover:text-gray-300">Health</a>
+            </div>
+            <div class="flex items-center space-x-4">
+                <span>{{ request.user.email }} ({{ request.user.get_role_display }})</span>
+                <a href="{% url 'admin_panel:logout' %}" class="bg-red-600 px-4 py-2 rounded hover:bg-red-700">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto mt-4">
+        {% for message in messages %}
+        <div class="bg-{% if message.tags == 'success' %}green{% elif message.tags == 'error' %}red{% else %}blue{% endif %}-100 border border-{% if message.tags == 'success' %}green{% elif message.tags == 'error' %}red{% else %}blue{% endif %}-400 text-{% if message.tags == 'success' %}green{% elif message.tags == 'error' %}red{% else %}blue{% endif %}-700 px-4 py-3 rounded mb-4">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="container mx-auto mt-6 px-4">
+        {% block content %}{% endblock %}
+    </div>
+
+    {% block footer_extra %}{% endblock %}
+</body>
+</html>

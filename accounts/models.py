@@ -19,6 +19,26 @@ class User(AbstractUser):
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
+    
+    SUPER_ADMIN = 'SUPER_ADMIN'
+    MANAGER = 'MANAGER'
+    ANALYST = 'ANALYST'
+    SUPPORT = 'SUPPORT'
+    REGULAR_USER = 'REGULAR_USER'
+    
+    ROLE_CHOICES = [
+        (SUPER_ADMIN, 'Super Admin'),
+        (MANAGER, 'Manager'),
+        (ANALYST, 'Analyst'),
+        (SUPPORT, 'Support'),
+        (REGULAR_USER, 'Regular User'),
+    ]
+    
+    role = models.CharField(
+        max_length=20,
+        choices=ROLE_CHOICES,
+        default=REGULAR_USER
+    )
 
     def __str__(self):
         return self.email
@@ -92,6 +112,9 @@ class UserBankAccount(models.Model):
         )
     )
     initial_deposit_date = models.DateField(null=True, blank=True)
+    conta_suspensa = models.BooleanField(default=False)
+    verificacao_pendente = models.BooleanField(default=False)
+    alto_risco = models.BooleanField(default=False)
 
     def __str__(self):
         return str(self.account_no)

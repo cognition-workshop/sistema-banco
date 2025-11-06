@@ -1,0 +1,118 @@
+{% extends 'admin_panel/base.html' %}
+
+{% block title %}User Detail{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <a href="{% url 'admin_panel:users_dashboard' %}" class="text-blue-600 hover:text-blue-800">&larr; Back to Users</a>
+</div>
+
+<h1 class="text-3xl font-bold mb-6">User Details</h1>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+    <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-xl font-bold mb-4">Personal Information</h2>
+        <dl class="space-y-2">
+            <div class="flex justify-between">
+                <dt class="font-semibold">Email:</dt>
+                <dd>{{ user_obj.email }}</dd>
+            </div>
+            <div class="flex justify-between">
+                <dt class="font-semibold">Name:</dt>
+                <dd>{{ user_obj.first_name }} {{ user_obj.last_name }}</dd>
+            </div>
+            <div class="flex justify-between">
+                <dt class="font-semibold">Role:</dt>
+                <dd>{{ user_obj.get_role_display }}</dd>
+            </div>
+            <div class="flex justify-between">
+                <dt class="font-semibold">Joined:</dt>
+                <dd>{{ user_obj.date_joined|date:"Y-m-d" }}</dd>
+            </div>
+        </dl>
+        <div class="mt-4">
+            <a href="{% url 'admin_panel:user_edit' user_obj.id %}" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                Edit User
+            </a>
+        </div>
+    </div>
+
+    {% if user_obj.account %}
+    <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-xl font-bold mb-4">Account Information</h2>
+        <dl class="space-y-2">
+            <div class="flex justify-between">
+                <dt class="font-semibold">Account No:</dt>
+                <dd>{{ user_obj.account.account_no }}</dd>
+            </div>
+            <div class="flex justify-between">
+                <dt class="font-semibold">Balance:</dt>
+                <dd>${{ user_obj.account.balance }}</dd>
+            </div>
+            <div class="flex justify-between">
+                <dt class="font-semibold">Account Type:</dt>
+                <dd>{{ user_obj.account.account_type.name }}</dd>
+            </div>
+            <div class="flex justify-between">
+                <dt class="font-semibold">Suspended:</dt>
+                <dd>{{ user_obj.account.conta_suspensa|yesno:"Yes,No" }}</dd>
+            </div>
+            <div class="flex justify-between">
+                <dt class="font-semibold">Pending Verification:</dt>
+                <dd>{{ user_obj.account.verificacao_pendente|yesno:"Yes,No" }}</dd>
+            </div>
+            <div class="flex justify-between">
+                <dt class="font-semibold">High Risk:</dt>
+                <dd>{{ user_obj.account.alto_risco|yesno:"Yes,No" }}</dd>
+            </div>
+        </dl>
+    </div>
+    {% endif %}
+</div>
+
+{% if transactions %}
+<div class="bg-white rounded-lg shadow p-6 mb-6">
+    <h2 class="text-xl font-bold mb-4">Recent Transactions</h2>
+    <div class="overflow-x-auto">
+        <table class="min-w-full">
+            <thead class="bg-gray-800 text-white">
+                <tr>
+                    <th class="px-4 py-2">Type</th>
+                    <th class="px-4 py-2">Amount</th>
+                    <th class="px-4 py-2">Balance After</th>
+                    <th class="px-4 py-2">Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for transaction in transactions %}
+                <tr class="border-b hover:bg-gray-50">
+                    <td class="px-4 py-2">{{ transaction.get_transaction_type_display }}</td>
+                    <td class="px-4 py-2">${{ transaction.amount }}</td>
+                    <td class="px-4 py-2">${{ transaction.balance_after_transaction }}</td>
+                    <td class="px-4 py-2">{{ transaction.timestamp|date:"Y-m-d H:i" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+{% if fraud_alerts %}
+<div class="bg-white rounded-lg shadow p-6">
+    <h2 class="text-xl font-bold mb-4">Fraud Alerts</h2>
+    <div class="space-y-2">
+        {% for alert in fraud_alerts %}
+        <div class="border-l-4 {% if alert.severity == 'CRITICAL' %}border-red-600{% elif alert.severity == 'HIGH' %}border-orange-600{% else %}border-yellow-600{% endif %} p-4 bg-gray-50">
+            <div class="flex justify-between">
+                <span class="font-semibold">{{ alert.get_severity_display }} - {{ alert.rule.name }}</span>
+                <span class="text-sm text-gray-600">{{ alert.created_at|date:"Y-m-d H:i" }}</span>
+            </div>
+            <p class="text-sm mt-1">{{ alert.description }}</p>
+            <span class="text-xs bg-gray-200 px-2 py-1 rounded mt-2 inline-block">{{ alert.get_status_display }}</span>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+{% endblock %}

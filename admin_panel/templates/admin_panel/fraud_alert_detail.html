@@ -1,0 +1,61 @@
+{% extends 'admin_panel/base.html' %}
+
+{% block title %}Fraud Alert Detail{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <a href="{% url 'admin_panel:fraud_dashboard' %}" class="text-blue-600 hover:text-blue-800">&larr; Back to Fraud Dashboard</a>
+</div>
+
+<h1 class="text-3xl font-bold mb-6">Fraud Alert Investigation</h1>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+    <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-xl font-bold mb-4">Alert Details</h2>
+        <dl class="space-y-2">
+            <div class="flex justify-between">
+                <dt class="font-semibold">Account No:</dt>
+                <dd>{{ alert.account.account_no }}</dd>
+            </div>
+            <div class="flex justify-between">
+                <dt class="font-semibold">Rule:</dt>
+                <dd>{{ alert.rule.name }}</dd>
+            </div>
+            <div class="flex justify-between">
+                <dt class="font-semibold">Severity:</dt>
+                <dd><span class="px-2 py-1 rounded text-xs {% if alert.severity == 'CRITICAL' %}bg-red-200 text-red-800{% elif alert.severity == 'HIGH' %}bg-orange-200 text-orange-800{% else %}bg-yellow-200 text-yellow-800{% endif %}">{{ alert.get_severity_display }}</span></dd>
+            </div>
+            <div class="flex justify-between">
+                <dt class="font-semibold">Created:</dt>
+                <dd>{{ alert.created_at|date:"Y-m-d H:i" }}</dd>
+            </div>
+            <div class="flex justify-between">
+                <dt class="font-semibold">Status:</dt>
+                <dd>{{ alert.get_status_display }}</dd>
+            </div>
+        </dl>
+        <div class="mt-4 p-4 bg-gray-50 rounded">
+            <p class="font-semibold mb-2">Description:</p>
+            <p class="text-sm">{{ alert.description }}</p>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-xl font-bold mb-4">Update Alert</h2>
+        <form method="post">
+            {% csrf_token %}
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2">Status</label>
+                {{ form.status }}
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2">Investigation Notes</label>
+                {{ form.notes }}
+            </div>
+            <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                Update Alert
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

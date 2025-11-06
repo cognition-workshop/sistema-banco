@@ -1,0 +1,83 @@
+{% extends 'admin_panel/base.html' %}
+
+{% block title %}Fraud Detection Dashboard{% endblock %}
+
+{% block content %}
+<h1 class="text-3xl font-bold mb-6">Fraud Detection Dashboard</h1>
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+    <div class="bg-white rounded-lg shadow p-6">
+        <h3 class="text-gray-500 text-sm font-semibold uppercase mb-2">Pending Alerts</h3>
+        <p class="text-3xl font-bold text-red-600">{{ pending_count }}</p>
+    </div>
+    <div class="bg-white rounded-lg shadow p-6">
+        <h3 class="text-gray-500 text-sm font-semibold uppercase mb-2">Critical Alerts</h3>
+        <p class="text-3xl font-bold text-orange-600">{{ critical_count }}</p>
+    </div>
+</div>
+
+<div class="bg-white rounded-lg shadow p-6 mb-6">
+    <h2 class="text-xl font-bold mb-4">Active Fraud Rules</h2>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {% for rule in rules %}
+        <div class="border rounded p-4">
+            <h3 class="font-bold">{{ rule.name }}</h3>
+            <p class="text-sm text-gray-600 mt-2">{{ rule.description }}</p>
+            <span class="text-xs bg-blue-200 text-blue-800 px-2 py-1 rounded mt-2 inline-block">{{ rule.get_rule_type_display }}</span>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<div class="bg-white rounded-lg shadow p-6">
+    <h2 class="text-xl font-bold mb-4">Recent Fraud Alerts</h2>
+    <div class="overflow-x-auto">
+        <table class="min-w-full">
+            <thead class="bg-gray-800 text-white">
+                <tr>
+                    <th class="px-4 py-2">Account No</th>
+                    <th class="px-4 py-2">Rule</th>
+                    <th class="px-4 py-2">Severity</th>
+                    <th class="px-4 py-2">Status</th>
+                    <th class="px-4 py-2">Created</th>
+                    <th class="px-4 py-2">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for alert in alerts %}
+                <tr class="border-b hover:bg-gray-50">
+                    <td class="px-4 py-2">{{ alert.account.account_no }}</td>
+                    <td class="px-4 py-2">{{ alert.rule.name }}</td>
+                    <td class="px-4 py-2">
+                        <span class="px-2 py-1 rounded text-xs {% if alert.severity == 'CRITICAL' %}bg-red-200 text-red-800{% elif alert.severity == 'HIGH' %}bg-orange-200 text-orange-800{% elif alert.severity == 'MEDIUM' %}bg-yellow-200 text-yellow-800{% else %}bg-green-200 text-green-800{% endif %}">
+                            {{ alert.get_severity_display }}
+                        </span>
+                    </td>
+                    <td class="px-4 py-2">{{ alert.get_status_display }}</td>
+                    <td class="px-4 py-2">{{ alert.created_at|date:"Y-m-d H:i" }}</td>
+                    <td class="px-4 py-2">
+                        <a href="{% url 'admin_panel:fraud_alert_detail' alert.id %}" class="text-blue-600 hover:text-blue-800">Investigate</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% if is_paginated %}
+<div class="flex justify-center mt-4">
+    <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
+        {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">Previous</a>
+        {% endif %}
+        <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
+            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+        </span>
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">Next</a>
+        {% endif %}
+    </nav>
+</div>
+{% endif %}
+{% endblock %}
