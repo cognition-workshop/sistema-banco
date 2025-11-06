@@ -14,6 +14,7 @@ from .managers import UserManager
 class User(AbstractUser):
     username = None
     email = models.EmailField(unique=True, null=False, blank=False)
+    is_suspended = models.BooleanField(default=False)
 
     objects = UserManager()
 

@@ -1,0 +1,91 @@
+{% extends 'core/base.html' %}
+
+{% block head_title %}User Management{% endblock %}
+
+{% block content %}
+<h1 class="font-mono font-bold text-3xl text-center pb-5 pt-10">User Management</h1>
+<hr />
+
+<div class="flex justify-between items-center mt-10 mb-4">
+    <form method="get" class="flex gap-4">
+        <div class="h-10 pl-3 pr-2 bg-white border rounded-md border-gray-500 flex items-center">
+            <input type="search" name="search" placeholder="Search by email, name, or account number" value="{{ search_query }}" class="appearance-none outline-none focus:outline-none active:outline-none w-64" />
+            <button type="submit" class="ml-1 outline-none focus:outline-none active:outline-none">
+                <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" class="w-6 h-6">
+                    <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+            </button>
+        </div>
+        
+        <select name="status" class="h-10 px-3 bg-white border rounded-md border-gray-500 focus:outline-none" onchange="this.form.submit()">
+            <option value="">All Users</option>
+            <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active</option>
+            <option value="suspended" {% if status_filter == 'suspended' %}selected{% endif %}>Suspended</option>
+            <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Inactive</option>
+        </select>
+    </form>
+</div>
+
+<table class="table-auto mx-auto w-full mt-8">
+    <thead class="bg-gray-800 text-white">
+        <tr class="uppercase font-semibold text-sm">
+            <th class="px-4 py-2">Email</th>
+            <th class="px-4 py-2">Name</th>
+            <th class="px-4 py-2">Account Number</th>
+            <th class="px-4 py-2">Balance</th>
+            <th class="px-4 py-2">Status</th>
+            <th class="px-4 py-2">Date Joined</th>
+            <th class="px-4 py-2">Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for user in users %}
+        <tr class="{% cycle 'bg-gray-300' 'bg-white-100' %}">
+            <td class="border px-4 py-2">{{ user.email }}</td>
+            <td class="border px-4 py-2">{{ user.first_name }} {{ user.last_name }}</td>
+            <td class="border px-4 py-2 text-center">
+                {% if user.account %}{{ user.account.account_no }}{% else %}-{% endif %}
+            </td>
+            <td class="border px-4 py-2 text-center">
+                {% if user.account %}$ {{ user.account.balance }}{% else %}-{% endif %}
+            </td>
+            <td class="border px-4 py-2 text-center">
+                {% if user.is_suspended %}
+                    <span class="bg-red-200 text-red-800 px-2 py-1 rounded">Suspended</span>
+                {% elif user.is_active %}
+                    <span class="bg-green-200 text-green-800 px-2 py-1 rounded">Active</span>
+                {% else %}
+                    <span class="bg-gray-200 text-gray-800 px-2 py-1 rounded">Inactive</span>
+                {% endif %}
+            </td>
+            <td class="border px-4 py-2 text-center">{{ user.date_joined|date:"Y-m-d" }}</td>
+            <td class="border px-4 py-2 text-center">
+                <a href="{% url 'accounts:user_detail' user.pk %}" class="text-blue-500 hover:text-blue-700">View</a>
+            </td>
+        </tr>
+    {% empty %}
+        <tr>
+            <td colspan="7" class="border px-4 py-2 text-center">No users found</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+{% if is_paginated %}
+<div class="flex justify-center mt-8">
+    <div class="flex gap-2">
+        {% if page_obj.has_previous %}
+            <a href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" class="px-3 py-2 bg-gray-800 text-white rounded hover:bg-gray-700">First</a>
+            <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" class="px-3 py-2 bg-gray-800 text-white rounded hover:bg-gray-700">Previous</a>
+        {% endif %}
+        
+        <span class="px-3 py-2">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+        
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" class="px-3 py-2 bg-gray-800 text-white rounded hover:bg-gray-700">Next</a>
+            <a href="?page={{ page_obj.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" class="px-3 py-2 bg-gray-800 text-white rounded hover:bg-gray-700">Last</a>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+{% endblock %}
