@@ -1,6 +1,8 @@
+import re
 from decimal import Decimal
 
 from django.contrib.auth.models import AbstractUser
+from django.core.exceptions import ValidationError
 from django.core.validators import (
     MinValueValidator,
     MaxValueValidator,
@@ -9,6 +11,34 @@ from django.db import models
 
 from .constants import GENDER_CHOICE
 from .managers import UserManager
+
+
+def validate_cpf(value):
+    cpf = re.sub(r'[^0-9]', '', value)
+    
+    if len(cpf) != 11:
+        raise ValidationError('CPF deve conter 11 dígitos.')
+    
+    if cpf == cpf[0] * 11:
+        raise ValidationError('CPF inválido.')
+    
+    def calculate_digit(cpf_partial, weight_start):
+        total = sum(int(cpf_partial[i]) * (weight_start - i) for i in range(len(cpf_partial)))
+        remainder = total % 11
+        return 0 if remainder < 2 else 11 - remainder
+    
+    first_digit = calculate_digit(cpf[:9], 10)
+    if first_digit != int(cpf[9]):
+        raise ValidationError('CPF inválido - dígito verificador incorreto.')
+    
+    second_digit = calculate_digit(cpf[:10], 11)
+    if second_digit != int(cpf[10]):
+        raise ValidationError('CPF inválido - dígito verificador incorreto.')
+    
+    if not re.match(r'^\d{3}\.\d{3}\.\d{3}-\d{2}$', value):
+        raise ValidationError('CPF deve estar no formato XXX.XXX.XXX-XX.')
+    
+    return value
 
 
 class User(AbstractUser):
@@ -78,6 +108,14 @@ class UserBankAccount(models.Model):
         on_delete=models.CASCADE
     )
     account_no = models.PositiveIntegerField(unique=True)
+    cpf = models.CharField(
+        max_length=14,
+        unique=True,
+        null=True,
+        blank=True,
+        validators=[validate_cpf],
+        help_text='CPF no formato XXX.XXX.XXX-XX'
+    )
     gender = models.CharField(max_length=1, choices=GENDER_CHOICE)
     birth_date = models.DateField(null=True, blank=True)
     balance = models.DecimalField(
