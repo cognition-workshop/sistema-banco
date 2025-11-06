@@ -95,12 +95,13 @@ class DepositMoneyView(TransactionCreateMixin):
 
     def form_valid(self, form):
         amount = form.cleaned_data.get('amount')
-        # Bypass login - use demo user
         User = get_user_model()
         demo_user = User.objects.filter(email='demo@example.com').first()
         account = demo_user.account if demo_user and hasattr(demo_user, 'account') else None
         if not account:
             return super().form_valid(form)
+
+        balance_before = account.balance
 
         if not account.initial_deposit_date:
             now = timezone.now()
@@ -123,12 +124,27 @@ class DepositMoneyView(TransactionCreateMixin):
             ]
         )
 
+        transaction_obj = super().form_valid(form)
+        
+        from transactions.models import AuditLog
+        AuditLog.objects.create(
+            user=demo_user,
+            account=account,
+            transaction=self.object,
+            operation_type=DEPOSIT,
+            amount=amount,
+            balance_before=balance_before,
+            balance_after=account.balance,
+            ip_address=self.request.META.get('REMOTE_ADDR'),
+            description=f'Deposit of ${amount}'
+        )
+
         messages.success(
             self.request,
             f'{amount}$ was deposited to your account successfully'
         )
 
-        return super().form_valid(form)
+        return transaction_obj
 
 
 class WithdrawMoneyView(TransactionCreateMixin):
@@ -141,16 +157,35 @@ class WithdrawMoneyView(TransactionCreateMixin):
 
     def form_valid(self, form):
         amount = form.cleaned_data.get('amount')
-        # Bypass login - use demo user
         User = get_user_model()
         demo_user = User.objects.filter(email='demo@example.com').first()
         if demo_user and hasattr(demo_user, 'account'):
-            demo_user.account.balance -= form.cleaned_data.get('amount')
-            demo_user.account.save(update_fields=['balance'])
+            account = demo_user.account
+            balance_before = account.balance
+            
+            account.balance -= amount
+            account.save(update_fields=['balance'])
+            
+            transaction_obj = super().form_valid(form)
+            
+            from transactions.models import AuditLog
+            AuditLog.objects.create(
+                user=demo_user,
+                account=account,
+                transaction=self.object,
+                operation_type=WITHDRAWAL,
+                amount=amount,
+                balance_before=balance_before,
+                balance_after=account.balance,
+                ip_address=self.request.META.get('REMOTE_ADDR'),
+                description=f'Withdrawal of ${amount}'
+            )
+        else:
+            transaction_obj = super().form_valid(form)
 
         messages.success(
             self.request,
             f'Successfully withdrawn {amount}$ from your account'
         )
 
-        return super().form_valid(form)
+        return transaction_obj
