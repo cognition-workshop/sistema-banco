@@ -20,10 +20,10 @@
     {% endfor %}
 {% endif %}
 
-<h1 class="font-mono font-bold text-3xl text-center pb-5 pt-10">Register</h1>
-<hr />
-<div class="w-full mt-10">
-    <form method="post" class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+<h1 class="font-mono font-bold text-4xl text-center pb-5 pt-10 text-gray-800">Register</h1>
+<hr class="border-gray-300 mb-8" />
+<div class="w-full max-w-4xl mx-auto mt-10">
+    <form method="post" class="bg-white shadow-xl rounded-lg px-8 pt-8 pb-10 mb-4">
         {% csrf_token %}
         {% for hidden_field in registration_form.hidden_fields %}
             {{ hidden_field.errors }}
@@ -175,8 +175,8 @@
                 {% endif %}
             </div>
         </div>
-        <div class="flex items-center justify-between">
-            <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit">
+        <div class="flex items-center justify-between mt-8">
+            <button class="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold py-3 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200" type="submit">
                 Register
             </button>
         </div>
