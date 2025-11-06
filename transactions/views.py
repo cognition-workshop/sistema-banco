@@ -7,11 +7,12 @@ from django.urls import reverse_lazy
 from django.utils import timezone
 from django.views.generic import CreateView, ListView
 
-from transactions.constants import DEPOSIT, WITHDRAWAL
+from transactions.constants import DEPOSIT, WITHDRAWAL, TRANSFER
 from transactions.forms import (
     DepositForm,
     TransactionDateRangeForm,
     WithdrawForm,
+    TransferForm,
 )
 from transactions.models import Transaction
 
@@ -151,6 +152,53 @@ class WithdrawMoneyView(TransactionCreateMixin):
         messages.success(
             self.request,
             f'Successfully withdrawn {amount}$ from your account'
+        )
+
+        return super().form_valid(form)
+
+
+class TransferMoneyView(TransactionCreateMixin):
+    form_class = TransferForm
+    title = 'Transfer Money'
+
+    def get_initial(self):
+        initial = {'transaction_type': TRANSFER}
+        return initial
+
+    def form_valid(self, form):
+        from accounts.models import UserBankAccount
+        
+        amount = form.cleaned_data.get('amount')
+        recipient_account_no = form.cleaned_data.get('recipient_account_no')
+        
+        # Bypass login - use demo user
+        User = get_user_model()
+        demo_user = User.objects.filter(email='demo@example.com').first()
+        sender_account = demo_user.account if demo_user and hasattr(demo_user, 'account') else None
+        
+        if not sender_account:
+            return super().form_valid(form)
+        
+        recipient_account = UserBankAccount.objects.get(
+            account_no=recipient_account_no
+        )
+        
+        sender_account.balance -= amount
+        sender_account.save(update_fields=['balance'])
+        
+        recipient_account.balance += amount
+        recipient_account.save(update_fields=['balance'])
+        
+        Transaction.objects.create(
+            account=recipient_account,
+            amount=amount,
+            balance_after_transaction=recipient_account.balance,
+            transaction_type=TRANSFER
+        )
+        
+        messages.success(
+            self.request,
+            f'Successfully transferred {amount}$ to account {recipient_account_no}'
         )
 
         return super().form_valid(form)
