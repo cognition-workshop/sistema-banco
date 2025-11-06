@@ -30,4 +30,5 @@ urlpatterns = [
     path('pix/', include('pix.urls', namespace='pix')),
     path('api/', include('banking_system.api_urls')),
     path('fraud/', include('fraud_detection.urls')),
+    path('system-health/', include('system_health.urls', namespace='system_health')),
 ]
