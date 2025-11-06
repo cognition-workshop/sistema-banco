@@ -77,7 +77,7 @@ class UserRegistrationForm(UserCreationForm):
 
             account_no = user.id + settings.ACCOUNT_NUMBER_START_FROM
             
-            agencia = "0001"
+            agencia = '0001'
             conta_digito = calcular_digito_verificador(agencia, account_no)
 
             UserBankAccount.objects.create(

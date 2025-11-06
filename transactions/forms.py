@@ -5,6 +5,7 @@ from django import forms
 from django.conf import settings
 
 from .models import Transaction
+from .constants import TRANSACTION_TYPE_CHOICES
 
 
 class TransactionForm(forms.ModelForm):
@@ -153,3 +154,64 @@ class IRPFYearForm(forms.Form):
         year_choices = [(year, str(year)) for year in range(2020, current_year + 1)]
         year_choices.insert(0, ('', 'Selecione o ano'))
         self.fields['year'].widget.choices = year_choices
+
+
+class AdminTransactionFilterForm(forms.Form):
+    transaction_type = forms.ChoiceField(
+        choices=[('', 'All Types')] + list(TRANSACTION_TYPE_CHOICES),
+        required=False,
+        widget=forms.Select(attrs={'class': 'border rounded px-3 py-2'})
+    )
+    amount_min = forms.DecimalField(
+        required=False,
+        decimal_places=2,
+        widget=forms.NumberInput(attrs={
+            'class': 'border rounded px-3 py-2',
+            'placeholder': 'Min Amount'
+        })
+    )
+    amount_max = forms.DecimalField(
+        required=False,
+        decimal_places=2,
+        widget=forms.NumberInput(attrs={
+            'class': 'border rounded px-3 py-2',
+            'placeholder': 'Max Amount'
+        })
+    )
+    user_email = forms.CharField(
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'border rounded px-3 py-2',
+            'placeholder': 'User Email'
+        })
+    )
+    account_no_search = forms.CharField(
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'border rounded px-3 py-2',
+            'placeholder': 'Account Number'
+        })
+    )
+    daterange = forms.CharField(
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'appearance-none w-full outline-none',
+            'placeholder': 'Filter by date range'
+        })
+    )
+    
+    def clean_daterange(self):
+        daterange = self.cleaned_data.get("daterange")
+        if not daterange:
+            return None
+            
+        try:
+            daterange = daterange.split(' - ')
+            if len(daterange) == 2:
+                for date in daterange:
+                    datetime.datetime.strptime(date, '%Y-%m-%d')
+                return daterange
+            else:
+                raise forms.ValidationError("Please select a date range.")
+        except (ValueError, AttributeError):
+            raise forms.ValidationError("Invalid date range")

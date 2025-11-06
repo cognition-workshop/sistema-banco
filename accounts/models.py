@@ -128,6 +128,7 @@ class UserBankAccount(models.Model):
         return str(self.account_no)
     
     def get_formatted_account(self):
+        """Returns formatted account number in Brazilian format"""
         if self.agencia and self.conta_digito:
             return f"Agência: {self.agencia} Conta: {self.account_no}-{self.conta_digito}"
         return f"Account: {self.account_no}"
