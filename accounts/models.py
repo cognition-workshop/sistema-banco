@@ -57,7 +57,7 @@ class BankAccountType(models.Model):
         This uses a basic interest calculation formula
         """
         p = principal
-        r = self.annual_interest_rate
+        r = Decimal(str(self.annual_interest_rate))
         n = Decimal(self.interest_calculation_per_year)
 
         # Basic Future Value formula to calculate interest
