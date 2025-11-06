@@ -20,23 +20,24 @@ class TransactionRepostView(ListView):
     template_name = 'transactions/transaction_report.html'
     model = Transaction
     form_data = {}
+    paginate_by = 30
 
     def get(self, request, *args, **kwargs):
         form = TransactionDateRangeForm(request.GET or None)
         if form.is_valid():
             self.form_data = form.cleaned_data
 
+        User = get_user_model()
+        self.demo_user = User.objects.filter(email='demo@example.com').first()
+
         return super().get(request, *args, **kwargs)
 
     def get_queryset(self):
-        # Bypass login - use demo user
-        User = get_user_model()
-        demo_user = User.objects.filter(email='demo@example.com').first()
-        if not demo_user or not hasattr(demo_user, 'account'):
+        if not self.demo_user or not hasattr(self.demo_user, 'account'):
             return super().get_queryset().none()
         
         queryset = super().get_queryset().filter(
-            account=demo_user.account
+            account=self.demo_user.account
         )
 
         daterange = self.form_data.get("daterange")
@@ -48,11 +49,8 @@ class TransactionRepostView(ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # Bypass login - use demo user
-        User = get_user_model()
-        demo_user = User.objects.filter(email='demo@example.com').first()
         context.update({
-            'account': demo_user.account if demo_user and hasattr(demo_user, 'account') else None,
+            'account': self.demo_user.account if self.demo_user and hasattr(self.demo_user, 'account') else None,
             'form': TransactionDateRangeForm(self.request.GET or None)
         })
 
