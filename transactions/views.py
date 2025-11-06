@@ -1,7 +1,6 @@
 from dateutil.relativedelta import relativedelta
 
 from django.contrib import messages
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth import get_user_model
 from django.urls import reverse_lazy
 from django.utils import timezone
@@ -14,6 +13,9 @@ from transactions.forms import (
     WithdrawForm,
 )
 from transactions.models import Transaction
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class TransactionRepostView(ListView):
@@ -34,7 +36,7 @@ class TransactionRepostView(ListView):
         demo_user = User.objects.filter(email='demo@example.com').first()
         if not demo_user or not hasattr(demo_user, 'account'):
             return super().get_queryset().none()
-        
+
         queryset = super().get_queryset().filter(
             account=demo_user.account
         )
@@ -51,8 +53,13 @@ class TransactionRepostView(ListView):
         # Bypass login - use demo user
         User = get_user_model()
         demo_user = User.objects.filter(email='demo@example.com').first()
+        account = (
+            demo_user.account
+            if demo_user and hasattr(demo_user, 'account')
+            else None
+        )
         context.update({
-            'account': demo_user.account if demo_user and hasattr(demo_user, 'account') else None,
+            'account': account,
             'form': TransactionDateRangeForm(self.request.GET or None)
         })
 
@@ -98,9 +105,22 @@ class DepositMoneyView(TransactionCreateMixin):
         # Bypass login - use demo user
         User = get_user_model()
         demo_user = User.objects.filter(email='demo@example.com').first()
-        account = demo_user.account if demo_user and hasattr(demo_user, 'account') else None
+        account = (
+            demo_user.account
+            if demo_user and hasattr(demo_user, 'account')
+            else None
+        )
         if not account:
             return super().form_valid(form)
+
+        logger.info(
+            "Deposit attempt",
+            extra={
+                'user_id': demo_user.id if demo_user else None,
+                'account_no': account.account_no,
+                'amount': str(amount)
+            }
+        )
 
         if not account.initial_deposit_date:
             now = timezone.now()
@@ -121,6 +141,15 @@ class DepositMoneyView(TransactionCreateMixin):
                 'balance',
                 'interest_start_date'
             ]
+        )
+
+        logger.info(
+            "Deposit completed",
+            extra={
+                'user_id': demo_user.id if demo_user else None,
+                'amount': str(amount),
+                'new_balance': str(account.balance)
+            }
         )
 
         messages.success(

@@ -1,18 +1,19 @@
 #!/usr/bin/env python
 """Create demo data for the banking system"""
 import os
-import sys
 import django
 
 # Setup Django
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'banking_system.settings')
 django.setup()
 
-from django.utils import timezone
-from dateutil.relativedelta import relativedelta
-from accounts.models import User, BankAccountType, UserBankAccount, UserAddress
-from transactions.models import Transaction
-from transactions.constants import DEPOSIT, WITHDRAWAL
+from django.utils import timezone  # noqa: E402
+from dateutil.relativedelta import relativedelta  # noqa: E402
+from accounts.models import (  # noqa: E402
+    User, BankAccountType, UserBankAccount, UserAddress
+)
+from transactions.models import Transaction  # noqa: E402
+from transactions.constants import DEPOSIT, WITHDRAWAL  # noqa: E402
 
 # Create Bank Account Types
 savings_type, _ = BankAccountType.objects.get_or_create(
@@ -91,7 +92,7 @@ for trans_type, amount, timestamp in transactions_data:
         balance += amount
     else:
         balance -= amount
-    
+
     Transaction.objects.create(
         account=account,
         amount=amount,
@@ -105,7 +106,7 @@ account.balance = balance
 account.save()
 
 print("✅ Demo data created successfully!")
-print(f"Demo User: demo@example.com / demo123")
+print("Demo User: demo@example.com / demo123")
 print(f"Account Number: {account.account_no}")
 print(f"Balance: ${account.balance}")
 print(f"Transactions: {Transaction.objects.filter(account=account).count()}")
