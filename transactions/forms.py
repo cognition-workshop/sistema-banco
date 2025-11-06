@@ -70,6 +70,49 @@ class WithdrawForm(TransactionForm):
         return amount
 
 
+class TransferForm(TransactionForm):
+    recipient_account_no = forms.IntegerField(
+        label='Recipient Account Number',
+        min_value=1,
+        widget=forms.NumberInput(attrs={
+            'class': 'shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight border rounded-md border-gray-500 focus:outline-none focus:shadow-outline',
+            'placeholder': 'Recipient Account Number'
+        })
+    )
+
+    def clean_amount(self):
+        amount = self.cleaned_data.get('amount')
+        account = self.account
+        balance = account.balance
+
+        if amount <= 0:
+            raise forms.ValidationError('Transfer amount must be positive')
+
+        if amount > balance:
+            raise forms.ValidationError(
+                f'Insufficient balance. Your current balance is {balance} $'
+            )
+
+        return amount
+
+    def clean_recipient_account_no(self):
+        from accounts.models import UserBankAccount
+        
+        recipient_account_no = self.cleaned_data.get('recipient_account_no')
+        
+        try:
+            recipient_account = UserBankAccount.objects.get(account_no=recipient_account_no)
+        except UserBankAccount.DoesNotExist:
+            raise forms.ValidationError(
+                f'Account number {recipient_account_no} does not exist'
+            )
+        
+        if recipient_account.account_no == self.account.account_no:
+            raise forms.ValidationError('Cannot transfer to your own account')
+        
+        return recipient_account_no
+
+
 class TransactionDateRangeForm(forms.Form):
     daterange = forms.CharField(required=False)
 
