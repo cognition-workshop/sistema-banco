@@ -1,0 +1,18 @@
+{
+  "name": "banking-system",
+  "version": "2.0.0",
+  "description": "Modern Banking System",
+  "scripts": {
+    "build:css": "postcss static/css/input.css -o static/css/output.css",
+    "watch:css": "postcss static/css/input.css -o static/css/output.css --watch"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.0.0",
+    "autoprefixer": "^10.4.16",
+    "postcss": "^8.4.32",
+    "postcss-cli": "^11.0.0"
+  },
+  "keywords": ["banking", "django"],
+  "author": "",
+  "license": "MIT"
+}

@@ -3,10 +3,8 @@
 {% block head_title %}Transaction Report{% endblock %}
 
 {% block head_extra %}
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/jquery/latest/jquery.min.js"></script>
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 {% endblock %}
 
 {% block content %}
@@ -14,7 +12,7 @@
     <hr />
     <form method="get">
         <div class="mt-10 h-10 pl-3 pr-2 bg-white border rounded-md border-gray-500 flex justify-between items-center relative">
-            <input type="search" name="daterange" id="search" placeholder="Filter using date range" value="{{ request.GET.daterange }}" class="appearance-none w-full outline-none focus:outline-none active:outline-none" />
+            <input type="search" name="daterange" id="daterange" placeholder="Filter using date range" value="{{ request.GET.daterange }}" class="appearance-none w-full outline-none focus:outline-none active:outline-none" />
             <button type="submit" class="ml-1 outline-none focus:outline-none active:outline-none">
                 <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" class="w-6 h-6">
                     <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
@@ -55,21 +53,19 @@
 
 {% block footer_extra %}
     <script type="text/javascript">
-        $(function () {
-            $('input[name="daterange"]').daterangepicker({
-                autoUpdateInput: false,
-                locale: {
-                    cancelLabel: "Clear",
-                },
-            });
-
-            $('input[name="daterange"]').on("apply.daterangepicker", function (ev, picker) {
-                $(this).val(picker.startDate.format("YYYY-MM-DD") + " - " + picker.endDate.format("YYYY-MM-DD"));
-            });
-
-            $('input[name="daterange"]').on("cancel.daterangepicker", function (ev, picker) {
-                $(this).val("");
-            });
+        flatpickr("#daterange", {
+            mode: "range",
+            dateFormat: "Y-m-d",
+            onChange: function(selectedDates, dateStr, instance) {
+                if (selectedDates.length === 2) {
+                    const startDate = flatpickr.formatDate(selectedDates[0], "Y-m-d");
+                    const endDate = flatpickr.formatDate(selectedDates[1], "Y-m-d");
+                    instance.input.value = startDate + " - " + endDate;
+                }
+            },
+            onReady: function(selectedDates, dateStr, instance) {
+                instance.calendarContainer.classList.add('flatpickr-calendar');
+            }
         });
     </script>
 {% endblock %}
