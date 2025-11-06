@@ -1,0 +1,119 @@
+{% extends 'core/base.html' %}
+
+{% block head_title %}User Details{% endblock %}
+
+{% block content %}
+<h1 class="font-mono font-bold text-3xl text-center pb-5 pt-10">User Details</h1>
+<hr />
+
+<div class="flex justify-between items-center mt-6 mb-4">
+    <a href="{% url 'accounts:user_list' %}" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
+        ← Back to List
+    </a>
+    <div class="flex gap-2">
+        <a href="{% url 'accounts:user_update' user_obj.pk %}" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+            Edit User
+        </a>
+        <form method="post" action="{% url 'accounts:user_suspend' user_obj.pk %}" style="display: inline;">
+            {% csrf_token %}
+            <button type="submit" class="{% if user_obj.is_suspended %}bg-green-500 hover:bg-green-700{% else %}bg-red-500 hover:bg-red-700{% endif %} text-white font-bold py-2 px-4 rounded">
+                {% if user_obj.is_suspended %}Activate{% else %}Suspend{% endif %}
+            </button>
+        </form>
+    </div>
+</div>
+
+<div class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4 mt-6">
+    <h2 class="text-2xl font-bold mb-4">Personal Information</h2>
+    <div class="grid grid-cols-2 gap-4">
+        <div>
+            <p class="text-gray-700 font-bold">Email:</p>
+            <p>{{ user_obj.email }}</p>
+        </div>
+        <div>
+            <p class="text-gray-700 font-bold">Name:</p>
+            <p>{{ user_obj.first_name }} {{ user_obj.last_name }}</p>
+        </div>
+        <div>
+            <p class="text-gray-700 font-bold">Status:</p>
+            <p>
+                {% if user_obj.is_suspended %}
+                    <span class="bg-red-200 text-red-800 px-2 py-1 rounded">Suspended</span>
+                {% elif user_obj.is_active %}
+                    <span class="bg-green-200 text-green-800 px-2 py-1 rounded">Active</span>
+                {% else %}
+                    <span class="bg-gray-200 text-gray-800 px-2 py-1 rounded">Inactive</span>
+                {% endif %}
+            </p>
+        </div>
+        <div>
+            <p class="text-gray-700 font-bold">Staff Status:</p>
+            <p>{{ user_obj.is_staff|yesno:"Yes,No" }}</p>
+        </div>
+        <div>
+            <p class="text-gray-700 font-bold">Date Joined:</p>
+            <p>{{ user_obj.date_joined }}</p>
+        </div>
+        <div>
+            <p class="text-gray-700 font-bold">Last Login:</p>
+            <p>{{ user_obj.last_login|default:"Never" }}</p>
+        </div>
+    </div>
+</div>
+
+{% if user_obj.account %}
+<div class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+    <h2 class="text-2xl font-bold mb-4">Bank Account Information</h2>
+    <div class="grid grid-cols-2 gap-4">
+        <div>
+            <p class="text-gray-700 font-bold">Account Number:</p>
+            <p>{{ user_obj.account.account_no }}</p>
+        </div>
+        <div>
+            <p class="text-gray-700 font-bold">Account Type:</p>
+            <p>{{ user_obj.account.account_type.name }}</p>
+        </div>
+        <div>
+            <p class="text-gray-700 font-bold">Balance:</p>
+            <p class="text-xl font-bold">$ {{ user_obj.account.balance }}</p>
+        </div>
+        <div>
+            <p class="text-gray-700 font-bold">Gender:</p>
+            <p>{{ user_obj.account.get_gender_display }}</p>
+        </div>
+        <div>
+            <p class="text-gray-700 font-bold">Birth Date:</p>
+            <p>{{ user_obj.account.birth_date }}</p>
+        </div>
+        <div>
+            <p class="text-gray-700 font-bold">Initial Deposit Date:</p>
+            <p>{{ user_obj.account.initial_deposit_date|default:"Not set" }}</p>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% if user_obj.address %}
+<div class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+    <h2 class="text-2xl font-bold mb-4">Address Information</h2>
+    <div class="grid grid-cols-2 gap-4">
+        <div>
+            <p class="text-gray-700 font-bold">Street Address:</p>
+            <p>{{ user_obj.address.street_address }}</p>
+        </div>
+        <div>
+            <p class="text-gray-700 font-bold">City:</p>
+            <p>{{ user_obj.address.city }}</p>
+        </div>
+        <div>
+            <p class="text-gray-700 font-bold">Postal Code:</p>
+            <p>{{ user_obj.address.postal_code }}</p>
+        </div>
+        <div>
+            <p class="text-gray-700 font-bold">Country:</p>
+            <p>{{ user_obj.address.country }}</p>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
