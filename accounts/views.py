@@ -5,7 +5,12 @@ from django.shortcuts import HttpResponseRedirect
 from django.urls import reverse_lazy
 from django.views.generic import TemplateView, RedirectView
 
+from rest_framework import viewsets
+from rest_framework.permissions import IsAuthenticated
+
 from .forms import UserRegistrationForm, UserAddressForm
+from .models import UserBankAccount
+from .serializers import UserBankAccountSerializer
 
 
 User = get_user_model()
@@ -73,3 +78,10 @@ class LogoutView(RedirectView):
         if self.request.user.is_authenticated:
             logout(self.request)
         return super().get_redirect_url(*args, **kwargs)
+
+class UserBankAccountViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = UserBankAccountSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        return UserBankAccount.objects.filter(user=self.request.user)

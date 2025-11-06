@@ -6,6 +6,11 @@ from django.contrib.auth import get_user_model
 from django.urls import reverse_lazy
 from django.utils import timezone
 from django.views.generic import CreateView, ListView
+from django.views.decorators.cache import cache_page
+from django.utils.decorators import method_decorator
+
+from rest_framework import viewsets
+from rest_framework.permissions import IsAuthenticated
 
 from transactions.constants import DEPOSIT, WITHDRAWAL
 from transactions.forms import (
@@ -14,8 +19,10 @@ from transactions.forms import (
     WithdrawForm,
 )
 from transactions.models import Transaction
+from transactions.serializers import TransactionSerializer
 
 
+@method_decorator(cache_page(60 * 5), name='dispatch')
 class TransactionRepostView(ListView):
     template_name = 'transactions/transaction_report.html'
     model = Transaction
@@ -27,6 +34,11 @@ class TransactionRepostView(ListView):
             self.form_data = form.cleaned_data
 
         return super().get(request, *args, **kwargs)
+    
+    def get_template_names(self):
+        if self.request.headers.get('HX-Request'):
+            return ['transactions/partials/transaction_table.html']
+        return [self.template_name]
 
     def get_queryset(self):
         # Bypass login - use demo user
@@ -154,3 +166,10 @@ class WithdrawMoneyView(TransactionCreateMixin):
         )
 
         return super().form_valid(form)
+
+class TransactionViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = TransactionSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        return Transaction.objects.filter(account__user=self.request.user)
