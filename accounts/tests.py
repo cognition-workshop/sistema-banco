@@ -10,7 +10,9 @@ class UserRegistrationFormTests(TestCase):
     def setUp(self):
         self.account_type = BankAccountType.objects.create(
             name='Savings',
-            maximum_withdrawal_amount=10000
+            maximum_withdrawal_amount=10000,
+            annual_interest_rate=5.0,
+            interest_calculation_per_year=12
         )
     
     def test_valid_registration_form(self):

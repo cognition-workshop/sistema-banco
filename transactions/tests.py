@@ -19,7 +19,9 @@ class TransactionFormTests(TestCase):
         )
         self.account_type = BankAccountType.objects.create(
             name='Savings',
-            maximum_withdrawal_amount=10000
+            maximum_withdrawal_amount=10000,
+            annual_interest_rate=5.0,
+            interest_calculation_per_year=12
         )
         self.account = UserBankAccount.objects.create(
             user=self.user,
@@ -33,7 +35,8 @@ class TransactionFormTests(TestCase):
     def test_deposit_form_minimum_amount(self):
         """Test that deposit form validates minimum amount"""
         form = DepositForm(
-            data={'amount': 5, 'transaction_type': DEPOSIT},
+            data={'amount': 5},
+            initial={'transaction_type': DEPOSIT},
             account=self.account
         )
         self.assertFalse(form.is_valid())
@@ -42,7 +45,8 @@ class TransactionFormTests(TestCase):
     def test_withdraw_form_insufficient_balance(self):
         """Test that withdraw form prevents overdraft"""
         form = WithdrawForm(
-            data={'amount': 2000, 'transaction_type': WITHDRAWAL},
+            data={'amount': 2000},
+            initial={'transaction_type': WITHDRAWAL},
             account=self.account
         )
         self.assertFalse(form.is_valid())
@@ -52,7 +56,8 @@ class TransactionFormTests(TestCase):
     def test_withdraw_form_valid_amount(self):
         """Test that withdraw form accepts valid amounts"""
         form = WithdrawForm(
-            data={'amount': 500, 'transaction_type': WITHDRAWAL},
+            data={'amount': 500},
+            initial={'transaction_type': WITHDRAWAL},
             account=self.account
         )
         self.assertTrue(form.is_valid())
@@ -68,7 +73,9 @@ class TransactionViewTests(TestCase):
         )
         self.account_type = BankAccountType.objects.create(
             name='Savings',
-            maximum_withdrawal_amount=10000
+            maximum_withdrawal_amount=10000,
+            annual_interest_rate=5.0,
+            interest_calculation_per_year=12
         )
         self.account = UserBankAccount.objects.create(
             user=self.user,
@@ -91,5 +98,5 @@ class TransactionViewTests(TestCase):
     
     def test_transaction_report_accessible(self):
         """Test that transaction report is accessible"""
-        response = self.client.get('/transactions/')
+        response = self.client.get('/transactions/report/')
         self.assertEqual(response.status_code, 200)
