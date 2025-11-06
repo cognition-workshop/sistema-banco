@@ -72,6 +72,44 @@ Install development dependencies,
 pip install -r requirements.txt
 ```
 
+## Environment Configuration (Important!)
+
+This project uses environment variables for secure configuration. For local development, you can create a `.env` file in the project root:
+
+```bash
+# Copy the example environment file
+cp .env.example .env
+
+# Edit .env with your preferred text editor
+nano .env
+```
+
+**For local development**, the `.env` file should contain:
+```bash
+DEBUG=True
+SECRET_KEY=your-local-secret-key-here
+ALLOWED_HOSTS=localhost,127.0.0.1
+CELERY_BROKER_URL=redis://localhost:6379
+CELERY_RESULT_BACKEND=redis://localhost:6379
+```
+
+**For production deployment**, you MUST configure these environment variables:
+- `SECRET_KEY`: Generate a unique secret key (never use the default!)
+- `DEBUG`: Set to `False`
+- `ALLOWED_HOSTS`: Set to your domain names (comma-separated)
+- `CELERY_BROKER_URL`: Set to your Redis URL (use authentication!)
+- `CELERY_RESULT_BACKEND`: Set to your Redis URL (use authentication!)
+
+**Production Security Settings** (set to `True` when using HTTPS):
+- `SECURE_SSL_REDIRECT=True`
+- `SESSION_COOKIE_SECURE=True`
+- `CSRF_COOKIE_SECURE=True`
+- `SECURE_HSTS_SECONDS=31536000`
+- `SECURE_HSTS_INCLUDE_SUBDOMAINS=True`
+- `SECURE_HSTS_PRELOAD=True`
+
+⚠️ **Security Warning**: Never commit your `.env` file to version control. The `.gitignore` file is already configured to exclude it.
+
 Migrate Database,
 ```bash
 python manage.py migrate

@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 
 from pathlib import Path
 from decouple import config, Csv
+import sys
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve(strict=True).parent.parent
@@ -26,7 +27,23 @@ SECRET_KEY = config('SECRET_KEY', default='po0172$69b@78ps4v^uhfxu6q--8ko7kpp7rb
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=False, cast=bool)
 
+# ALLOWED_HOSTS restricts which domain names can serve this Django application.
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1', cast=Csv())
+
+if not DEBUG:
+    _default_secret = 'po0172$69b@78ps4v^uhfxu6q--8ko7kpp7rbz420s_3w#sir%'
+    if SECRET_KEY == _default_secret:
+        raise ValueError(
+            "SECURITY ERROR: You must set a unique SECRET_KEY environment variable in production. "
+            "The default SECRET_KEY is not secure and should never be used in production. "
+            "Generate a new secret key and set it via the SECRET_KEY environment variable."
+        )
+    
+    if ALLOWED_HOSTS == ['localhost', '127.0.0.1']:
+        sys.stderr.write(
+            "WARNING: ALLOWED_HOSTS is set to localhost in production. "
+            "Set ALLOWED_HOSTS environment variable to your actual domain names.\n"
+        )
 
 
 # Application definition
@@ -135,6 +152,7 @@ MINIMUM_WITHDRAWAL_AMOUNT = 10
 LOGIN_REDIRECT_URL = 'home'
 
 # Celery Settings
+# CELERY_BROKER_URL: Message broker for task queue (Redis in this case)
 CELERY_BROKER_URL = config('CELERY_BROKER_URL', default='redis://localhost:6379')
 CELERY_RESULT_BACKEND = config('CELERY_RESULT_BACKEND', default='redis://localhost:6379')
 CELERY_ACCEPT_CONTENT = ['application/json']
@@ -142,13 +160,31 @@ CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = TIME_ZONE
 
-# Security Settings
+# Security Settings for Production
+
+# SECURE_SSL_REDIRECT: Redirects all HTTP requests to HTTPS (set to True in production)
 SECURE_SSL_REDIRECT = config('SECURE_SSL_REDIRECT', default=False, cast=bool)
+
+# SESSION_COOKIE_SECURE: Only send session cookies over HTTPS (set to True in production)
 SESSION_COOKIE_SECURE = config('SESSION_COOKIE_SECURE', default=False, cast=bool)
+
+# CSRF_COOKIE_SECURE: Only send CSRF cookies over HTTPS (set to True in production)
 CSRF_COOKIE_SECURE = config('CSRF_COOKIE_SECURE', default=False, cast=bool)
+
+# SECURE_BROWSER_XSS_FILTER: Enable browser's XSS filtering (recommended: True)
 SECURE_BROWSER_XSS_FILTER = config('SECURE_BROWSER_XSS_FILTER', default=True, cast=bool)
+
+# SECURE_CONTENT_TYPE_NOSNIFF: Prevent MIME type sniffing (recommended: True)
 SECURE_CONTENT_TYPE_NOSNIFF = config('SECURE_CONTENT_TYPE_NOSNIFF', default=True, cast=bool)
+
+# X_FRAME_OPTIONS: Prevent clickjacking attacks (DENY recommended)
 X_FRAME_OPTIONS = config('X_FRAME_OPTIONS', default='DENY')
+
+# SECURE_HSTS_SECONDS: Duration (in seconds) browsers should only access via HTTPS
 SECURE_HSTS_SECONDS = config('SECURE_HSTS_SECONDS', default=0, cast=int)
+
+# SECURE_HSTS_INCLUDE_SUBDOMAINS: Apply HSTS to all subdomains (set to True in production)
 SECURE_HSTS_INCLUDE_SUBDOMAINS = config('SECURE_HSTS_INCLUDE_SUBDOMAINS', default=False, cast=bool)
+
+# SECURE_HSTS_PRELOAD: Enable HSTS preload list submission (set to True in production)
 SECURE_HSTS_PRELOAD = config('SECURE_HSTS_PRELOAD', default=False, cast=bool)
