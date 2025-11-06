@@ -72,14 +72,24 @@ class WithdrawForm(TransactionForm):
 
 class TransactionDateRangeForm(forms.Form):
     daterange = forms.CharField(required=False)
+    transaction_type = forms.ChoiceField(
+        required=False,
+        choices=[
+            ('', 'Todas'),
+            ('1', 'Depósito'),
+            ('2', 'Saque'),
+            ('3', 'Juros'),
+        ]
+    )
 
     def clean_daterange(self):
         daterange = self.cleaned_data.get("daterange")
-        print(daterange)
-
+        
+        if not daterange:
+            return None
+        
         try:
             daterange = daterange.split(' - ')
-            print(daterange)
             if len(daterange) == 2:
                 for date in daterange:
                     datetime.datetime.strptime(date, '%Y-%m-%d')
