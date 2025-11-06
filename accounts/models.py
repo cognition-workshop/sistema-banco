@@ -122,3 +122,40 @@ class UserAddress(models.Model):
 
     def __str__(self):
         return self.user.email
+
+
+class AuthenticationLog(models.Model):
+    """Track authentication events for security and compliance"""
+    EVENT_CHOICES = [
+        ('login_success', 'Login Success'),
+        ('login_failed', 'Login Failed'),
+        ('logout', 'Logout'),
+        ('password_reset_request', 'Password Reset Request'),
+        ('password_reset_complete', 'Password Reset Complete'),
+        ('password_change', 'Password Change'),
+    ]
+    
+    user = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='auth_logs'
+    )
+    email = models.EmailField()
+    event_type = models.CharField(max_length=50, choices=EVENT_CHOICES)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    user_agent = models.TextField(blank=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    success = models.BooleanField(default=True)
+    failure_reason = models.CharField(max_length=255, blank=True)
+    
+    class Meta:
+        ordering = ['-timestamp']
+        indexes = [
+            models.Index(fields=['-timestamp']),
+            models.Index(fields=['email', '-timestamp']),
+        ]
+    
+    def __str__(self):
+        return f"{self.email} - {self.event_type} at {self.timestamp}"

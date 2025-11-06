@@ -1,5 +1,13 @@
 #!/usr/bin/env python
-"""Create demo data for the banking system"""
+"""Create demo data for the banking system
+
+WARNING: This script is for DEVELOPMENT/TESTING purposes ONLY.
+DO NOT use in production. The demo mode that bypassed authentication
+has been removed from the application for security reasons.
+
+This script creates a test user (demo@example.com / demo123) that can be used
+for local testing after proper authentication has been implemented.
+"""
 import os
 import sys
 import django
