@@ -1,0 +1,74 @@
+{% extends 'core/base.html' %}
+
+{% block head_title %}Relatório IRPF{% endblock %}
+
+{% block content %}
+    <h1 class="font-mono font-bold text-3xl text-center pb-5 pt-10">Relatório de Rendimentos IRPF</h1>
+    <hr />
+    
+    <form method="get" class="mt-10">
+        <div class="flex items-center space-x-4">
+            <label for="year" class="font-semibold">Ano Fiscal:</label>
+            {{ form.year }}
+            <button type="submit" class="bg-gray-800 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
+                Filtrar
+            </button>
+        </div>
+        {% if form.year.errors %}
+            {% for error in form.year.errors %}
+                <p class="text-red-600 text-sm italic mt-2">{{ error }}</p>
+            {% endfor %}
+        {% endif %}
+    </form>
+
+    {% if selected_year %}
+        <div class="mt-8 bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4">
+            <p class="font-bold">Ano Selecionado: {{ selected_year }}</p>
+            <p>Conta: {{ account.account_no }} - {{ account.user.get_full_name|default:account.user.email }}</p>
+        </div>
+    {% endif %}
+
+    <table class="table-auto mx-auto w-full mt-8">
+        <thead class="bg-gray-800 text-white">
+        <tr class="uppercase font-semibold text-sm">
+            <th class="px-4 py-2">Mês</th>
+            <th class="px-4 py-2">Juros Recebidos</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for item in monthly_data %}
+        <tr class="{% cycle 'bg-gray-300' 'bg-white-100' %}">
+            <td class="border px-4 py-2 text-center">{{ item.month|date:"F Y" }}</td>
+            <td class="border px-4 py-2 text-center">R$ {{ item.total }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="2" class="border px-4 py-2 text-center text-gray-500">
+                Nenhum rendimento de juros encontrado para o ano {{ selected_year }}
+            </td>
+        </tr>
+        {% endfor %}
+        <tr class="bg-gray-600 text-white">
+            <th class="px-4 py-2 text-right">Total Anual</th>
+            <th class="px-4 py-2 text-center">R$ {{ annual_total|default:"0.00" }}</th>
+        </tr>
+        </tbody>
+    </table>
+
+    <div class="mt-8 flex justify-center space-x-4">
+        <a href="{% url 'reports:irpf_export_csv' %}?year={{ selected_year }}" 
+           class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
+            Exportar CSV
+        </a>
+        <a href="{% url 'reports:irpf_export_pdf' %}?year={{ selected_year }}" 
+           class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
+            Exportar PDF
+        </a>
+    </div>
+
+    <div class="mt-8 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4">
+        <p class="font-bold">Informação:</p>
+        <p>Este relatório apresenta os rendimentos de juros recebidos em sua conta bancária. 
+           Utilize estas informações para preencher sua declaração de Imposto de Renda Pessoa Física (IRPF).</p>
+    </div>
+{% endblock %}
