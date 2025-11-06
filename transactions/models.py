@@ -4,6 +4,9 @@ from .constants import TRANSACTION_TYPE_CHOICES
 from accounts.models import UserBankAccount
 
 
+# Denormalization consideration: The balance_after_transaction field already provides
+# historical balance tracking. If account.balance queries become a bottleneck, consider
+# caching or further denormalizing the current account balance into this table.
 class Transaction(models.Model):
     account = models.ForeignKey(
         UserBankAccount,
