@@ -28,3 +28,34 @@ class Transaction(models.Model):
 
     class Meta:
         ordering = ['timestamp']
+
+
+class BankingHoliday(models.Model):
+    date = models.DateField(
+        unique=True,
+        help_text='Date of the banking holiday'
+    )
+    name = models.CharField(
+        max_length=255,
+        help_text='Name of the holiday'
+    )
+    is_national = models.BooleanField(
+        default=True,
+        help_text='Whether this is a national holiday'
+    )
+
+    class Meta:
+        ordering = ['date']
+        indexes = [
+            models.Index(fields=['date']),
+        ]
+
+    def __str__(self):
+        return f"{self.name} - {self.date}"
+
+    @classmethod
+    def is_business_day(cls, date):
+        if date.weekday() in (5, 6):
+            return False
+        
+        return not cls.objects.filter(date=date).exists()
