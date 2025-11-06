@@ -6,6 +6,7 @@ from django.conf import settings
 
 User = get_user_model()
 
+
 class BankAccountTypeModelTest(TestCase):
     def setUp(self):
         self.account_type = BankAccountType.objects.create(
@@ -14,11 +15,12 @@ class BankAccountTypeModelTest(TestCase):
             annual_interest_rate=Decimal('5.00'),
             interest_calculation_per_year=12
         )
-    
+
     def test_calculate_interest_monthly(self):
         principal = Decimal('1000.00')
         interest = self.account_type.calculate_interest(principal)
         self.assertAlmostEqual(float(interest), 4.17, places=2)
+
 
 class UserBankAccountModelTest(TestCase):
     def setUp(self):
@@ -32,7 +34,7 @@ class UserBankAccountModelTest(TestCase):
             email="test@example.com",
             password="testpass123"
         )
-    
+
     def test_account_number_generation(self):
         account_no = self.user.id + settings.ACCOUNT_NUMBER_START_FROM
         account = UserBankAccount.objects.create(

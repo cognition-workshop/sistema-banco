@@ -3,6 +3,7 @@ from django.urls import reverse
 from accounts.models import BankAccountType
 from decimal import Decimal
 
+
 class UserRegistrationViewTest(TestCase):
     def setUp(self):
         self.client = Client()
@@ -13,7 +14,7 @@ class UserRegistrationViewTest(TestCase):
             annual_interest_rate=Decimal('4.00'),
             interest_calculation_per_year=12
         )
-    
+
     def test_registration_creates_user_and_account(self):
         data = {
             'first_name': 'Test',

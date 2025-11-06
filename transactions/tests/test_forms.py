@@ -4,6 +4,7 @@ from transactions.forms import WithdrawForm
 from decimal import Decimal
 from django.conf import settings
 
+
 class WithdrawFormTest(TestCase):
     def setUp(self):
         self.account_type = BankAccountType.objects.create(
@@ -25,7 +26,7 @@ class WithdrawFormTest(TestCase):
             account_no=account_no,
             balance=Decimal('10000.00')
         )
-    
+
     def test_withdrawal_exceeds_balance(self):
         self.account.balance = Decimal('100.00')
         self.account.save()
