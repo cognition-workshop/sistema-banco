@@ -95,8 +95,18 @@ class UserBankAccount(models.Model):
         on_delete=models.CASCADE
     )
     account_no = models.PositiveIntegerField(unique=True)
-    agencia = models.CharField(max_length=4, null=True, blank=True, help_text='Número da agência (4 dígitos)')
-    conta_digito = models.CharField(max_length=2, null=True, blank=True, help_text='Dígito verificador da conta')
+    agencia = models.CharField(
+        max_length=4,
+        null=True,
+        blank=True,
+        help_text='Número da agência bancária (4 dígitos)'
+    )
+    conta_digito = models.CharField(
+        max_length=2,
+        null=True,
+        blank=True,
+        help_text='Dígito verificador da conta (pode ser X)'
+    )
     cpf = models.CharField(max_length=14, blank=True, null=True, help_text='CPF no formato XXX.XXX.XXX-XX')
     gender = models.CharField(max_length=1, choices=GENDER_CHOICE)
     birth_date = models.DateField(null=True, blank=True)
@@ -121,8 +131,8 @@ class UserBankAccount(models.Model):
     def get_formatted_account(self):
         """Returns formatted account number in Brazilian format"""
         if self.agencia and self.conta_digito:
-            return f"Agência {self.agencia} - Conta {self.account_no}-{self.conta_digito}"
-        return f"Conta {self.account_no}"
+            return f"Agência: {self.agencia} Conta: {self.account_no}-{self.conta_digito}"
+        return f"Account: {self.account_no}"
 
     def get_interest_calculation_months(self):
         """

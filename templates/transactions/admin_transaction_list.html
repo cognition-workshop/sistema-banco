@@ -1,0 +1,151 @@
+{% extends 'core/base.html' %}
+
+{% block head_title %}Admin - Transaction Monitoring{% endblock %}
+
+{% block head_extra %}
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/jquery/latest/jquery.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+{% endblock %}
+
+{% block content %}
+    <h1 class="font-mono font-bold text-3xl text-center pb-5 pt-10">Admin Transaction Dashboard</h1>
+    <hr />
+    
+    <form method="get" class="mt-6 bg-white p-6 rounded-lg shadow">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Transaction Type</label>
+                {{ form.transaction_type }}
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Min Amount</label>
+                {{ form.amount_min }}
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Max Amount</label>
+                {{ form.amount_max }}
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">User Email</label>
+                {{ form.user_email }}
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Account Number</label>
+                {{ form.account_no_search }}
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Date Range</label>
+                {{ form.daterange }}
+            </div>
+        </div>
+        
+        {% if form.errors %}
+            <div class="mt-4">
+                {% for field, errors in form.errors.items %}
+                    {% for error in errors %}
+                        <p class="text-red-600 text-sm italic">{{ error }}</p>
+                    {% endfor %}
+                {% endfor %}
+            </div>
+        {% endif %}
+        
+        <div class="mt-4 flex gap-2">
+            <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                Apply Filters
+            </button>
+            <a href="{% url 'transactions:admin_transaction_list' %}" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
+                Clear Filters
+            </a>
+        </div>
+    </form>
+    
+    <div class="mt-6">
+        <p class="text-gray-600 mb-4">
+            Showing {{ page_obj.start_index }} - {{ page_obj.end_index }} of {{ page_obj.paginator.count }} transactions
+        </p>
+        
+        <table class="table-auto mx-auto w-full bg-white rounded-lg shadow">
+            <thead class="bg-gray-800 text-white">
+                <tr class="uppercase font-semibold text-sm">
+                    <th class="px-4 py-2">Account No</th>
+                    <th class="px-4 py-2">User Email</th>
+                    <th class="px-4 py-2">Transaction Type</th>
+                    <th class="px-4 py-2">Date</th>
+                    <th class="px-4 py-2">Amount</th>
+                    <th class="px-4 py-2">Balance After</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for transaction in transactions %}
+                <tr class="{% cycle 'bg-gray-100' 'bg-white' %}">
+                    <td class="border px-4 py-2 text-center">{{ transaction.account.account_no }}</td>
+                    <td class="border px-4 py-2 text-center">{{ transaction.account.user.email }}</td>
+                    <td class="border px-4 py-2 text-center">{{ transaction.get_transaction_type_display }}</td>
+                    <td class="border px-4 py-2 text-center">{{ transaction.timestamp|date:"Y-m-d H:i" }}</td>
+                    <td class="border px-4 py-2 text-center">$ {{ transaction.amount }}</td>
+                    <td class="border px-4 py-2 text-center">$ {{ transaction.balance_after_transaction }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="border px-4 py-2 text-center text-gray-500">No transactions found</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        
+        {% if page_obj.has_other_pages %}
+        <div class="mt-6 flex justify-center">
+            <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                {% if page_obj.has_previous %}
+                    <a href="?page=1{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" 
+                       class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                        First
+                    </a>
+                    <a href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" 
+                       class="relative inline-flex items-center px-2 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                        Previous
+                    </a>
+                {% endif %}
+                
+                <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
+                    Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                </span>
+                
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" 
+                       class="relative inline-flex items-center px-2 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                        Next
+                    </a>
+                    <a href="?page={{ page_obj.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" 
+                       class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                        Last
+                    </a>
+                {% endif %}
+            </nav>
+        </div>
+        {% endif %}
+    </div>
+{% endblock %}
+
+{% block footer_extra %}
+    <script type="text/javascript">
+        $(function () {
+            $('input[name="daterange"]').daterangepicker({
+                autoUpdateInput: false,
+                locale: {
+                    cancelLabel: "Clear",
+                },
+            });
+
+            $('input[name="daterange"]').on("apply.daterangepicker", function (ev, picker) {
+                $(this).val(picker.startDate.format("YYYY-MM-DD") + " - " + picker.endDate.format("YYYY-MM-DD"));
+            });
+
+            $('input[name="daterange"]').on("cancel.daterangepicker", function (ev, picker) {
+                $(this).val("");
+            });
+        });
+    </script>
+{% endblock %}
