@@ -6,14 +6,30 @@ from django.core.validators import (
     MaxValueValidator,
 )
 from django.db import models
+from validate_docbr import CPF
 
 from .constants import GENDER_CHOICE
 from .managers import UserManager
 
 
+def validate_cpf(value):
+    cpf_validator = CPF()
+    if not cpf_validator.validate(value):
+        from django.core.exceptions import ValidationError
+        raise ValidationError('CPF inválido.')
+
+
 class User(AbstractUser):
     username = None
     email = models.EmailField(unique=True, null=False, blank=False)
+    cpf = models.CharField(
+        max_length=11,
+        unique=True,
+        null=True,
+        blank=True,
+        validators=[validate_cpf],
+        help_text='CPF do usuário (apenas números)'
+    )
 
     objects = UserManager()
 
@@ -97,7 +113,15 @@ class UserBankAccount(models.Model):
     initial_deposit_date = models.DateField(null=True, blank=True)
 
     def __str__(self):
+        if self.agencia and self.conta_digito:
+            return f"Ag. {self.agencia} - C/C {self.account_no}-{self.conta_digito}"
         return str(self.account_no)
+    
+    def get_formatted_account(self):
+        """Returns formatted account number in Brazilian format"""
+        if self.agencia and self.conta_digito:
+            return f"Agência {self.agencia} - Conta {self.account_no}-{self.conta_digito}"
+        return f"Conta {self.account_no}"
 
     def get_interest_calculation_months(self):
         """
