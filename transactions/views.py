@@ -2,8 +2,9 @@ import logging
 from dateutil.relativedelta import relativedelta
 
 from django.contrib import messages
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth import get_user_model
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db import transaction
 from django.urls import reverse_lazy
 from django.utils import timezone
 from django.views.generic import CreateView, ListView
@@ -19,12 +20,12 @@ from transactions.forms import (
 )
 from transactions.models import Transaction
 
-logger = logging.getLogger('security')
+logger = logging.getLogger(__name__)
 
 
 @method_decorator(cache_page(settings.CACHE_TTL), name='dispatch')
 class TransactionRepostView(LoginRequiredMixin, ListView):
-    template_name = 'transactions/transaction_report.html'
+    template_name = "transactions/transaction_report.html"
     model = Transaction
     form_data = {}
 
@@ -103,10 +104,10 @@ class TransactionRepostView(LoginRequiredMixin, ListView):
 
 
 class TransactionCreateMixin(LoginRequiredMixin, CreateView):
-    template_name = 'transactions/transaction_form.html'
+    template_name = "transactions/transaction_form.html"
     model = Transaction
-    title = ''
-    success_url = reverse_lazy('transactions:transaction_report')
+    title = ""
+    success_url = reverse_lazy("transactions:transaction_report")
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -118,24 +119,32 @@ class TransactionCreateMixin(LoginRequiredMixin, CreateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context.update({
-            'title': self.title
-        })
+        context.update({"title": self.title})
 
         return context
 
 
 class DepositMoneyView(TransactionCreateMixin):
     form_class = DepositForm
-    title = 'Deposit Money to Your Account'
+    title = "Deposit Money to Your Account"
 
     def get_initial(self):
-        initial = {'transaction_type': DEPOSIT}
+        initial = {"transaction_type": DEPOSIT}
         return initial
 
+    @transaction.atomic
     def form_valid(self, form):
-        amount = form.cleaned_data.get('amount')
+        amount = form.cleaned_data.get("amount")
         account = self.request.user.account
+
+        logger.info(
+            "Deposit initiated",
+            extra={
+                "user_id": self.request.user.id,
+                "account_no": account.account_no,
+                "amount": float(amount),
+            },
+        )
 
         if not account.initial_deposit_date:
             now = timezone.now()
@@ -143,27 +152,29 @@ class DepositMoneyView(TransactionCreateMixin):
                 12 / account.account_type.interest_calculation_per_year
             )
             account.initial_deposit_date = now
-            account.interest_start_date = (
-                now + relativedelta(
-                    months=+next_interest_month
-                )
+            account.interest_start_date = now + relativedelta(
+                months=+next_interest_month
+            )
+            account.save(
+                update_fields=["initial_deposit_date", "interest_start_date"]
             )
 
-        account.balance += amount
-        account.save(
-            update_fields=[
-                'initial_deposit_date',
-                'balance',
-                'interest_start_date'
-            ]
+        form.save()
+
+        account.refresh_from_db()
+        logger.info(
+            "Deposit completed",
+            extra={
+                "user_id": self.request.user.id,
+                "account_no": account.account_no,
+                "amount": float(amount),
+                "new_balance": float(account.balance),
+            },
         )
 
         messages.success(
-            self.request,
-            f'{amount}$ was deposited to your account successfully'
+            self.request, f"{amount}$ was deposited to your account successfully"
         )
-        
-        logger.info(f'Deposit: User {self.request.user.email} deposited {amount}$')
         
         response = super().form_valid(form)
         
@@ -175,23 +186,42 @@ class DepositMoneyView(TransactionCreateMixin):
 
 class WithdrawMoneyView(TransactionCreateMixin):
     form_class = WithdrawForm
-    title = 'Withdraw Money from Your Account'
+    title = "Withdraw Money from Your Account"
 
     def get_initial(self):
-        initial = {'transaction_type': WITHDRAWAL}
+        initial = {"transaction_type": WITHDRAWAL}
         return initial
 
+    @transaction.atomic
     def form_valid(self, form):
-        amount = form.cleaned_data.get('amount')
-        self.request.user.account.balance -= amount
-        self.request.user.account.save(update_fields=['balance'])
+        amount = form.cleaned_data.get("amount")
+        account = self.request.user.account
+
+        logger.info(
+            "Withdrawal initiated",
+            extra={
+                "user_id": self.request.user.id,
+                "account_no": account.account_no,
+                "amount": float(amount),
+            },
+        )
+
+        form.save()
+
+        account.refresh_from_db()
+        logger.info(
+            "Withdrawal completed",
+            extra={
+                "user_id": self.request.user.id,
+                "account_no": account.account_no,
+                "amount": float(amount),
+                "new_balance": float(account.balance),
+            },
+        )
 
         messages.success(
-            self.request,
-            f'Successfully withdrawn {amount}$ from your account'
+            self.request, f"Successfully withdrawn {amount}$ from your account"
         )
-        
-        logger.info(f'Withdrawal: User {self.request.user.email} withdrew {amount}$')
         
         response = super().form_valid(form)
         

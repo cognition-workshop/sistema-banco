@@ -12,6 +12,134 @@ from .tasks import calculate_interest
 User = get_user_model()
 
 
+class TransactionAtomicityTests(TestCase):
+    """Test that all balance operations are atomic."""
+
+    def setUp(self):
+        """Set up test data."""
+        self.user = User.objects.create_user(
+            email="test@example.com",
+            password="testpass123",
+            first_name="Test",
+            last_name="User",
+        )
+
+        self.account_type = BankAccountType.objects.create(
+            name="Savings",
+            maximum_withdrawal_amount=Decimal("5000.00"),
+            annual_interest_rate=Decimal("5.00"),
+            interest_calculation_per_year=12,
+        )
+
+        agencia = 1
+        conta = 2000
+        agencia_digito, conta_digito = validate_brazilian_account(agencia, conta)
+        self.account = UserBankAccount.objects.create(
+            user=self.user,
+            account_type=self.account_type,
+            cpf='123.456.789-09',
+            agencia=str(agencia).zfill(4),
+            agencia_digito=str(agencia_digito),
+            conta=str(conta).zfill(8),
+            conta_digito=str(conta_digito),
+            gender="M",
+            balance=Decimal("1000.00"),
+        )
+
+    def test_deposit_is_atomic(self):
+        """Test that deposits are atomic transactions."""
+        initial_balance = self.account.balance
+
+        form = DepositForm(
+            data={"amount": Decimal("100.00")},
+            initial={"transaction_type": DEPOSIT},
+            account=self.account,
+        )
+
+        if not form.is_valid():
+            self.fail(f"Form validation failed: {form.errors}")
+
+        form.save()
+
+        self.account.refresh_from_db()
+
+        self.assertEqual(self.account.balance, initial_balance + Decimal("100.00"))
+
+        self.assertEqual(Transaction.objects.count(), 1)
+
+    def test_withdraw_validates_balance(self):
+        """Test that withdrawals validate sufficient balance."""
+        form = WithdrawForm(
+            data={"amount": Decimal("2000.00")},
+            initial={"transaction_type": WITHDRAWAL},
+            account=self.account,
+        )
+
+        self.assertFalse(form.is_valid())
+        self.assertIn("amount", form.errors)
+
+    def test_withdraw_is_atomic(self):
+        """Test that withdrawals are atomic transactions."""
+        initial_balance = self.account.balance
+
+        form = WithdrawForm(
+            data={"amount": Decimal("100.00")},
+            initial={"transaction_type": WITHDRAWAL},
+            account=self.account,
+        )
+
+        if not form.is_valid():
+            self.fail(f"Form validation failed: {form.errors}")
+
+        form.save()
+
+        self.account.refresh_from_db()
+
+        self.assertEqual(self.account.balance, initial_balance - Decimal("100.00"))
+
+
+class ValidationTests(TestCase):
+    """Test validation logic."""
+
+    def setUp(self):
+        """Set up test data."""
+        self.user = User.objects.create_user(
+            email="test@example.com", password="testpass123"
+        )
+
+        self.account_type = BankAccountType.objects.create(
+            name="Savings",
+            maximum_withdrawal_amount=Decimal("5000.00"),
+            annual_interest_rate=Decimal("5.00"),
+            interest_calculation_per_year=12,
+        )
+
+        agencia = 1
+        conta = 2001
+        agencia_digito, conta_digito = validate_brazilian_account(agencia, conta)
+        self.account = UserBankAccount.objects.create(
+            user=self.user,
+            account_type=self.account_type,
+            cpf='123.456.789-09',
+            agencia=str(agencia).zfill(4),
+            agencia_digito=str(agencia_digito),
+            conta=str(conta).zfill(8),
+            conta_digito=str(conta_digito),
+            gender="M",
+            balance=Decimal("1000.00"),
+        )
+
+    def test_negative_amount_rejected(self):
+        """Test that negative amounts are rejected."""
+        form = DepositForm(
+            data={"amount": Decimal("-100.00")},
+            initial={"transaction_type": DEPOSIT},
+            account=self.account,
+        )
+
+        self.assertFalse(form.is_valid())
+
+
 class TransactionModelTest(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(
@@ -142,12 +270,14 @@ class WithdrawFormTest(TestCase):
         form = WithdrawForm(data=form_data, account=self.account, initial={'transaction_type': WITHDRAWAL})
         self.assertFalse(form.is_valid())
 
-    def test_withdrawal_allows_negative_balance(self):
+    def test_withdrawal_prevents_negative_balance(self):
+        """Test that withdrawals that exceed balance are rejected (enterprise validation)."""
         form_data = {
             'amount': 2000,
         }
         form = WithdrawForm(data=form_data, account=self.account, initial={'transaction_type': WITHDRAWAL})
-        self.assertTrue(form.is_valid())
+        self.assertFalse(form.is_valid())
+        self.assertIn('amount', form.errors)
 
 
 class TransactionDateRangeFormTest(TestCase):
