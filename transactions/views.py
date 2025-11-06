@@ -20,6 +20,8 @@ class TransactionRepostView(ListView):
     template_name = 'transactions/transaction_report.html'
     model = Transaction
     form_data = {}
+    paginate_by = 50
+    context_object_name = 'object_list'
 
     def get(self, request, *args, **kwargs):
         form = TransactionDateRangeForm(request.GET or None)
@@ -29,30 +31,32 @@ class TransactionRepostView(ListView):
         return super().get(request, *args, **kwargs)
 
     def get_queryset(self):
-        # Bypass login - use demo user
-        User = get_user_model()
-        demo_user = User.objects.filter(email='demo@example.com').first()
-        if not demo_user or not hasattr(demo_user, 'account'):
+        if not hasattr(self, '_demo_user'):
+            User = get_user_model()
+            self._demo_user = User.objects.filter(email='demo@example.com').first()
+        
+        if not self._demo_user or not hasattr(self._demo_user, 'account'):
             return super().get_queryset().none()
         
         queryset = super().get_queryset().filter(
-            account=demo_user.account
-        )
+            account=self._demo_user.account
+        ).select_related('account').order_by('-timestamp')
 
         daterange = self.form_data.get("daterange")
 
         if daterange:
             queryset = queryset.filter(timestamp__date__range=daterange)
 
-        return queryset.distinct()
+        return queryset
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # Bypass login - use demo user
-        User = get_user_model()
-        demo_user = User.objects.filter(email='demo@example.com').first()
+        if not hasattr(self, '_demo_user'):
+            User = get_user_model()
+            self._demo_user = User.objects.filter(email='demo@example.com').first()
+        
         context.update({
-            'account': demo_user.account if demo_user and hasattr(demo_user, 'account') else None,
+            'account': self._demo_user.account if self._demo_user and hasattr(self._demo_user, 'account') else None,
             'form': TransactionDateRangeForm(self.request.GET or None)
         })
 
