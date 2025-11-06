@@ -122,3 +122,106 @@ class UserAddress(models.Model):
 
     def __str__(self):
         return self.user.email
+
+
+class FraudRule(models.Model):
+    HIGH_VALUE = 'high_value'
+    HIGH_FREQUENCY = 'high_frequency'
+    UNUSUAL_HOURS = 'unusual_hours'
+    PATTERN_CHANGE = 'pattern_change'
+    
+    RULE_TYPE_CHOICES = [
+        (HIGH_VALUE, 'High Value Transaction'),
+        (HIGH_FREQUENCY, 'High Frequency Transactions'),
+        (UNUSUAL_HOURS, 'Unusual Hours'),
+        (PATTERN_CHANGE, 'Pattern Change'),
+    ]
+    
+    LOW = 'low'
+    MEDIUM = 'medium'
+    HIGH = 'high'
+    
+    SEVERITY_CHOICES = [
+        (LOW, 'Low'),
+        (MEDIUM, 'Medium'),
+        (HIGH, 'High'),
+    ]
+    
+    rule_type = models.CharField(
+        max_length=50,
+        choices=RULE_TYPE_CHOICES,
+        help_text='Type of fraud detection rule'
+    )
+    parameters = models.JSONField(
+        help_text='Rule-specific parameters in JSON format'
+    )
+    is_active = models.BooleanField(
+        default=True,
+        help_text='Whether this rule is currently active'
+    )
+    severity = models.CharField(
+        max_length=20,
+        choices=SEVERITY_CHOICES,
+        default=MEDIUM,
+        help_text='Severity level of this fraud rule'
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"{self.get_rule_type_display()} - {self.get_severity_display()}"
+
+
+class SuspiciousTransaction(models.Model):
+    PENDING = 'pending'
+    APPROVED = 'approved'
+    REJECTED = 'rejected'
+    
+    STATUS_CHOICES = [
+        (PENDING, 'Pending Review'),
+        (APPROVED, 'Approved'),
+        (REJECTED, 'Rejected'),
+    ]
+    
+    transaction = models.ForeignKey(
+        'transactions.Transaction',
+        on_delete=models.CASCADE,
+        related_name='fraud_alerts'
+    )
+    fraud_rules = models.ManyToManyField(
+        FraudRule,
+        related_name='suspicious_transactions',
+        help_text='Fraud rules that were violated'
+    )
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default=PENDING,
+        help_text='Review status of this suspicious transaction'
+    )
+    detected_at = models.DateTimeField(auto_now_add=True)
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+    reviewed_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='reviewed_suspicious_transactions'
+    )
+    notes = models.TextField(
+        blank=True,
+        help_text='Notes about the review of this transaction'
+    )
+    
+    class Meta:
+        ordering = ['-detected_at']
+        permissions = [
+            ('can_manage_fraud_rules', 'Can manage fraud detection rules'),
+            ('can_review_suspicious_transactions', 'Can review suspicious transactions'),
+        ]
+    
+    def __str__(self):
+        return f"Suspicious: {self.transaction} - {self.get_status_display()}"
