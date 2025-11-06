@@ -84,3 +84,18 @@ class UserRegistrationForm(UserCreationForm):
                 )
             )
         return user
+
+
+class OAuthAccountTypeForm(forms.Form):
+    account_type = forms.ModelChoiceField(
+        queryset=BankAccountType.objects.all(),
+        empty_label="Select Account Type",
+        widget=forms.Select(attrs={
+            'class': (
+                'appearance-none block w-full bg-gray-200 '
+                'text-gray-700 border border-gray-200 rounded '
+                'py-3 px-4 leading-tight focus:outline-none '
+                'focus:bg-white focus:border-gray-500'
+            )
+        })
+    )
