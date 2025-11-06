@@ -1,0 +1,174 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block title %}Dashboard - {{ site_title }}{% endblock %}
+
+{% block extrahead %}
+<style>
+    .dashboard-container {
+        padding: 20px;
+    }
+    .metrics-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+    .metric-card {
+        background: white;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .metric-card h3 {
+        margin: 0 0 10px 0;
+        color: #666;
+        font-size: 14px;
+        font-weight: normal;
+    }
+    .metric-card .value {
+        font-size: 32px;
+        font-weight: bold;
+        color: #333;
+    }
+    .metric-card .subvalue {
+        font-size: 14px;
+        color: #999;
+        margin-top: 5px;
+    }
+    .section {
+        background: white;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+    .section h2 {
+        margin-top: 0;
+        border-bottom: 2px solid #417690;
+        padding-bottom: 10px;
+    }
+    table.dashboard-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    table.dashboard-table th {
+        background: #f5f5f5;
+        padding: 10px;
+        text-align: left;
+        border-bottom: 2px solid #ddd;
+    }
+    table.dashboard-table td {
+        padding: 10px;
+        border-bottom: 1px solid #eee;
+    }
+    .positive {
+        color: green;
+        font-weight: bold;
+    }
+    .negative {
+        color: red;
+        font-weight: bold;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <h1>Banking System Dashboard</h1>
+    
+    <div class="metrics-grid">
+        <div class="metric-card">
+            <h3>Total Users</h3>
+            <div class="value">{{ total_users }}</div>
+            <div class="subvalue">{{ new_users }} new (30 days)</div>
+        </div>
+        
+        <div class="metric-card">
+            <h3>Total Accounts</h3>
+            <div class="value">{{ total_accounts }}</div>
+        </div>
+        
+        <div class="metric-card">
+            <h3>Total Balance</h3>
+            <div class="value">${{ total_balance|floatformat:2 }}</div>
+        </div>
+        
+        <div class="metric-card">
+            <h3>Total Transactions</h3>
+            <div class="value">{{ total_transactions }}</div>
+            <div class="subvalue">{{ recent_transactions }} recent (30 days)</div>
+        </div>
+    </div>
+    
+    <div class="metrics-grid">
+        <div class="metric-card">
+            <h3>Total Deposits</h3>
+            <div class="value positive">${{ total_deposits|floatformat:2 }}</div>
+        </div>
+        
+        <div class="metric-card">
+            <h3>Total Withdrawals</h3>
+            <div class="value negative">${{ total_withdrawals|floatformat:2 }}</div>
+        </div>
+        
+        <div class="metric-card">
+            <h3>Total Interest Paid</h3>
+            <div class="value positive">${{ total_interest|floatformat:2 }}</div>
+        </div>
+    </div>
+    
+    <div class="section">
+        <h2>Top 5 Accounts by Balance</h2>
+        <table class="dashboard-table">
+            <thead>
+                <tr>
+                    <th>Account Number</th>
+                    <th>User</th>
+                    <th>Account Type</th>
+                    <th>Balance</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for account in top_accounts %}
+                <tr>
+                    <td>{{ account.account_no }}</td>
+                    <td>{{ account.user.email }}</td>
+                    <td>{{ account.account_type.name }}</td>
+                    <td class="positive">${{ account.balance|floatformat:2 }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <div class="section">
+        <h2>Recent Transactions (Last 10)</h2>
+        <table class="dashboard-table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Account</th>
+                    <th>Type</th>
+                    <th>Amount</th>
+                    <th>Balance After</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for txn in recent_txns %}
+                <tr>
+                    <td>{{ txn.timestamp|date:"Y-m-d H:i" }}</td>
+                    <td>{{ txn.account.account_no }}</td>
+                    <td>{{ txn.get_transaction_type_display }}</td>
+                    <td class="{% if txn.transaction_type == 1 or txn.transaction_type == 3 %}positive{% else %}negative{% endif %}">
+                        ${{ txn.amount|floatformat:2 }}
+                    </td>
+                    <td>${{ txn.balance_after_transaction|floatformat:2 }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
