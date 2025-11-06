@@ -6,12 +6,14 @@ from django.contrib.auth import get_user_model
 from django.urls import reverse_lazy
 from django.utils import timezone
 from django.views.generic import CreateView, ListView
+from django.db import transaction
 
-from transactions.constants import DEPOSIT, WITHDRAWAL
+from transactions.constants import DEPOSIT, WITHDRAWAL, TRANSFER
 from transactions.forms import (
     DepositForm,
     TransactionDateRangeForm,
     WithdrawForm,
+    TransferForm,
 )
 from transactions.models import Transaction
 
@@ -153,4 +155,56 @@ class WithdrawMoneyView(TransactionCreateMixin):
             f'Successfully withdrawn {amount}$ from your account'
         )
 
+        return super().form_valid(form)
+
+
+class TransferMoneyView(TransactionCreateMixin):
+    form_class = TransferForm
+    title = 'Transfer Money to Another Account'
+    template_name = 'transactions/transfer_form.html'
+
+    def get_initial(self):
+        initial = {'transaction_type': TRANSFER}
+        return initial
+
+    @transaction.atomic
+    def form_valid(self, form):
+        amount = form.cleaned_data.get('amount')
+        destination_account = form.destination_account
+        
+        User = get_user_model()
+        demo_user = User.objects.filter(email='demo@example.com').first()
+        source_account = demo_user.account if demo_user and hasattr(demo_user, 'account') else None
+        
+        if not source_account:
+            messages.error(self.request, 'Source account not found')
+            return super().form_valid(form)
+        
+        source_account.balance -= amount
+        destination_account.balance += amount
+        
+        source_account.save(update_fields=['balance'])
+        destination_account.save(update_fields=['balance'])
+        
+        Transaction.objects.create(
+            account=source_account,
+            amount=amount,
+            balance_after_transaction=source_account.balance,
+            transaction_type=TRANSFER,
+            destination_account=destination_account
+        )
+        
+        Transaction.objects.create(
+            account=destination_account,
+            amount=amount,
+            balance_after_transaction=destination_account.balance,
+            transaction_type=TRANSFER,
+            destination_account=source_account
+        )
+        
+        messages.success(
+            self.request,
+            f'{amount}$ was transferred to account {destination_account.account_no} successfully'
+        )
+        
         return super().form_valid(form)
