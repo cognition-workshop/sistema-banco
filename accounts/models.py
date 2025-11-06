@@ -6,6 +6,7 @@ from django.core.validators import (
     MaxValueValidator,
 )
 from django.db import models
+from django.utils import timezone
 
 from .constants import GENDER_CHOICE
 from .managers import UserManager
@@ -107,6 +108,22 @@ class UserBankAccount(models.Model):
         )
         start = self.interest_start_date.month
         return [i for i in range(start, 13, interval)]
+
+    def apply_monthly_interest(self):
+        """
+        Calcula e aplica juros mensais à conta.
+        Retorna o valor do juro calculado ou None se não aplicável.
+        """
+        if self.balance <= 0:
+            return None
+        
+        this_month = timezone.now().month
+        if this_month not in self.get_interest_calculation_months():
+            return None
+        
+        interest = self.account_type.calculate_interest(self.balance)
+        self.balance += interest
+        return interest
 
 
 class UserAddress(models.Model):
