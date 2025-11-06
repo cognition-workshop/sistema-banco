@@ -1,12 +1,15 @@
 from dateutil.relativedelta import relativedelta
 
 from django.contrib import messages
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth import get_user_model
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.exceptions import ValidationError
+from django.db import transaction
 from django.urls import reverse_lazy
 from django.utils import timezone
 from django.views.generic import CreateView, ListView
 
+from accounts.models import UserBankAccount
 from transactions.constants import DEPOSIT, WITHDRAWAL
 from transactions.forms import (
     DepositForm,
@@ -139,18 +142,24 @@ class WithdrawMoneyView(TransactionCreateMixin):
         initial = {'transaction_type': WITHDRAWAL}
         return initial
 
+    @transaction.atomic
     def form_valid(self, form):
         amount = form.cleaned_data.get('amount')
-        # Bypass login - use demo user
         User = get_user_model()
         demo_user = User.objects.filter(email='demo@example.com').first()
+        
         if demo_user and hasattr(demo_user, 'account'):
-            demo_user.account.balance -= form.cleaned_data.get('amount')
-            demo_user.account.save(update_fields=['balance'])
-
-        messages.success(
-            self.request,
-            f'Successfully withdrawn {amount}$ from your account'
-        )
-
+            try:
+                account = UserBankAccount.objects.select_for_update().get(
+                    user=demo_user
+                )
+                account.withdraw(amount)
+                messages.success(
+                    self.request,
+                    f'Saque de {amount}$ realizado com sucesso'
+                )
+            except ValidationError as e:
+                messages.error(self.request, str(e))
+                return self.form_invalid(form)
+        
         return super().form_valid(form)

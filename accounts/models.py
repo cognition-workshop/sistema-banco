@@ -1,6 +1,7 @@
 from decimal import Decimal
 
 from django.contrib.auth.models import AbstractUser
+from django.core.exceptions import ValidationError
 from django.core.validators import (
     MinValueValidator,
     MaxValueValidator,
@@ -107,6 +108,26 @@ class UserBankAccount(models.Model):
         )
         start = self.interest_start_date.month
         return [i for i in range(start, 13, interval)]
+
+    def withdraw(self, amount):
+        """
+        Realiza saque com validação de saldo.
+        
+        Raises:
+            ValidationError: Se o saldo for insuficiente
+        """
+        if amount > self.balance:
+            raise ValidationError(
+                f'Saldo insuficiente. Disponível: {self.balance}, Solicitado: {amount}'
+            )
+        
+        self.balance -= amount
+        self.save(update_fields=['balance'])
+        return self.balance
+
+    def can_withdraw(self, amount):
+        """Verifica se é possível sacar o valor sem deixar saldo negativo."""
+        return self.balance >= amount
 
 
 class UserAddress(models.Model):
