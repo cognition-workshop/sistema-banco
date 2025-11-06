@@ -63,9 +63,10 @@ class TransactionRepostView(ListView):
 
         queryset = queryset.distinct()
         
-        cache.set(cache_key, queryset, 300)
+        result = list(queryset)
+        cache.set(cache_key, result, 300)
         
-        return queryset
+        return result
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
