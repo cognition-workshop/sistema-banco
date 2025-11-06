@@ -71,7 +71,18 @@ class WithdrawForm(TransactionForm):
 
 
 class TransactionDateRangeForm(forms.Form):
+    TRANSACTION_TYPE_FILTER_CHOICES = (
+        ('', 'All'),
+        ('1', 'Deposit'),
+        ('2', 'Withdrawal'),
+        ('3', 'Interest'),
+    )
+    
     daterange = forms.CharField(required=False)
+    transaction_type = forms.ChoiceField(
+        choices=TRANSACTION_TYPE_FILTER_CHOICES,
+        required=False
+    )
 
     def clean_daterange(self):
         daterange = self.cleaned_data.get("daterange")
