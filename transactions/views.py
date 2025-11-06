@@ -1,8 +1,10 @@
 from dateutil.relativedelta import relativedelta
+from hashlib import md5
 
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth import get_user_model
+from django.core.cache import cache
 from django.urls import reverse_lazy
 from django.utils import timezone
 from django.views.generic import CreateView, ListView
@@ -29,22 +31,42 @@ class TransactionRepostView(ListView):
         return super().get(request, *args, **kwargs)
 
     def get_queryset(self):
-        # Bypass login - use demo user
         User = get_user_model()
         demo_user = User.objects.filter(email='demo@example.com').first()
         if not demo_user or not hasattr(demo_user, 'account'):
             return super().get_queryset().none()
         
+        account_id = demo_user.account.id
+        daterange = self.form_data.get("daterange", "")
+        
+        daterange_str = str(daterange) if daterange else "all"
+        cache_key = f"transaction_report:{account_id}:{md5(daterange_str.encode()).hexdigest()}"
+        
+        cached_result = cache.get(cache_key)
+        if cached_result is not None:
+            return cached_result
+        
         queryset = super().get_queryset().filter(
             account=demo_user.account
+        ).select_related(
+            'account__account_type'
+        ).only(
+            'id',
+            'account_id',
+            'transaction_type',
+            'timestamp',
+            'amount',
+            'balance_after_transaction',
+            'account__balance',
         )
-
-        daterange = self.form_data.get("daterange")
 
         if daterange:
             queryset = queryset.filter(timestamp__date__range=daterange)
 
-        return queryset.distinct()
+        result = list(queryset.distinct())
+        cache.set(cache_key, result, 300)
+        
+        return result
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
