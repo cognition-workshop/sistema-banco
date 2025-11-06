@@ -14,6 +14,9 @@ from transactions.forms import (
     WithdrawForm,
 )
 from transactions.models import Transaction
+import logging
+
+logger = logging.getLogger('banking_system')
 
 
 class TransactionRepostView(ListView):
@@ -95,13 +98,15 @@ class DepositMoneyView(TransactionCreateMixin):
 
     def form_valid(self, form):
         amount = form.cleaned_data.get('amount')
-        # Bypass login - use demo user
         User = get_user_model()
         demo_user = User.objects.filter(email='demo@example.com').first()
         account = demo_user.account if demo_user and hasattr(demo_user, 'account') else None
         if not account:
+            logger.error(f"Deposit failed: Demo user account not found")
             return super().form_valid(form)
 
+        logger.info(f"Processing deposit: amount=${amount}, account={account.account_no}")
+        
         if not account.initial_deposit_date:
             now = timezone.now()
             next_interest_month = int(
@@ -123,6 +128,8 @@ class DepositMoneyView(TransactionCreateMixin):
             ]
         )
 
+        logger.info(f"Deposit successful: amount=${amount}, new_balance=${account.balance}, account={account.account_no}")
+
         messages.success(
             self.request,
             f'{amount}$ was deposited to your account successfully'
@@ -141,12 +148,16 @@ class WithdrawMoneyView(TransactionCreateMixin):
 
     def form_valid(self, form):
         amount = form.cleaned_data.get('amount')
-        # Bypass login - use demo user
         User = get_user_model()
         demo_user = User.objects.filter(email='demo@example.com').first()
         if demo_user and hasattr(demo_user, 'account'):
+            account = demo_user.account
+            logger.info(f"Processing withdrawal: amount=${amount}, account={account.account_no}, current_balance=${account.balance}")
+            
             demo_user.account.balance -= form.cleaned_data.get('amount')
             demo_user.account.save(update_fields=['balance'])
+            
+            logger.info(f"Withdrawal successful: amount=${amount}, new_balance=${account.balance}, account={account.account_no}")
 
         messages.success(
             self.request,
