@@ -3,6 +3,7 @@ from dateutil.relativedelta import relativedelta
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth import get_user_model
+from django.db.models import Sum, Q
 from django.urls import reverse_lazy
 from django.utils import timezone
 from django.views.generic import CreateView, ListView
@@ -16,7 +17,7 @@ from transactions.forms import (
 from transactions.models import Transaction
 
 
-class TransactionRepostView(ListView):
+class TransactionRepostView(LoginRequiredMixin, ListView):
     template_name = 'transactions/transaction_report.html'
     model = Transaction
     form_data = {}
@@ -29,37 +30,47 @@ class TransactionRepostView(ListView):
         return super().get(request, *args, **kwargs)
 
     def get_queryset(self):
-        # Bypass login - use demo user
-        User = get_user_model()
-        demo_user = User.objects.filter(email='demo@example.com').first()
-        if not demo_user or not hasattr(demo_user, 'account'):
-            return super().get_queryset().none()
-        
         queryset = super().get_queryset().filter(
-            account=demo_user.account
+            account=self.request.user.account
         )
 
         daterange = self.form_data.get("daterange")
+        transaction_type = self.form_data.get("transaction_type")
+        min_amount = self.form_data.get("min_amount")
+        max_amount = self.form_data.get("max_amount")
 
         if daterange:
             queryset = queryset.filter(timestamp__date__range=daterange)
+        
+        if transaction_type:
+            queryset = queryset.filter(transaction_type=transaction_type)
+        
+        if min_amount is not None:
+            queryset = queryset.filter(amount__gte=min_amount)
+        
+        if max_amount is not None:
+            queryset = queryset.filter(amount__lte=max_amount)
 
         return queryset.distinct()
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # Bypass login - use demo user
-        User = get_user_model()
-        demo_user = User.objects.filter(email='demo@example.com').first()
+        
+        queryset = self.get_queryset()
+        total_deposits = queryset.filter(transaction_type=DEPOSIT).aggregate(Sum('amount'))['amount__sum'] or 0
+        total_withdrawals = queryset.filter(transaction_type=WITHDRAWAL).aggregate(Sum('amount'))['amount__sum'] or 0
+        
         context.update({
-            'account': demo_user.account if demo_user and hasattr(demo_user, 'account') else None,
-            'form': TransactionDateRangeForm(self.request.GET or None)
+            'account': self.request.user.account,
+            'form': TransactionDateRangeForm(self.request.GET or None),
+            'total_deposits': total_deposits,
+            'total_withdrawals': total_withdrawals,
         })
 
         return context
 
 
-class TransactionCreateMixin(CreateView):
+class TransactionCreateMixin(LoginRequiredMixin, CreateView):
     template_name = 'transactions/transaction_form.html'
     model = Transaction
     title = ''
@@ -67,13 +78,9 @@ class TransactionCreateMixin(CreateView):
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
-        # Bypass login - use demo user
-        User = get_user_model()
-        demo_user = User.objects.filter(email='demo@example.com').first()
-        if demo_user and hasattr(demo_user, 'account'):
-            kwargs.update({
-                'account': demo_user.account
-            })
+        kwargs.update({
+            'account': self.request.user.account
+        })
         return kwargs
 
     def get_context_data(self, **kwargs):
@@ -95,12 +102,7 @@ class DepositMoneyView(TransactionCreateMixin):
 
     def form_valid(self, form):
         amount = form.cleaned_data.get('amount')
-        # Bypass login - use demo user
-        User = get_user_model()
-        demo_user = User.objects.filter(email='demo@example.com').first()
-        account = demo_user.account if demo_user and hasattr(demo_user, 'account') else None
-        if not account:
-            return super().form_valid(form)
+        account = self.request.user.account
 
         if not account.initial_deposit_date:
             now = timezone.now()
@@ -141,12 +143,9 @@ class WithdrawMoneyView(TransactionCreateMixin):
 
     def form_valid(self, form):
         amount = form.cleaned_data.get('amount')
-        # Bypass login - use demo user
-        User = get_user_model()
-        demo_user = User.objects.filter(email='demo@example.com').first()
-        if demo_user and hasattr(demo_user, 'account'):
-            demo_user.account.balance -= form.cleaned_data.get('amount')
-            demo_user.account.save(update_fields=['balance'])
+        
+        self.request.user.account.balance -= amount
+        self.request.user.account.save(update_fields=['balance'])
 
         messages.success(
             self.request,
