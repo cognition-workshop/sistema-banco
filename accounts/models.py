@@ -9,6 +9,7 @@ from django.db import models
 
 from .constants import GENDER_CHOICE
 from .managers import UserManager
+from .validators import postal_code_validator
 
 
 class User(AbstractUser):
@@ -117,7 +118,10 @@ class UserAddress(models.Model):
     )
     street_address = models.CharField(max_length=512)
     city = models.CharField(max_length=256)
-    postal_code = models.PositiveIntegerField()
+    postal_code = models.CharField(
+        max_length=10,
+        validators=[postal_code_validator]
+    )
     country = models.CharField(max_length=256)
 
     def __str__(self):

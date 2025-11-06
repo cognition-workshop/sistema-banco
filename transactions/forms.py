@@ -36,7 +36,7 @@ class DepositForm(TransactionForm):
 
         if amount < min_deposit_amount:
             raise forms.ValidationError(
-                f'You need to deposit at least {min_deposit_amount} $'
+                f'Você precisa depositar no mínimo {min_deposit_amount} $'
             )
 
         return amount
@@ -56,16 +56,18 @@ class WithdrawForm(TransactionForm):
 
         if amount < min_withdraw_amount:
             raise forms.ValidationError(
-                f'You can withdraw at least {min_withdraw_amount} $'
+                f'Você pode sacar no mínimo {min_withdraw_amount} $'
             )
 
         if amount > max_withdraw_amount:
             raise forms.ValidationError(
-                f'You can withdraw at most {max_withdraw_amount} $'
+                f'Você pode sacar no máximo {max_withdraw_amount} $'
             )
 
-        # TODO: Add validation to prevent negative balances
-        # Bug: Users can currently withdraw more than their balance
+        if amount > balance:
+            raise forms.ValidationError(
+                f'Saldo insuficiente. Seu saldo atual é {balance} $'
+            )
 
         return amount
 
@@ -75,16 +77,36 @@ class TransactionDateRangeForm(forms.Form):
 
     def clean_daterange(self):
         daterange = self.cleaned_data.get("daterange")
-        print(daterange)
+        
+        if not daterange:
+            return None
 
         try:
             daterange = daterange.split(' - ')
-            print(daterange)
-            if len(daterange) == 2:
-                for date in daterange:
-                    datetime.datetime.strptime(date, '%Y-%m-%d')
-                return daterange
-            else:
-                raise forms.ValidationError("Please select a date range.")
+            if len(daterange) != 2:
+                raise forms.ValidationError("Por favor, selecione um intervalo de datas.")
+            
+            start_date = datetime.datetime.strptime(daterange[0], '%Y-%m-%d').date()
+            end_date = datetime.datetime.strptime(daterange[1], '%Y-%m-%d').date()
+            
+            if start_date > end_date:
+                raise forms.ValidationError(
+                    "A data inicial deve ser anterior à data final."
+                )
+            
+            today = datetime.date.today()
+            if start_date > today or end_date > today:
+                raise forms.ValidationError(
+                    "Não é possível selecionar datas futuras."
+                )
+            
+            max_days = 365
+            days_diff = (end_date - start_date).days
+            if days_diff > max_days:
+                raise forms.ValidationError(
+                    f"O intervalo máximo permitido é de {max_days} dias (1 ano)."
+                )
+            
+            return [start_date, end_date]
         except (ValueError, AttributeError):
-            raise forms.ValidationError("Invalid date range")
+            raise forms.ValidationError("Formato de data inválido")

@@ -25,6 +25,8 @@
             {% include 'core/footer.html' %}
 
         {% endblock %}
-        {% block footer_extra %}{% endblock %}
+        {% block footer_extra %}
+        <script src="{% static 'js/form-validation.js' %}"></script>
+        {% endblock %}
     </body>
 </html>

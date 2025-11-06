@@ -1,4 +1,6 @@
+from decimal import Decimal
 from django.db import models
+from django.core.validators import MinValueValidator
 
 from .constants import TRANSACTION_TYPE_CHOICES
 from accounts.models import UserBankAccount
@@ -12,7 +14,8 @@ class Transaction(models.Model):
     )
     amount = models.DecimalField(
         decimal_places=2,
-        max_digits=12
+        max_digits=12,
+        validators=[MinValueValidator(Decimal('0.01'))]
     )
     balance_after_transaction = models.DecimalField(
         decimal_places=2,
