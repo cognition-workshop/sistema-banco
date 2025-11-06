@@ -70,6 +70,61 @@ class WithdrawForm(TransactionForm):
         return amount
 
 
+class TransferForm(TransactionForm):
+    recipient_account_no = forms.IntegerField(
+        label='Recipient Account Number',
+        help_text='Enter the account number of the recipient'
+    )
+
+    class Meta(TransactionForm.Meta):
+        fields = TransactionForm.Meta.fields + ['recipient_account_no']
+
+    def clean_recipient_account_no(self):
+        from accounts.models import UserBankAccount
+        recipient_account_no = self.cleaned_data.get('recipient_account_no')
+        
+        if recipient_account_no == self.account.account_no:
+            raise forms.ValidationError(
+                'You cannot transfer money to your own account'
+            )
+        
+        try:
+            recipient_account = UserBankAccount.objects.get(
+                account_no=recipient_account_no
+            )
+        except UserBankAccount.DoesNotExist:
+            raise forms.ValidationError(
+                f'Account number {recipient_account_no} does not exist'
+            )
+        
+        return recipient_account_no
+
+    def clean_amount(self):
+        account = self.account
+        min_transfer_amount = settings.MINIMUM_TRANSFER_AMOUNT
+        max_transfer_amount = settings.MAXIMUM_TRANSFER_AMOUNT
+        balance = account.balance
+
+        amount = self.cleaned_data.get('amount')
+
+        if amount < min_transfer_amount:
+            raise forms.ValidationError(
+                f'You need to transfer at least {min_transfer_amount} $'
+            )
+
+        if amount > max_transfer_amount:
+            raise forms.ValidationError(
+                f'You can transfer at most {max_transfer_amount} $'
+            )
+
+        if amount > balance:
+            raise forms.ValidationError(
+                f'Insufficient balance. Your current balance is {balance} $'
+            )
+
+        return amount
+
+
 class TransactionDateRangeForm(forms.Form):
     daterange = forms.CharField(required=False)
 
