@@ -51,6 +51,24 @@
         </tr>
         </tbody>
     </table>
+
+    {% if is_paginated %}
+    <div class="mt-8 flex justify-center items-center space-x-2">
+        {% if page_obj.has_previous %}
+            <a href="?page=1{% if request.GET.daterange %}&daterange={{ request.GET.daterange }}{% endif %}" class="px-3 py-2 bg-gray-800 text-white rounded hover:bg-gray-700">First</a>
+            <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.daterange %}&daterange={{ request.GET.daterange }}{% endif %}" class="px-3 py-2 bg-gray-800 text-white rounded hover:bg-gray-700">Previous</a>
+        {% endif %}
+        
+        <span class="px-3 py-2">
+            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+        </span>
+        
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}{% if request.GET.daterange %}&daterange={{ request.GET.daterange }}{% endif %}" class="px-3 py-2 bg-gray-800 text-white rounded hover:bg-gray-700">Next</a>
+            <a href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.daterange %}&daterange={{ request.GET.daterange }}{% endif %}" class="px-3 py-2 bg-gray-800 text-white rounded hover:bg-gray-700">Last</a>
+        {% endif %}
+    </div>
+    {% endif %}
 {% endblock %}
 
 {% block footer_extra %}
