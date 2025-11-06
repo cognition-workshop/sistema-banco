@@ -43,3 +43,7 @@ def calculate_interest():
         UserBankAccount.objects.bulk_update(
             updated_accounts, ['balance']
         )
+        
+        from transactions.views import invalidate_transaction_cache
+        for account in updated_accounts:
+            invalidate_transaction_cache(account.id)
