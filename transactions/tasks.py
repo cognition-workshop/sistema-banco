@@ -9,6 +9,9 @@ from transactions.models import Transaction
 
 @task(name="calculate_interest")
 def calculate_interest():
+    from transactions.audit import create_audit_log
+    from transactions.constants import INTEREST_CALCULATION
+    
     accounts = UserBankAccount.objects.filter(
         balance__gt=0,
         interest_start_date__gte=timezone.now(),
@@ -31,13 +34,27 @@ def calculate_interest():
             transaction_obj = Transaction(
                 account=account,
                 transaction_type=INTEREST,
-                amount=interest
+                amount=interest,
+                balance_after_transaction=account.balance
             )
             created_transactions.append(transaction_obj)
             updated_accounts.append(account)
 
     if created_transactions:
         Transaction.objects.bulk_create(created_transactions)
+        
+        for transaction in created_transactions:
+            create_audit_log(
+                action_type=INTEREST_CALCULATION,
+                success=True,
+                transaction=transaction,
+                amount=transaction.amount,
+                user=None,
+                additional_data={
+                    'account_no': str(transaction.account.account_no),
+                    'calculation_month': this_month
+                }
+            )
 
     if updated_accounts:
         UserBankAccount.objects.bulk_update(
