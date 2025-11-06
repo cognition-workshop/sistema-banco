@@ -3,8 +3,8 @@ from django.utils import timezone
 from celery import shared_task
 
 from accounts.models import UserBankAccount
-from transactions.constants import INTEREST
 from transactions.models import Transaction
+from transactions.utils import process_interest_for_accounts
 
 
 @shared_task(name="calculate_interest")
@@ -17,24 +17,9 @@ def calculate_interest():
 
     this_month = timezone.now().month
 
-    created_transactions = []
-    updated_accounts = []
-
-    for account in accounts:
-        if this_month in account.get_interest_calculation_months():
-            interest = account.account_type.calculate_interest(
-                account.balance
-            )
-            account.balance += interest
-            account.save()
-
-            transaction_obj = Transaction(
-                account=account,
-                transaction_type=INTEREST,
-                amount=interest
-            )
-            created_transactions.append(transaction_obj)
-            updated_accounts.append(account)
+    created_transactions, updated_accounts = process_interest_for_accounts(
+        list(accounts), this_month
+    )
 
     if created_transactions:
         Transaction.objects.bulk_create(created_transactions)
