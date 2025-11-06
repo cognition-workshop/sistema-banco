@@ -66,6 +66,18 @@ class UserLoginView(LoginView):
     redirect_authenticated_user = True
 
 
+class AdminLoginView(LoginView):
+    template_name='admin/login.html'
+    redirect_authenticated_user = True
+    
+    def form_valid(self, form):
+        user = form.get_user()
+        if not user.is_staff:
+            form.add_error(None, 'You do not have admin privileges.')
+            return self.form_invalid(form)
+        return super().form_valid(form)
+
+
 class LogoutView(RedirectView):
     pattern_name = 'home'
 

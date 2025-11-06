@@ -10,10 +10,22 @@ from django.db import models
 from .constants import GENDER_CHOICE
 from .managers import UserManager
 
+VIEW_USERS = 'VIEW_USERS'
+EDIT_USERS = 'EDIT_USERS'
+SUSPEND_USERS = 'SUSPEND_USERS'
+VIEW_REPORTS = 'VIEW_REPORTS'
+
+ADMIN_PERMISSIONS = [VIEW_USERS, EDIT_USERS, SUSPEND_USERS, VIEW_REPORTS]
+
 
 class User(AbstractUser):
     username = None
     email = models.EmailField(unique=True, null=False, blank=False)
+    admin_permissions = models.JSONField(
+        default=list,
+        blank=True,
+        help_text='List of admin permissions: VIEW_USERS, EDIT_USERS, SUSPEND_USERS, VIEW_REPORTS'
+    )
 
     objects = UserManager()
 
@@ -28,6 +40,9 @@ class User(AbstractUser):
         if hasattr(self, 'account'):
             return self.account.balance
         return 0
+
+    def has_admin_permission(self, permission):
+        return self.is_staff and permission in self.admin_permissions
 
 
 class BankAccountType(models.Model):
