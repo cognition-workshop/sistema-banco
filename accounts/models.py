@@ -93,6 +93,12 @@ class UserBankAccount(models.Model):
     )
     initial_deposit_date = models.DateField(null=True, blank=True)
 
+    class Meta:
+        indexes = [
+            models.Index(fields=['balance', 'interest_start_date'], name='account_balance_interest_idx'),
+            models.Index(fields=['initial_deposit_date'], name='account_initial_deposit_idx'),
+        ]
+
     def __str__(self):
         return str(self.account_no)
 

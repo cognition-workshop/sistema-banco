@@ -13,7 +13,14 @@ def calculate_interest():
         balance__gt=0,
         interest_start_date__gte=timezone.now(),
         initial_deposit_date__isnull=False
-    ).select_related('account_type')
+    ).select_related('account_type').only(
+        'id',
+        'balance',
+        'interest_start_date',
+        'account_type__id',
+        'account_type__annual_interest_rate',
+        'account_type__interest_calculation_per_year'
+    )
 
     this_month = timezone.now().month
 
@@ -26,7 +33,6 @@ def calculate_interest():
                 account.balance
             )
             account.balance += interest
-            account.save()
 
             transaction_obj = Transaction(
                 account=account,
@@ -36,8 +42,11 @@ def calculate_interest():
             created_transactions.append(transaction_obj)
             updated_accounts.append(account)
 
+    BATCH_SIZE = 1000
     if created_transactions:
-        Transaction.objects.bulk_create(created_transactions)
+        for i in range(0, len(created_transactions), BATCH_SIZE):
+            batch = created_transactions[i:i + BATCH_SIZE]
+            Transaction.objects.bulk_create(batch)
 
     if updated_accounts:
         UserBankAccount.objects.bulk_update(
