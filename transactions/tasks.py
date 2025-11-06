@@ -9,9 +9,16 @@ from transactions.models import Transaction
 
 @task(name="calculate_interest")
 def calculate_interest():
+    from calendario_bancario.utils import is_dia_util
+    
+    today = timezone.now().date()
+    
+    if not is_dia_util(today):
+        return "Skipped: Not a business day"
+    
     accounts = UserBankAccount.objects.filter(
         balance__gt=0,
-        interest_start_date__gte=timezone.now(),
+        interest_start_date__lte=timezone.now(),
         initial_deposit_date__isnull=False
     ).select_related('account_type')
 
@@ -43,3 +50,5 @@ def calculate_interest():
         UserBankAccount.objects.bulk_update(
             updated_accounts, ['balance']
         )
+    
+    return f"Processed {len(updated_accounts)} accounts"

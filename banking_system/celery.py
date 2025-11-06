@@ -19,11 +19,17 @@ app.config_from_object('django.conf:settings', namespace='CELERY')
 # Load task modules from all registered Django app configs.
 app.autodiscover_tasks()
 
+from datetime import datetime
+
 app.conf.beat_schedule = {
     'calculate_interest': {
         'task': 'calculate_interest',
-        # http://docs.celeryproject.org/en/latest/userguide/periodic-tasks.html
         'schedule': crontab(0, 0, day_of_month='1'),
+    },
+    'gerar_relatorios_irpf': {
+        'task': 'gerar_relatorios_irpf',
+        'schedule': crontab(0, 0, day_of_month='1', month_of_year='2'),
+        'args': [datetime.now().year - 1],
     }
 }
 
