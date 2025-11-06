@@ -23,6 +23,7 @@ from transactions.forms import (
     IRPFYearForm,
 )
 from transactions.models import Transaction
+from fraud_detection.tasks import analyze_transaction_for_fraud
 
 
 class TransactionRepostView(ListView):
@@ -197,7 +198,9 @@ class DepositMoneyView(TransactionCreateMixin):
             f'{amount}$ was deposited to your account successfully'
         )
 
-        return super().form_valid(form)
+        response = super().form_valid(form)
+        analyze_transaction_for_fraud.delay(self.object.id)
+        return response
 
 
 class WithdrawMoneyView(TransactionCreateMixin):
@@ -222,7 +225,10 @@ class WithdrawMoneyView(TransactionCreateMixin):
             f'Successfully withdrawn {amount}$ from your account'
         )
 
-        return super().form_valid(form)
+        response = super().form_valid(form)
+        analyze_transaction_for_fraud.delay(self.object.id)
+        return response
+
 
 class AnalyticsView(ListView):
     template_name = 'transactions/analytics.html'
