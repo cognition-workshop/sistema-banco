@@ -46,7 +46,7 @@ class UserAdmin(BaseUserAdmin):
     def balance_display(self, obj):
         balance = obj.balance
         color = 'green' if balance > 0 else 'red' if balance < 0 else 'black'
-        return format_html('<span style="color: {};">${:.2f}</span>', color, balance)
+        return format_html('<span style="color: {};">${}</span>', color, f'{balance:.2f}')
     balance_display.short_description = 'Balance'
     balance_display.admin_order_field = 'account__balance'
     
@@ -87,7 +87,7 @@ class UserBankAccountAdmin(admin.ModelAdmin):
     
     def balance_display(self, obj):
         color = 'green' if obj.balance > 0 else 'red' if obj.balance < 0 else 'black'
-        return format_html('<span style="color: {};">${:.2f}</span>', color, obj.balance)
+        return format_html('<span style="color: {};">${}</span>', color, f'{obj.balance:.2f}')
     balance_display.short_description = 'Balance'
     balance_display.admin_order_field = 'balance'
 
