@@ -122,9 +122,15 @@ class WithdrawMoneyView(TransactionCreateMixin):
 
     def form_valid(self, form):
         amount = form.cleaned_data.get('amount')
+        account = self.request.user.account
 
-        self.request.user.account.balance -= form.cleaned_data.get('amount')
-        self.request.user.account.save(update_fields=['balance'])
+        success, message = account.withdraw(amount)
+
+        if not success:
+            messages.error(self.request, message)
+            return self.form_invalid(form)
+
+        account.save(update_fields=['balance'])
 
         messages.success(
             self.request,
