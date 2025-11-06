@@ -58,6 +58,7 @@ class TransactionRepostView(ListView):
             'amount',
             'balance_after_transaction',
             'account__balance',
+            'account__account_type_id',
         )
 
         if daterange:
