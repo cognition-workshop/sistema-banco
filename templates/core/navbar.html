@@ -1,27 +1,57 @@
-<nav class="flex items-center justify-between flex-wrap bg-gray-800 p-6">
-    <div class="flex items-center flex-shrink-0 text-white mr-6">
-        <span class="font-semibold text-xl tracking-tight">Banking System</span>
-    </div>
-    <div class="block lg:hidden">
-        <button class="flex items-center px-3 py-2 border rounded text-white border-white-400 hover:text-white hover:border-white">
-            <svg class="fill-current h-3 w-3" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><title>Menu</title><path d="M0 3h20v2H0V3zm0 6h20v2H0V9zm0 6h20v2H0v-2z"/></svg>
-        </button>
-    </div>
-    <div class="w-full block flex-grow lg:flex lg:items-center lg:w-auto">
-        {# Bypass authentication - always show navigation for demo #}
-        <div class="text-md lg:flex-grow">
-            <a href="{% url 'transactions:transaction_report' %}" class="block mt-4 lg:inline-block lg:mt-0 text-white hover:text-white mr-4">
-                Transaction Report
-            </a>
-            <a href="{% url 'transactions:deposit_money' %}" class="block mt-4 lg:inline-block lg:mt-0 text-white hover:text-white mr-4">
-                Deposit
-            </a>
-            <a href="{% url 'transactions:withdraw_money' %}" class="block mt-4 lg:inline-block lg:mt-0 text-white hover:text-white">
-                Withdraw
-            </a>
+<nav class="bg-bank-blue text-white shadow-lg" x-data="{ mobileMenuOpen: false }">
+    <div class="container mx-auto px-4">
+        <div class="flex items-center justify-between h-16">
+            <!-- Logo and Brand -->
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
+                    <span class="text-bank-blue font-bold text-xl">B$</span>
+                </div>
+                <a href="{% url 'home' %}" class="text-xl font-bold hover:text-bank-blue-light transition-colors">BankSystem Pro</a>
+            </div>
+            
+            <!-- Desktop Navigation -->
+            <div class="hidden lg:flex items-center space-x-6">
+                <a href="{% url 'home' %}" class="hover:text-bank-blue-light transition-colors font-medium">
+                    Dashboard
+                </a>
+                <a href="{% url 'transactions:transaction_report' %}" class="hover:text-bank-blue-light transition-colors font-medium">
+                    Transactions
+                </a>
+                <a href="{% url 'transactions:deposit_money' %}" class="hover:text-bank-blue-light transition-colors font-medium">
+                    Deposit
+                </a>
+                <a href="{% url 'transactions:withdraw_money' %}" class="hover:text-bank-blue-light transition-colors font-medium">
+                    Withdraw
+                </a>
+            </div>
+            
+            <!-- User Info -->
+            <div class="hidden lg:flex items-center space-x-4">
+                <div class="text-sm">
+                    <div class="font-medium">Demo User</div>
+                    <div class="text-bank-blue-light text-xs">Account #1001</div>
+                </div>
+            </div>
+            
+            <!-- Mobile Menu Button -->
+            <button @click="mobileMenuOpen = !mobileMenuOpen" class="lg:hidden p-2 rounded hover:bg-bank-blue-dark transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path x-show="!mobileMenuOpen" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                    <path x-show="mobileMenuOpen" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
         </div>
-        <div class="text-white">
-            <span class="inline-block font-medium text-sm px-4 py-2 mt-4 lg:mt-0">Demo User: John Doe (Account #1001)</span>
+        
+        <!-- Mobile Menu -->
+        <div x-show="mobileMenuOpen" x-transition class="lg:hidden pb-4 space-y-2">
+            <a href="{% url 'home' %}" class="block py-2 hover:bg-bank-blue-dark px-4 rounded transition-colors">Dashboard</a>
+            <a href="{% url 'transactions:transaction_report' %}" class="block py-2 hover:bg-bank-blue-dark px-4 rounded transition-colors">Transactions</a>
+            <a href="{% url 'transactions:deposit_money' %}" class="block py-2 hover:bg-bank-blue-dark px-4 rounded transition-colors">Deposit</a>
+            <a href="{% url 'transactions:withdraw_money' %}" class="block py-2 hover:bg-bank-blue-dark px-4 rounded transition-colors">Withdraw</a>
+            <div class="border-t border-bank-blue-dark mt-2 pt-2 px-4">
+                <div class="text-sm font-medium">Demo User</div>
+                <div class="text-bank-blue-light text-xs">Account #1001</div>
+            </div>
         </div>
     </div>
 </nav>

@@ -8,7 +8,30 @@
         <title>
             {% block head_title %}Banking System{% endblock %}
         </title>
-        <link href="https://unpkg.com/tailwindcss@^1.0/dist/tailwind.min.css" rel="stylesheet">
+        <!-- Tailwind CSS v3 -->
+        <script src="https://cdn.tailwindcss.com"></script>
+        <script>
+            tailwind.config = {
+                theme: {
+                    extend: {
+                        colors: {
+                            'bank-blue': '#0066CC',
+                            'bank-blue-dark': '#004999',
+                            'bank-blue-light': '#3399FF',
+                        }
+                    }
+                }
+            }
+        </script>
+        
+        <!-- Chart.js for data visualizations -->
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+        
+        <!-- Alpine.js for interactivity -->
+        <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+        
+        <!-- Custom CSS -->
+        <link rel="stylesheet" href="{% static 'css/custom.css' %}">
 
         {% block head_extra %}{% endblock %}
     </head>
