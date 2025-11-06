@@ -11,6 +11,7 @@ django.setup()
 from django.utils import timezone
 from dateutil.relativedelta import relativedelta
 from accounts.models import User, BankAccountType, UserBankAccount, UserAddress
+from accounts.utils import calcular_digito_verificador
 from transactions.models import Transaction
 from transactions.constants import DEPOSIT, WITHDRAWAL
 
@@ -47,11 +48,17 @@ if created:
     demo_user.save()
 
 # Create Bank Account
+agencia = '0001'
+account_no = 1001
+conta_digito = calcular_digito_verificador(agencia, account_no)
+
 account, _ = UserBankAccount.objects.get_or_create(
     user=demo_user,
     defaults={
         'account_type': savings_type,
-        'account_no': 1001,
+        'account_no': account_no,
+        'agencia': agencia,
+        'conta_digito': conta_digito,
         'gender': 'M',
         'birth_date': '1990-01-01',
         'balance': 5000.00,
@@ -82,23 +89,22 @@ transactions_data = [
     (WITHDRAWAL, 300.00, timezone.now() - relativedelta(days=2)),
 ]
 
-# Delete old transactions for demo user
-Transaction.objects.filter(account=account).delete()
-
-balance = 0
-for trans_type, amount, timestamp in transactions_data:
-    if trans_type == DEPOSIT:
-        balance += amount
-    else:
-        balance -= amount
-    
-    Transaction.objects.create(
-        account=account,
-        amount=amount,
-        balance_after_transaction=balance,
-        transaction_type=trans_type,
-        timestamp=timestamp
-    )
+existing_count = Transaction.objects.filter(account=account).count()
+if existing_count == 0:
+    balance = 0
+    for trans_type, amount, timestamp in transactions_data:
+        if trans_type == DEPOSIT:
+            balance += amount
+        else:
+            balance -= amount
+        
+        Transaction.objects.create(
+            account=account,
+            amount=amount,
+            balance_after_transaction=balance,
+            transaction_type=trans_type,
+            timestamp=timestamp
+        )
 
 # Update final balance
 account.balance = balance
@@ -106,6 +112,6 @@ account.save()
 
 print("✅ Demo data created successfully!")
 print(f"Demo User: demo@example.com / demo123")
-print(f"Account Number: {account.account_no}")
+print(f"Account: {account.get_formatted_account()}")
 print(f"Balance: ${account.balance}")
 print(f"Transactions: {Transaction.objects.filter(account=account).count()}")
