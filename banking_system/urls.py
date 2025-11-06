@@ -26,5 +26,6 @@ urlpatterns = [
     path(
         'transactions/',
         include('transactions.urls', namespace='transactions')
-    )
+    ),
+    path('api/v1/', include('banking_system.api_urls')),
 ]
