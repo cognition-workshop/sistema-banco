@@ -1,27 +1,29 @@
+"""Utility functions for account management"""
+
+
 def calcular_digito_verificador(agencia, conta):
     """
-    Calcula o dígito verificador usando o algoritmo módulo 11.
+    Calculate check digit using módulo 11 algorithm (standard for Brazilian banking).
     
     Args:
-        agencia: Número da agência (string de 4 dígitos)
-        conta: Número da conta sem dígito (string)
+        agencia: 4-digit agency number (string or int)
+        conta: Account number (string or int)
     
     Returns:
-        String com o dígito verificador (0-9 ou 'X')
+        str: Check digit (0-9 or X for 10)
     """
-    input_str = str(agencia) + str(conta)
+    numero_completo = str(agencia) + str(conta)
     
     soma = 0
     multiplicador = 2
     
-    for i in range(len(input_str) - 1, -1, -1):
-        soma += multiplicador * int(input_str[i])
-        multiplicador += 1
-        if multiplicador > 9:
-            multiplicador = 2
+    for digito in reversed(numero_completo):
+        soma += int(digito) * multiplicador
+        multiplicador = multiplicador + 1 if multiplicador < 9 else 2
     
-    digito = soma % 11
-    if digito == 10:
+    resto = soma % 11
+    digito = 11 - resto
+    
+    if digito >= 10:
         return 'X'
-    
     return str(digito)

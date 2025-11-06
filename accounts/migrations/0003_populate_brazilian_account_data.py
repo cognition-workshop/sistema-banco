@@ -1,56 +1,37 @@
 from django.db import migrations
 
 
-def populate_brazilian_fields(apps, schema_editor):
-    """
-    Popula os campos agencia, conta e conta_digito para contas existentes
-    """
+def populate_account_fields(apps, schema_editor):
+    """Populate agencia and conta_digito for existing accounts"""
     UserBankAccount = apps.get_model('accounts', 'UserBankAccount')
     
     def calcular_digito_verificador(agencia, conta):
-        input_str = str(agencia) + str(conta)
-        
+        numero_completo = str(agencia) + str(conta)
         soma = 0
         multiplicador = 2
         
-        for i in range(len(input_str) - 1, -1, -1):
-            soma += multiplicador * int(input_str[i])
-            multiplicador += 1
-            if multiplicador > 9:
-                multiplicador = 2
+        for digito in reversed(numero_completo):
+            soma += int(digito) * multiplicador
+            multiplicador = multiplicador + 1 if multiplicador < 9 else 2
         
-        digito = soma % 11
-        if digito == 10:
+        resto = soma % 11
+        digito = 11 - resto
+        
+        if digito >= 10:
             return 'X'
-        
         return str(digito)
     
-    for account in UserBankAccount.objects.all():
-        if not account.agencia:
-            account.agencia = "0001"
-            account.conta = str(account.account_no)
-            account.conta_digito = calcular_digito_verificador("0001", str(account.account_no))
-            account.save()
-
-
-def reverse_population(apps, schema_editor):
-    """
-    Remove os dados dos campos brasileiros se a migration for revertida
-    """
-    UserBankAccount = apps.get_model('accounts', 'UserBankAccount')
-    UserBankAccount.objects.all().update(
-        agencia=None,
-        conta=None,
-        conta_digito=None
-    )
+    for account in UserBankAccount.objects.filter(agencia__isnull=True):
+        account.agencia = '0001'
+        account.conta_digito = calcular_digito_verificador('0001', account.account_no)
+        account.save()
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('accounts', '0002_add_brazilian_account_fields'),
+        ('accounts', '0002_userbankaccount_agencia_userbankaccount_conta_digito'),
     ]
-
+    
     operations = [
-        migrations.RunPython(populate_brazilian_fields, reverse_population),
+        migrations.RunPython(populate_account_fields, reverse_code=migrations.RunPython.noop),
     ]

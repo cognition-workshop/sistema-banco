@@ -84,12 +84,6 @@ class UserBankAccount(models.Model):
         blank=True,
         help_text='Número da agência bancária (4 dígitos)'
     )
-    conta = models.CharField(
-        max_length=10,
-        null=True,
-        blank=True,
-        help_text='Número da conta sem o dígito verificador'
-    )
     conta_digito = models.CharField(
         max_length=2,
         null=True,
@@ -112,11 +106,13 @@ class UserBankAccount(models.Model):
     initial_deposit_date = models.DateField(null=True, blank=True)
 
     def __str__(self):
+        if self.agencia and self.conta_digito:
+            return f"Ag. {self.agencia} - C/C {self.account_no}-{self.conta_digito}"
         return str(self.account_no)
-
+    
     def get_formatted_account(self):
-        if self.agencia and self.conta and self.conta_digito:
-            return f"Agência: {self.agencia} Conta: {self.conta}-{self.conta_digito}"
+        if self.agencia and self.conta_digito:
+            return f"Agência: {self.agencia} Conta: {self.account_no}-{self.conta_digito}"
         return f"Account: {self.account_no}"
 
     def get_interest_calculation_months(self):
