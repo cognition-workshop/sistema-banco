@@ -17,14 +17,35 @@ class TransactionForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         self.account = kwargs.pop('account')
+        self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
+        
+        self.balance_before_transaction = self.account.balance
 
         self.fields['transaction_type'].disabled = True
         self.fields['transaction_type'].widget = forms.HiddenInput()
 
+    def _get_client_ip(self):
+        if not self.request:
+            return None
+        x_forwarded_for = self.request.META.get('HTTP_X_FORWARDED_FOR')
+        if x_forwarded_for:
+            return x_forwarded_for.split(',')[0].strip()
+        return self.request.META.get('REMOTE_ADDR')
+
     def save(self, commit=True):
         self.instance.account = self.account
         self.instance.balance_after_transaction = self.account.balance
+        self.instance.balance_before_transaction = self.balance_before_transaction
+        
+        if self.request:
+            self.instance.performed_by = getattr(self.request, 'user', None)
+            if self.instance.performed_by and not self.instance.performed_by.is_authenticated:
+                self.instance.performed_by = None
+            self.instance.ip_address = self._get_client_ip()
+            self.instance.user_agent = self.request.META.get('HTTP_USER_AGENT', '')[:500]
+            self.instance.operation_source = 'web'
+        
         return super().save()
 
 
