@@ -1,36 +1,35 @@
-<nav class="flex items-center justify-between flex-wrap bg-gray-800 p-6">
-    <div class="flex items-center flex-shrink-0 text-white mr-6">
-        <span class="font-semibold text-xl tracking-tight">Banking System</span>
-    </div>
-    <div class="block lg:hidden">
-        <button class="flex items-center px-3 py-2 border rounded text-white border-white-400 hover:text-white hover:border-white">
-            <svg class="fill-current h-3 w-3" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><title>Menu</title><path d="M0 3h20v2H0V3zm0 6h20v2H0V9zm0 6h20v2H0v-2z"/></svg>
-        </button>
-    </div>
-    <div class="w-full block flex-grow lg:flex lg:items-center lg:w-auto">
-        {% if request.user.is_authenticated %}
-            <div class="text-md lg:flex-grow">
-                <a href="{% url 'transactions:transaction_report' %}" class="block mt-4 lg:inline-block lg:mt-0 text-white hover:text-white mr-4">
-                    Transaction Report
-                </a>
-                <a href="{% url 'transactions:deposit_money' %}" class="block mt-4 lg:inline-block lg:mt-0 text-white hover:text-white mr-4">
-                    Deposit
-                </a>
-                <a href="{% url 'transactions:withdraw_money' %}" class="block mt-4 lg:inline-block lg:mt-0 text-white hover:text-white">
-                    Withdraw
-                </a>
+<nav class="bg-gradient-to-r from-blue-600 to-blue-700 shadow-lg">
+    <div class="container mx-auto px-6 py-4">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center flex-shrink-0 text-white">
+                <svg class="h-8 w-8 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span class="font-bold text-2xl tracking-tight">Banking System</span>
             </div>
-            <div>
-                <a href="{% url 'accounts:user_logout' %}" class="inline-block font-medium text-sm px-4 py-2 leading-none border rounded text-white border-white hover:border-transparent hover:text-gray-800 hover:bg-white mt-4 lg:mt-0">Logout</a>
+            <div class="hidden lg:flex lg:items-center lg:space-x-6">
+                {% if request.user.is_authenticated %}
+                    <a href="{% url 'transactions:transaction_report' %}" class="text-white hover:text-blue-200 transition duration-200 font-medium">
+                        Transaction Report
+                    </a>
+                    <a href="{% url 'transactions:deposit_money' %}" class="text-white hover:text-blue-200 transition duration-200 font-medium">
+                        Deposit
+                    </a>
+                    <a href="{% url 'transactions:withdraw_money' %}" class="text-white hover:text-blue-200 transition duration-200 font-medium">
+                        Withdraw
+                    </a>
+                    <a href="{% url 'accounts:user_logout' %}" class="ml-4 inline-block font-medium px-6 py-2 leading-none border-2 border-white rounded-lg text-white hover:bg-white hover:text-blue-600 transition duration-200">
+                        Logout
+                    </a>
+                {% else %}
+                    <a href="{% url 'accounts:user_login' %}" class="text-white hover:text-blue-200 transition duration-200 font-medium">
+                        Login
+                    </a>
+                    <a href="{% url 'accounts:user_registration' %}" class="ml-4 inline-block font-medium px-6 py-2 leading-none bg-white text-blue-600 rounded-lg hover:bg-blue-50 transition duration-200 shadow-md">
+                        Register
+                    </a>
+                {% endif %}
             </div>
-        {% else %}
-            <div class="text-md lg:flex-grow"></div>
-            <div>
-                <a href="{% url 'accounts:user_login' %}" class="mr-2 inline-block font-medium text-sm px-4 py-2 leading-none border rounded text-white border-white hover:border-transparent hover:text-gray-800 hover:bg-white mt-4 lg:mt-0">Login</a>
-            </div>
-            <div>
-                <a href="{% url 'accounts:user_registration' %}" class="inline-block font-medium text-sm px-4 py-2 leading-none border rounded text-white border-white hover:border-transparent hover:text-gray-800 hover:bg-white mt-4 lg:mt-0">Register</a>
-            </div>
-        {% endif %}
+        </div>
     </div>
 </nav>

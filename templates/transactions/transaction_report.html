@@ -10,47 +10,53 @@
 {% endblock %}
 
 {% block content %}
-    <h1 class="font-mono font-bold text-3xl text-center pb-5 pt-10">Transaction Report</h1>
-    <hr />
-    <form method="get">
-        <div class="mt-10 h-10 pl-3 pr-2 bg-white border rounded-md border-gray-500 flex justify-between items-center relative">
-            <input type="search" name="daterange" id="search" placeholder="Filter using date range" value="{{ request.GET.daterange }}" class="appearance-none w-full outline-none focus:outline-none active:outline-none" />
-            <button type="submit" class="ml-1 outline-none focus:outline-none active:outline-none">
-                <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" class="w-6 h-6">
-                    <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                </svg>
-            </button>
+    <h1 class="font-bold text-4xl text-center text-gray-800 pb-6 pt-10">Transaction Report</h1>
+    <p class="text-center text-gray-600 mb-8">View and filter your transaction history</p>
+    
+    <div class="max-w-6xl mx-auto px-6">
+        <form method="get" class="mb-8">
+            <div class="bg-white rounded-lg shadow-md p-4 flex items-center border-2 border-gray-200 focus-within:border-blue-500 transition duration-200">
+                <input type="search" name="daterange" id="search" placeholder="Filter by date range (click to select)" value="{{ request.GET.daterange }}" class="appearance-none w-full outline-none text-gray-700 px-2" />
+                <button type="submit" class="ml-2 bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-lg transition duration-200">
+                    <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" class="w-6 h-6">
+                        <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                </button>
+            </div>
+            {% if form.daterange.errors %}
+                {% for error in form.daterange.errors %}
+                    <p class="text-red-600 text-sm italic mt-2 bg-red-50 p-3 rounded-lg">{{ error }}</p>
+                {% endfor %}
+            {% endif %}
+        </form>
+        
+        <div class="bg-white rounded-lg shadow-xl overflow-hidden">
+            <table class="table-auto w-full">
+                <thead class="bg-gradient-to-r from-blue-600 to-blue-700 text-white">
+                    <tr class="uppercase font-semibold text-sm">
+                        <th class="px-6 py-4 text-left">Transaction Type</th>
+                        <th class="px-6 py-4 text-left">Date</th>
+                        <th class="px-6 py-4 text-right">Amount</th>
+                        <th class="px-6 py-4 text-right">Balance After</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200">
+                    {% for transaction in object_list %}
+                    <tr class="hover:bg-blue-50 transition duration-150">
+                        <td class="px-6 py-4 text-gray-800 font-medium">{{ transaction.get_transaction_type_display }}</td>
+                        <td class="px-6 py-4 text-gray-600">{{ transaction.timestamp }}</td>
+                        <td class="px-6 py-4 text-right font-semibold text-gray-800">$ {{ transaction.amount }}</td>
+                        <td class="px-6 py-4 text-right font-semibold text-gray-800">$ {{ transaction.balance_after_transaction }}</td>
+                    </tr>
+                    {% endfor %}
+                    <tr class="bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold">
+                        <th class="px-6 py-4 text-right" colspan="3">Final Balance</th>
+                        <th class="px-6 py-4 text-right text-lg">$ {{ account.balance }}</th>
+                    </tr>
+                </tbody>
+            </table>
         </div>
-        {% if form.daterange.errors %}
-            {% for error in form.daterange.errors %}
-                <p class="text-red-600 text-sm italic">{{ error }}</p>
-            {% endfor %}
-        {% endif %}
-    </form>
-    <table class="table-auto mx-auto w-full mt-8">
-        <thead class="bg-gray-800 text-white">
-        <tr class="uppercase font-semibold text-sm">
-            <th class="px-4 py-2">Transaction Type</th>
-            <th class="px-4 py-2">Date</th>
-            <th class="px-4 py-2">Amount</th>
-            <th class="px-4 py-2">Balance After Transaction</th>
-        </tr>
-        </thead>
-        <tbody>
-        {% for transaction in object_list %}
-        <tr class="{% cycle 'bg-gray-300' 'bg-white-100' %}">
-            <td class="border px-4 py-2 text-center">{{ transaction.get_transaction_type_display }}</td>
-            <td class="border px-4 py-2 text-center">{{ transaction.timestamp }}</td>
-            <td class="border px-4 py-2 text-center">$ {{ transaction.amount }}</td>
-            <td class="border px-4 py-2 text-center">$ {{ transaction.balance_after_transaction }}</td>
-        </tr>
-        {% endfor %}
-        <tr class="bg-gray-600 text-white">
-            <th class="px-4 py-2 text-right" colspan="3">Final Balance</th>
-            <th class="px-4 py-2 text-center">$ {{ account.balance }}</th>
-        </tr>
-        </tbody>
-    </table>
+    </div>
 {% endblock %}
 
 {% block footer_extra %}

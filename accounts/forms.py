@@ -24,10 +24,11 @@ class UserAddressForm(forms.ModelForm):
         for field in self.fields:
             self.fields[field].widget.attrs.update({
                 'class': (
-                    'appearance-none block w-full bg-gray-200 '
-                    'text-gray-700 border border-gray-200 rounded '
+                    'appearance-none block w-full bg-white '
+                    'text-gray-700 border-2 border-gray-300 rounded-lg '
                     'py-3 px-4 leading-tight focus:outline-none '
-                    'focus:bg-white focus:border-gray-500'
+                    'focus:bg-white focus:border-blue-500 '
+                    'focus:ring-2 focus:ring-blue-200 transition duration-200'
                 )
             })
 
@@ -55,11 +56,12 @@ class UserRegistrationForm(UserCreationForm):
         for field in self.fields:
             self.fields[field].widget.attrs.update({
                 'class': (
-                    'appearance-none block w-full bg-gray-200 '
-                    'text-gray-700 border border-gray-200 '
-                    'rounded py-3 px-4 leading-tight '
+                    'appearance-none block w-full bg-white '
+                    'text-gray-700 border-2 border-gray-300 '
+                    'rounded-lg py-3 px-4 leading-tight '
                     'focus:outline-none focus:bg-white '
-                    'focus:border-gray-500'
+                    'focus:border-blue-500 focus:ring-2 '
+                    'focus:ring-blue-200 transition duration-200'
                 )
             })
 
