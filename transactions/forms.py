@@ -1,9 +1,12 @@
 import datetime
+import logging
 
 from django import forms
 from django.conf import settings
 
 from .models import Transaction
+
+logger = logging.getLogger(__name__)
 
 
 class TransactionForm(forms.ModelForm):
@@ -65,8 +68,13 @@ class WithdrawForm(TransactionForm):
             )
 
         if amount > balance:
+            logger.warning(
+                f'Tentativa de saque com saldo insuficiente. '
+                f'Usuário: {account.user.email}, Saldo: {balance}, '
+                f'Valor tentado: {amount}'
+            )
             raise forms.ValidationError(
-                f'Saldo insuficiente. Seu saldo atual é {balance} $'
+                f'Saldo insuficiente. Seu saldo atual é R$ {balance:.2f}'
             )
 
         return amount
@@ -77,12 +85,15 @@ class TransactionDateRangeForm(forms.Form):
 
     def clean_daterange(self):
         daterange = self.cleaned_data.get("daterange")
+        logger.debug(f'Processing daterange: {daterange}')
         
         if not daterange:
             return None
 
         try:
             daterange = daterange.split(' - ')
+            logger.debug(f'Split daterange: {daterange}')
+            
             if len(daterange) != 2:
                 raise forms.ValidationError("Por favor, selecione um intervalo de datas.")
             

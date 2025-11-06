@@ -1,4 +1,5 @@
 from decimal import Decimal
+import logging
 
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import (
@@ -10,6 +11,8 @@ from django.db import models
 from .constants import GENDER_CHOICE
 from .managers import UserManager
 from .validators import postal_code_validator
+
+logger = logging.getLogger(__name__)
 
 
 class User(AbstractUser):
@@ -57,14 +60,28 @@ class BankAccountType(models.Model):
 
         This uses a basic interest calculation formula
         """
-        p = principal
-        r = self.annual_interest_rate
-        n = Decimal(self.interest_calculation_per_year)
+        try:
+            p = principal
+            r = self.annual_interest_rate
+            n = Decimal(self.interest_calculation_per_year)
 
-        # Basic Future Value formula to calculate interest
-        interest = (p * (1 + ((r/100) / n))) - p
+            if n == 0:
+                logger.error(
+                    f'Tentativa de divisão por zero no cálculo de juros. '
+                    f'Account Type: {self.name}, '
+                    f'interest_calculation_per_year: {self.interest_calculation_per_year}'
+                )
+                return Decimal('0.00')
 
-        return round(interest, 2)
+            interest = (p * (1 + ((r/100) / n))) - p
+            return round(interest, 2)
+        except Exception as e:
+            logger.error(
+                f'Erro no cálculo de juros. Principal: {principal}, '
+                f'Account Type: {self.name}, Erro: {str(e)}',
+                exc_info=True
+            )
+            return Decimal('0.00')
 
 
 class UserBankAccount(models.Model):

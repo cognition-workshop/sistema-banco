@@ -2,7 +2,8 @@ import datetime
 from django import forms
 from django.conf import settings
 from django.contrib.auth.forms import UserCreationForm
-from django.db import transaction
+from django.db import transaction, IntegrityError, DatabaseError
+import logging
 
 from .models import User, BankAccountType, UserBankAccount, UserAddress
 from .constants import GENDER_CHOICE
@@ -10,6 +11,8 @@ from .validators import (
     validate_name_format, validate_minimum_age,
     validate_postal_code_format, validate_allowed_address_chars, VALID_COUNTRIES
 )
+
+logger = logging.getLogger(__name__)
 
 
 class UserAddressForm(forms.ModelForm):
@@ -174,22 +177,34 @@ class UserRegistrationForm(UserCreationForm):
 
     @transaction.atomic
     def save(self, commit=True):
-        user = super().save(commit=False)
-        user.set_password(self.cleaned_data["password1"])
-        if commit:
-            user.save()
-            account_type = self.cleaned_data.get('account_type')
-            gender = self.cleaned_data.get('gender')
-            birth_date = self.cleaned_data.get('birth_date')
+        try:
+            user = super().save(commit=False)
+            user.set_password(self.cleaned_data["password1"])
+            if commit:
+                user.save()
+                account_type = self.cleaned_data.get('account_type')
+                gender = self.cleaned_data.get('gender')
+                birth_date = self.cleaned_data.get('birth_date')
 
-            UserBankAccount.objects.create(
-                user=user,
-                gender=gender,
-                birth_date=birth_date,
-                account_type=account_type,
-                account_no=(
-                    user.id +
-                    settings.ACCOUNT_NUMBER_START_FROM
+                UserBankAccount.objects.create(
+                    user=user,
+                    gender=gender,
+                    birth_date=birth_date,
+                    account_type=account_type,
+                    account_no=(
+                        user.id +
+                        settings.ACCOUNT_NUMBER_START_FROM
+                    )
                 )
+                
+                logger.info(
+                    f'Conta bancária criada para usuário: {user.email}'
+                )
+            return user
+        except (IntegrityError, DatabaseError) as e:
+            logger.error(
+                f'Erro ao salvar usuário no formulário de registro. '
+                f'Erro: {str(e)}',
+                exc_info=True
             )
-        return user
+            raise
