@@ -4,6 +4,7 @@ from django import forms
 from django.conf import settings
 
 from .models import Transaction
+from .constants import TRANSACTION_TYPE_CHOICES
 
 
 class TransactionForm(forms.ModelForm):
@@ -72,6 +73,11 @@ class WithdrawForm(TransactionForm):
 
 class TransactionDateRangeForm(forms.Form):
     daterange = forms.CharField(required=False)
+    transaction_type = forms.ChoiceField(
+        required=False,
+        choices=[('', 'Todas')] + list(TRANSACTION_TYPE_CHOICES),
+        widget=forms.Select(attrs={'class': 'border rounded-md border-gray-500 px-2 py-1'})
+    )
 
     def clean_daterange(self):
         daterange = self.cleaned_data.get("daterange")
