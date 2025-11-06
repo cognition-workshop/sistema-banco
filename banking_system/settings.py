@@ -53,6 +53,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'core.middleware.ExceptionHandlingMiddleware',
 ]
 
 ROOT_URLCONF = 'banking_system.urls'
@@ -140,3 +141,48 @@ CELERY_ACCEPT_CONTENT = ['application/json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = TIME_ZONE
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+            'style': '{',
+        },
+        'json': {
+            '()': 'pythonjsonlogger.jsonlogger.JsonFormatter',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+        'file': {
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': 'logs/banking_system.log',
+            'maxBytes': 1024 * 1024 * 15,
+            'backupCount': 10,
+            'formatter': 'json',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+        },
+        'transactions': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+        },
+        'accounts': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+        },
+        'core': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+        },
+    },
+}

@@ -1,3 +1,4 @@
+import logging
 from dateutil.relativedelta import relativedelta
 
 from django.contrib import messages
@@ -14,6 +15,8 @@ from transactions.forms import (
     WithdrawForm,
 )
 from transactions.models import Transaction
+
+logger = logging.getLogger(__name__)
 
 
 class TransactionRepostView(ListView):
@@ -99,34 +102,44 @@ class DepositMoneyView(TransactionCreateMixin):
         User = get_user_model()
         demo_user = User.objects.filter(email='demo@example.com').first()
         account = demo_user.account if demo_user and hasattr(demo_user, 'account') else None
+        
         if not account:
+            logger.error("Deposit attempt failed: no account found")
+            messages.error(self.request, 'Account not found.')
             return super().form_valid(form)
-
-        if not account.initial_deposit_date:
-            now = timezone.now()
-            next_interest_month = int(
-                12 / account.account_type.interest_calculation_per_year
-            )
-            account.initial_deposit_date = now
-            account.interest_start_date = (
-                now + relativedelta(
-                    months=+next_interest_month
+        
+        try:
+            if not account.initial_deposit_date:
+                now = timezone.now()
+                next_interest_month = int(
+                    12 / account.account_type.interest_calculation_per_year
                 )
+                account.initial_deposit_date = now
+                account.interest_start_date = (
+                    now + relativedelta(
+                        months=+next_interest_month
+                    )
+                )
+
+            account.balance += amount
+            account.save(
+                update_fields=[
+                    'initial_deposit_date',
+                    'balance',
+                    'interest_start_date'
+                ]
             )
-
-        account.balance += amount
-        account.save(
-            update_fields=[
-                'initial_deposit_date',
-                'balance',
-                'interest_start_date'
-            ]
-        )
-
-        messages.success(
-            self.request,
-            f'{amount}$ was deposited to your account successfully'
-        )
+            
+            logger.info(f"Deposit successful: ${amount} deposited to account {account.account_no}")
+            
+            messages.success(
+                self.request,
+                f'{amount}$ was deposited to your account successfully'
+            )
+        except Exception as e:
+            logger.error(f"Deposit failed: {str(e)}", exc_info=True)
+            messages.error(self.request, 'Deposit failed. Please try again.')
+            return self.form_invalid(form)
 
         return super().form_valid(form)
 
@@ -144,13 +157,25 @@ class WithdrawMoneyView(TransactionCreateMixin):
         # Bypass login - use demo user
         User = get_user_model()
         demo_user = User.objects.filter(email='demo@example.com').first()
-        if demo_user and hasattr(demo_user, 'account'):
-            demo_user.account.balance -= form.cleaned_data.get('amount')
+        
+        if not (demo_user and hasattr(demo_user, 'account')):
+            logger.error("Withdrawal attempt failed: no account found")
+            messages.error(self.request, 'Account not found.')
+            return super().form_valid(form)
+        
+        try:
+            demo_user.account.balance -= amount
             demo_user.account.save(update_fields=['balance'])
-
-        messages.success(
-            self.request,
-            f'Successfully withdrawn {amount}$ from your account'
-        )
+            
+            logger.info(f"Withdrawal successful: ${amount} withdrawn from account {demo_user.account.account_no}")
+            
+            messages.success(
+                self.request,
+                f'Successfully withdrawn {amount}$ from your account'
+            )
+        except Exception as e:
+            logger.error(f"Withdrawal failed: {str(e)}", exc_info=True)
+            messages.error(self.request, 'Withdrawal failed. Please try again.')
+            return self.form_invalid(form)
 
         return super().form_valid(form)

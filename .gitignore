@@ -17,6 +17,7 @@ staticfiles/
 .coverage
 celerybeat.pid
 celerybeat-schedule
+logs/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
