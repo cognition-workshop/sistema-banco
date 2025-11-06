@@ -13,5 +13,3 @@ flake8==6.0.0
 black==23.1.0
 psycopg2-binary==2.9.5
 python-decouple==3.7
-safety==2.3.5
-bandit==1.7.5

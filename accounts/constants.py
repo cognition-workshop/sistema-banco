@@ -1,5 +1,5 @@
-MALE = 'M'
-FEMALE = 'F'
+MALE = "M"
+FEMALE = "F"
 
 GENDER_CHOICE = (
     (MALE, "Male"),
