@@ -5,6 +5,8 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
 from django.utils import timezone
 from django.views.generic import CreateView, ListView
+from django.views.decorators.cache import cache_page
+from django.utils.decorators import method_decorator
 
 from transactions.constants import DEPOSIT, WITHDRAWAL
 from transactions.forms import (
@@ -15,6 +17,7 @@ from transactions.forms import (
 from transactions.models import Transaction
 
 
+@method_decorator(cache_page(60 * 5), name='dispatch')
 class TransactionRepostView(LoginRequiredMixin, ListView):
     template_name = 'transactions/transaction_report.html'
     model = Transaction
@@ -32,10 +35,18 @@ class TransactionRepostView(LoginRequiredMixin, ListView):
             account=self.request.user.account
         )
 
-        daterange = self.form_data.get("daterange")
+        start_date = self.form_data.get("start_date")
+        end_date = self.form_data.get("end_date")
 
-        if daterange:
-            queryset = queryset.filter(timestamp__date__range=daterange)
+        if start_date and end_date:
+            queryset = queryset.filter(
+                timestamp__date__gte=start_date,
+                timestamp__date__lte=end_date
+            )
+        elif start_date:
+            queryset = queryset.filter(timestamp__date__gte=start_date)
+        elif end_date:
+            queryset = queryset.filter(timestamp__date__lte=end_date)
 
         return queryset.distinct()
 
