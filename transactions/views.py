@@ -67,12 +67,12 @@ class TransactionCreateMixin(CreateView):
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
-        # Bypass login - use demo user
         User = get_user_model()
         demo_user = User.objects.filter(email='demo@example.com').first()
         if demo_user and hasattr(demo_user, 'account'):
             kwargs.update({
-                'account': demo_user.account
+                'account': demo_user.account,
+                'request': self.request
             })
         return kwargs
 
@@ -94,8 +94,10 @@ class DepositMoneyView(TransactionCreateMixin):
         return initial
 
     def form_valid(self, form):
+        from transactions.audit import create_audit_log
+        from transactions.constants import DEPOSIT_SUCCESS
+        
         amount = form.cleaned_data.get('amount')
-        # Bypass login - use demo user
         User = get_user_model()
         demo_user = User.objects.filter(email='demo@example.com').first()
         account = demo_user.account if demo_user and hasattr(demo_user, 'account') else None
@@ -128,7 +130,17 @@ class DepositMoneyView(TransactionCreateMixin):
             f'{amount}$ was deposited to your account successfully'
         )
 
-        return super().form_valid(form)
+        response = super().form_valid(form)
+        
+        create_audit_log(
+            action_type=DEPOSIT_SUCCESS,
+            success=True,
+            transaction=self.object,
+            amount=amount,
+            request=self.request
+        )
+
+        return response
 
 
 class WithdrawMoneyView(TransactionCreateMixin):
@@ -140,8 +152,10 @@ class WithdrawMoneyView(TransactionCreateMixin):
         return initial
 
     def form_valid(self, form):
+        from transactions.audit import create_audit_log
+        from transactions.constants import WITHDRAW_SUCCESS
+        
         amount = form.cleaned_data.get('amount')
-        # Bypass login - use demo user
         User = get_user_model()
         demo_user = User.objects.filter(email='demo@example.com').first()
         if demo_user and hasattr(demo_user, 'account'):
@@ -153,4 +167,14 @@ class WithdrawMoneyView(TransactionCreateMixin):
             f'Successfully withdrawn {amount}$ from your account'
         )
 
-        return super().form_valid(form)
+        response = super().form_valid(form)
+        
+        create_audit_log(
+            action_type=WITHDRAW_SUCCESS,
+            success=True,
+            transaction=self.object,
+            amount=amount,
+            request=self.request
+        )
+
+        return response
