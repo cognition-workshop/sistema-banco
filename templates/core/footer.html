@@ -1,11 +1,32 @@
-<footer class="footer bg-gray-200 relative pt-1 border-b-2 mt-10">
-    <div class="container mx-auto px-6">
-        <div class="mt-5 flex flex-col items-center">
-            <div class="sm:w-2/3 text-center py-6">
-                <p class="text-md text-gray-900 font-bold mb-2">
-                    Banking System
-                </p>
+<footer class="bg-gray-800 text-gray-300 mt-auto">
+    <div class="container mx-auto px-4 py-8">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div>
+                <h3 class="text-white font-bold text-lg mb-4 flex items-center">
+                    <i class="fas fa-landmark mr-2"></i>
+                    Sistema Bancário
+                </h3>
+                <p class="text-sm">Sistema bancário moderno e seguro para gerenciamento de suas transações financeiras.</p>
             </div>
+            
+            <div>
+                <h3 class="text-white font-bold text-lg mb-4">Links Rápidos</h3>
+                <ul class="space-y-2 text-sm">
+                    <li><a href="{% url 'transactions:transaction_report' %}" class="hover:text-white transition"><i class="fas fa-chevron-right mr-2"></i>Extrato</a></li>
+                    <li><a href="{% url 'transactions:deposit_money' %}" class="hover:text-white transition"><i class="fas fa-chevron-right mr-2"></i>Depósito</a></li>
+                    <li><a href="{% url 'transactions:withdraw_money' %}" class="hover:text-white transition"><i class="fas fa-chevron-right mr-2"></i>Saque</a></li>
+                </ul>
+            </div>
+            
+            <div>
+                <h3 class="text-white font-bold text-lg mb-4">Segurança</h3>
+                <p class="text-sm mb-4"><i class="fas fa-shield-alt mr-2"></i>Suas transações são protegidas com criptografia de ponta.</p>
+                <p class="text-sm"><i class="fas fa-lock mr-2"></i>Ambiente seguro e confiável.</p>
+            </div>
+        </div>
+        
+        <div class="border-t border-gray-700 mt-8 pt-6 text-center text-sm">
+            <p>&copy; 2024 Sistema Bancário. Todos os direitos reservados.</p>
         </div>
     </div>
 </footer>

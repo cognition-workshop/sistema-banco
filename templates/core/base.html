@@ -1,24 +1,37 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
     <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-        <meta name="description" content="Modern Banking System" />
+        <meta name="description" content="Sistema Bancário Moderno e Seguro" />
         <title>
-            {% block head_title %}Banking System{% endblock %}
+            {% block head_title %}Sistema Bancário{% endblock %}
         </title>
-        <link href="https://unpkg.com/tailwindcss@^1.0/dist/tailwind.min.css" rel="stylesheet">
-
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+        <script>
+            tailwind.config = {
+                theme: {
+                    extend: {
+                        colors: {
+                            'bank-blue': '#1e40af',
+                            'bank-dark': '#1e3a8a',
+                            'bank-light': '#3b82f6',
+                            'bank-green': '#059669',
+                        }
+                    }
+                }
+            }
+        </script>
         {% block head_extra %}{% endblock %}
     </head>
-    <body class="bg-gray-100">
+    <body class="bg-gradient-to-br from-gray-50 to-blue-50 min-h-screen">
         {% block body %}
             {% include 'core/navbar.html' %}
-            <div class="lg:container lg:mx-auto">
+            <div class="container mx-auto px-4 py-8">
                 {% include 'core/messages.html' %}
                 {% block content %}
-                <!-- Add content here -->
                 {% endblock %}
             </div>
             {% include 'core/footer.html' %}
