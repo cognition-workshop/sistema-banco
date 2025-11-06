@@ -28,3 +28,4 @@ class Transaction(models.Model):
 
     class Meta:
         ordering = ['timestamp']
+        index_together = [['account', 'timestamp']]
