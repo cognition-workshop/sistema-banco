@@ -67,6 +67,17 @@ git@github.com:saadmk11/banking-system.git
 cd banking-system
 ```
 
+Setup environment variables,
+```bash
+cp .env.example .env
+# Edit .env and set your SECRET_KEY and other settings
+# For production, make sure to:
+# - Generate a new SECRET_KEY
+# - Set DEBUG=False
+# - Set ALLOWED_HOSTS to your domain
+# - Configure Redis URL if not using localhost
+```
+
 Install development dependencies,
 ```bash
 pip install -r requirements.txt
