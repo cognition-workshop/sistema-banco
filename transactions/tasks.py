@@ -6,10 +6,16 @@ from celery import shared_task
 from accounts.models import UserBankAccount
 from transactions.constants import INTEREST
 from transactions.models import Transaction
+from utils.brazilian_holidays import is_business_day, next_business_day
 
 
 @shared_task(name="calculate_interest")
 def calculate_interest():
+    today = timezone.now().date()
+    
+    if not is_business_day(today):
+        return
+    
     accounts = UserBankAccount.objects.filter(
         balance__gt=0,
         interest_start_date__gte=timezone.now(),
