@@ -27,8 +27,12 @@
             {% endfor %}
         {% endif %}
         <div class="mt-4">
-            <select name="transaction_type" class="h-10 pl-3 pr-8 bg-white border rounded-md border-gray-500 w-full outline-none focus:outline-none active:outline-none">
-                {{ form.transaction_type }}
+            <label for="id_transaction_type" class="block text-sm font-medium text-gray-700 mb-1">Filter by Transaction Type</label>
+            <select name="transaction_type" id="id_transaction_type" class="h-10 pl-3 pr-8 bg-white border rounded-md border-gray-500 w-full outline-none focus:outline-none active:outline-none">
+                <option value="">All Types</option>
+                <option value="1" {% if request.GET.transaction_type == "1" %}selected{% endif %}>Deposit</option>
+                <option value="2" {% if request.GET.transaction_type == "2" %}selected{% endif %}>Withdrawal</option>
+                <option value="3" {% if request.GET.transaction_type == "3" %}selected{% endif %}>Interest</option>
             </select>
         </div>
     </form>
