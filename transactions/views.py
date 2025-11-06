@@ -95,10 +95,8 @@ class DepositMoneyView(TransactionCreateMixin):
 
     def form_valid(self, form):
         amount = form.cleaned_data.get('amount')
-        # Bypass login - use demo user
-        User = get_user_model()
-        demo_user = User.objects.filter(email='demo@example.com').first()
-        account = demo_user.account if demo_user and hasattr(demo_user, 'account') else None
+        account = form.account
+
         if not account:
             return super().form_valid(form)
 
@@ -141,12 +139,11 @@ class WithdrawMoneyView(TransactionCreateMixin):
 
     def form_valid(self, form):
         amount = form.cleaned_data.get('amount')
-        # Bypass login - use demo user
-        User = get_user_model()
-        demo_user = User.objects.filter(email='demo@example.com').first()
-        if demo_user and hasattr(demo_user, 'account'):
-            demo_user.account.balance -= form.cleaned_data.get('amount')
-            demo_user.account.save(update_fields=['balance'])
+        account = form.account
+        
+        if account:
+            account.balance -= amount
+            account.save(update_fields=['balance'])
 
         messages.success(
             self.request,
