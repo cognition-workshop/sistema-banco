@@ -1,6 +1,7 @@
 from decimal import Decimal
 
 from django.contrib.auth.models import AbstractUser
+from django.core.cache import cache
 from django.core.validators import (
     MinValueValidator,
     MaxValueValidator,
@@ -9,6 +10,7 @@ from django.db import models
 
 from .constants import GENDER_CHOICE
 from .managers import UserManager
+from core.cache_utils import get_balance_cache_key
 
 
 class User(AbstractUser):
@@ -26,7 +28,14 @@ class User(AbstractUser):
     @property
     def balance(self):
         if hasattr(self, 'account'):
-            return self.account.balance
+            cache_key = get_balance_cache_key(self.id)
+            cached_balance = cache.get(cache_key)
+            if cached_balance is not None:
+                return cached_balance
+            
+            balance = self.account.balance
+            cache.set(cache_key, balance, timeout=300)
+            return balance
         return 0
 
 
@@ -56,14 +65,23 @@ class BankAccountType(models.Model):
 
         This uses a basic interest calculation formula
         """
+        from django.core.cache import cache
+        from core.cache_utils import get_account_type_cache_key
+        
+        cache_key = f'{get_account_type_cache_key(self.id)}:calc:{principal}'
+        cached_result = cache.get(cache_key)
+        if cached_result is not None:
+            return cached_result
+        
         p = principal
         r = self.annual_interest_rate
         n = Decimal(self.interest_calculation_per_year)
 
-        # Basic Future Value formula to calculate interest
         interest = (p * (1 + ((r/100) / n))) - p
-
-        return round(interest, 2)
+        result = round(interest, 2)
+        
+        cache.set(cache_key, result, timeout=3600)
+        return result
 
 
 class UserBankAccount(models.Model):

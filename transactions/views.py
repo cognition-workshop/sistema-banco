@@ -35,16 +35,30 @@ class TransactionRepostView(ListView):
         if not demo_user or not hasattr(demo_user, 'account'):
             return super().get_queryset().none()
         
+        account_id = demo_user.account.id
+        daterange = self.form_data.get("daterange")
+        
+        from django.core.cache import cache
+        from core.cache_utils import get_transactions_cache_key
+        
+        cache_key = get_transactions_cache_key(account_id, daterange)
+        cached_queryset = cache.get(cache_key)
+        
+        if cached_queryset is not None:
+            return cached_queryset
+        
         queryset = super().get_queryset().filter(
             account=demo_user.account
         )
 
-        daterange = self.form_data.get("daterange")
-
         if daterange:
             queryset = queryset.filter(timestamp__date__range=daterange)
 
-        return queryset.distinct()
+        queryset = queryset.distinct()
+        
+        cache.set(cache_key, list(queryset), timeout=60)
+        
+        return queryset
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -123,6 +137,10 @@ class DepositMoneyView(TransactionCreateMixin):
             ]
         )
 
+        from core.cache_utils import invalidate_balance_cache, invalidate_transactions_cache
+        invalidate_balance_cache(demo_user.id)
+        invalidate_transactions_cache(account.id)
+
         messages.success(
             self.request,
             f'{amount}$ was deposited to your account successfully'
@@ -147,6 +165,10 @@ class WithdrawMoneyView(TransactionCreateMixin):
         if demo_user and hasattr(demo_user, 'account'):
             demo_user.account.balance -= form.cleaned_data.get('amount')
             demo_user.account.save(update_fields=['balance'])
+            
+            from core.cache_utils import invalidate_balance_cache, invalidate_transactions_cache
+            invalidate_balance_cache(demo_user.id)
+            invalidate_transactions_cache(demo_user.account.id)
 
         messages.success(
             self.request,
