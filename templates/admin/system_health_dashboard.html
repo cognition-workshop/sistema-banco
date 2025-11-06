@@ -1,0 +1,188 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block title %}{{ title }} | {{ site_title|default:_('Django site admin') }}{% endblock %}
+
+{% block extrastyle %}
+<style>
+    .dashboard-container {
+        padding: 20px;
+    }
+    
+    .metrics-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+    
+    .metric-card {
+        background: white;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .metric-card h3 {
+        margin-top: 0;
+        color: #417690;
+        font-size: 14px;
+        text-transform: uppercase;
+        font-weight: normal;
+    }
+    
+    .metric-value {
+        font-size: 32px;
+        font-weight: bold;
+        color: #333;
+        margin: 10px 0;
+    }
+    
+    .metric-label {
+        color: #666;
+        font-size: 12px;
+    }
+    
+    .transactions-table {
+        background: white;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 20px;
+        margin-top: 20px;
+    }
+    
+    .transactions-table h2 {
+        margin-top: 0;
+        color: #417690;
+        font-size: 18px;
+    }
+    
+    .transactions-table table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    .transactions-table th {
+        background: #f8f8f8;
+        padding: 10px;
+        text-align: left;
+        border-bottom: 2px solid #ddd;
+        font-weight: bold;
+    }
+    
+    .transactions-table td {
+        padding: 10px;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .status-ok {
+        color: #28a745;
+        font-weight: bold;
+    }
+    
+    .status-error {
+        color: #dc3545;
+        font-weight: bold;
+    }
+    
+    .transaction-type-deposit {
+        color: #28a745;
+    }
+    
+    .transaction-type-withdrawal {
+        color: #dc3545;
+    }
+    
+    .transaction-type-interest {
+        color: #007bff;
+    }
+</style>
+{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+    <a href="{% url 'admin:index' %}">Home</a>
+    &rsaquo; System Health Dashboard
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <h1>System Health Dashboard</h1>
+    
+    <div class="metrics-grid">
+        <div class="metric-card">
+            <h3>Total Users</h3>
+            <div class="metric-value">{{ total_users }}</div>
+            <div class="metric-label">Registered in the system</div>
+        </div>
+        
+        <div class="metric-card">
+            <h3>Active Accounts</h3>
+            <div class="metric-value">{{ total_accounts }}</div>
+            <div class="metric-label">{{ users_with_accounts }} users with accounts</div>
+        </div>
+        
+        <div class="metric-card">
+            <h3>Total Balance</h3>
+            <div class="metric-value">${{ total_balance|floatformat:2 }}</div>
+            <div class="metric-label">Across all accounts</div>
+        </div>
+        
+        <div class="metric-card">
+            <h3>Total Transactions</h3>
+            <div class="metric-value">{{ total_transactions }}</div>
+            <div class="metric-label">{{ deposits_count }} deposits, {{ withdrawals_count }} withdrawals, {{ interest_count }} interest</div>
+        </div>
+        
+        <div class="metric-card">
+            <h3>Database Status</h3>
+            <div class="metric-value {% if db_status == 'Connected' %}status-ok{% else %}status-error{% endif %}">
+                {{ db_status }}
+            </div>
+            <div class="metric-label">Connection status</div>
+        </div>
+    </div>
+    
+    <div class="transactions-table">
+        <h2>Recent Transactions</h2>
+        {% if recent_transactions %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Account</th>
+                    <th>User</th>
+                    <th>Type</th>
+                    <th>Amount</th>
+                    <th>Balance After</th>
+                    <th>Timestamp</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for transaction in recent_transactions %}
+                <tr>
+                    <td>{{ transaction.account.account_no }}</td>
+                    <td>{{ transaction.account.user.email }}</td>
+                    <td>
+                        {% if transaction.transaction_type == 1 %}
+                            <span class="transaction-type-deposit">Deposit</span>
+                        {% elif transaction.transaction_type == 2 %}
+                            <span class="transaction-type-withdrawal">Withdrawal</span>
+                        {% else %}
+                            <span class="transaction-type-interest">Interest</span>
+                        {% endif %}
+                    </td>
+                    <td>${{ transaction.amount|floatformat:2 }}</td>
+                    <td>${{ transaction.balance_after_transaction|floatformat:2 }}</td>
+                    <td>{{ transaction.timestamp|date:"Y-m-d H:i:s" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>No transactions found.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
