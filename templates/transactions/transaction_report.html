@@ -26,6 +26,21 @@
                 <p class="text-red-600 text-sm italic">{{ error }}</p>
             {% endfor %}
         {% endif %}
+        
+        <div class="mt-4 flex items-center gap-4">
+            <label for="transaction_type" class="font-semibold text-gray-700">Filter by Type:</label>
+            <select name="transaction_type" id="transaction_type" class="h-10 pl-3 pr-8 bg-white border rounded-md border-gray-500 outline-none focus:border-blue-500" onchange="this.form.submit()">
+                <option value="">All Transactions</option>
+                {% for type_id, type_name in transaction_types %}
+                    <option value="{{ type_id }}" {% if selected_type == type_id|stringformat:"s" %}selected{% endif %}>{{ type_name }}</option>
+                {% endfor %}
+            </select>
+            {% if selected_type %}
+                <span class="text-sm text-blue-600 font-medium">
+                    Active filter: {% for type_id, type_name in transaction_types %}{% if selected_type == type_id|stringformat:"s" %}{{ type_name }}{% endif %}{% endfor %}
+                </span>
+            {% endif %}
+        </div>
     </form>
     <table class="table-auto mx-auto w-full mt-8">
         <thead class="bg-gray-800 text-white">
