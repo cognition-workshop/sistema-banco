@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: banking_postgres
+    environment:
+      POSTGRES_DB: banking_system
+      POSTGRES_USER: banking_user
+      POSTGRES_PASSWORD: banking_password_2024
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U banking_user -d banking_system"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: banking_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  celery_worker:
+    build: .
+    command: celery -A banking_system worker -l info
+    depends_on:
+      - postgres
+      - redis
+    environment:
+      DATABASE_URL: postgresql://banking_user:banking_password_2024@postgres:5432/banking_system
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/0
+    volumes:
+      - .:/app
+
+  celery_beat:
+    build: .
+    command: celery -A banking_system beat -l info
+    depends_on:
+      - postgres
+      - redis
+    environment:
+      DATABASE_URL: postgresql://banking_user:banking_password_2024@postgres:5432/banking_system
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/0
+    volumes:
+      - .:/app
+
+volumes:
+  postgres_data:
+  redis_data:

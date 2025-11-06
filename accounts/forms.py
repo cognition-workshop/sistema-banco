@@ -5,6 +5,7 @@ from django.db import transaction
 
 from .models import User, BankAccountType, UserBankAccount, UserAddress
 from .constants import GENDER_CHOICE
+from .validators import validate_cpf, format_cpf
 
 
 class UserAddressForm(forms.ModelForm):
@@ -35,6 +36,12 @@ class UserAddressForm(forms.ModelForm):
 class UserRegistrationForm(UserCreationForm):
     account_type = forms.ModelChoiceField(
         queryset=BankAccountType.objects.all()
+    )
+    cpf = forms.CharField(
+        max_length=14,
+        required=True,
+        validators=[validate_cpf],
+        help_text='Digite o CPF no formato XXX.XXX.XXX-XX'
     )
     gender = forms.ChoiceField(choices=GENDER_CHOICE)
     birth_date = forms.DateField()
@@ -72,11 +79,15 @@ class UserRegistrationForm(UserCreationForm):
             account_type = self.cleaned_data.get('account_type')
             gender = self.cleaned_data.get('gender')
             birth_date = self.cleaned_data.get('birth_date')
+            cpf = self.cleaned_data.get('cpf')
+            
+            cpf_formatted = format_cpf(cpf) if cpf else None
 
             UserBankAccount.objects.create(
                 user=user,
                 gender=gender,
                 birth_date=birth_date,
+                cpf=cpf_formatted,
                 account_type=account_type,
                 account_no=(
                     user.id +

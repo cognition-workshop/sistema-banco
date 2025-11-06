@@ -1,0 +1,168 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Resolver Alerta de Fraude #{{ alert.id }}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 py-8">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="mb-6">
+            <a href="{% url 'fraud_detection:dashboard' %}" class="text-blue-600 hover:text-blue-800 dark:text-blue-400 flex items-center">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                Voltar ao Dashboard
+            </a>
+        </div>
+
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
+            <div class="px-6 py-4 bg-gradient-to-r from-blue-600 to-blue-700 dark:from-blue-700 dark:to-blue-800">
+                <h1 class="text-2xl font-bold text-white">
+                    Alerta de Fraude #{{ alert.id }}
+                </h1>
+                <p class="text-blue-100 mt-1">
+                    Detectado em {{ alert.detected_at|date:"d/m/Y às H:i" }}
+                </p>
+            </div>
+
+            <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Tipo de Alerta
+                        </label>
+                        <p class="text-lg font-semibold text-gray-900 dark:text-white">
+                            {{ alert.get_alert_type_display }}
+                        </p>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Severidade
+                        </label>
+                        <div>
+                            {% if alert.severity == 'CRITICAL' %}
+                            <span class="px-4 py-2 inline-flex text-sm leading-5 font-semibold rounded-full bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400">
+                                🔴 Crítico
+                            </span>
+                            {% elif alert.severity == 'HIGH' %}
+                            <span class="px-4 py-2 inline-flex text-sm leading-5 font-semibold rounded-full bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400">
+                                🟠 Alto
+                            </span>
+                            {% elif alert.severity == 'MEDIUM' %}
+                            <span class="px-4 py-2 inline-flex text-sm leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400">
+                                🟡 Médio
+                            </span>
+                            {% else %}
+                            <span class="px-4 py-2 inline-flex text-sm leading-5 font-semibold rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400">
+                                🔵 Baixo
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Conta Afetada
+                        </label>
+                        <p class="text-lg font-semibold text-gray-900 dark:text-white">
+                            #{{ alert.account.account_no }}
+                        </p>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Status Atual
+                        </label>
+                        <div>
+                            {% if alert.status == 'PENDING' %}
+                            <span class="px-4 py-2 inline-flex text-sm leading-5 font-semibold rounded-full bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300">
+                                Pendente
+                            </span>
+                            {% elif alert.status == 'INVESTIGATING' %}
+                            <span class="px-4 py-2 inline-flex text-sm leading-5 font-semibold rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400">
+                                Em Investigação
+                            </span>
+                            {% elif alert.status == 'RESOLVED' %}
+                            <span class="px-4 py-2 inline-flex text-sm leading-5 font-semibold rounded-full bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
+                                ✓ Resolvido
+                            </span>
+                            {% else %}
+                            <span class="px-4 py-2 inline-flex text-sm leading-5 font-semibold rounded-full bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300">
+                                Falso Positivo
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Descrição
+                    </label>
+                    <div class="p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
+                        <p class="text-gray-900 dark:text-gray-300">
+                            {{ alert.description }}
+                        </p>
+                    </div>
+                </div>
+
+                {% if alert.transaction %}
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Transação Relacionada
+                    </label>
+                    <div class="p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
+                        <div class="grid grid-cols-3 gap-4">
+                            <div>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">Tipo</p>
+                                <p class="font-medium text-gray-900 dark:text-white">{{ alert.transaction.get_transaction_type_display }}</p>
+                            </div>
+                            <div>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">Valor</p>
+                                <p class="font-medium text-gray-900 dark:text-white">R$ {{ alert.transaction.amount }}</p>
+                            </div>
+                            <div>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">Data</p>
+                                <p class="font-medium text-gray-900 dark:text-white">{{ alert.transaction.timestamp|date:"d/m/Y H:i" }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <form method="post" class="space-y-6">
+                    {% csrf_token %}
+                    
+                    <div>
+                        <label for="status" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Atualizar Status
+                        </label>
+                        <select name="status" id="status" class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white">
+                            <option value="PENDING" {% if alert.status == 'PENDING' %}selected{% endif %}>Pendente</option>
+                            <option value="INVESTIGATING" {% if alert.status == 'INVESTIGATING' %}selected{% endif %}>Em Investigação</option>
+                            <option value="RESOLVED" {% if alert.status == 'RESOLVED' %}selected{% endif %}>Resolvido</option>
+                            <option value="FALSE_POSITIVE" {% if alert.status == 'FALSE_POSITIVE' %}selected{% endif %}>Falso Positivo</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="notes" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Notas da Investigação
+                        </label>
+                        <textarea name="notes" id="notes" rows="4" class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white" placeholder="Adicione suas observações sobre este alerta...">{{ alert.investigation_notes }}</textarea>
+                    </div>
+
+                    <div class="flex justify-end space-x-4">
+                        <a href="{% url 'fraud_detection:dashboard' %}" class="px-6 py-3 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 font-medium transition-colors">
+                            Cancelar
+                        </a>
+                        <button type="submit" class="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 font-medium transition-colors">
+                            Salvar Alterações
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

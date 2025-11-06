@@ -1,11 +1,14 @@
 from django.contrib import messages
 from django.contrib.auth import get_user_model, login, logout
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView
-from django.shortcuts import HttpResponseRedirect
+from django.shortcuts import HttpResponseRedirect, render
 from django.urls import reverse_lazy
 from django.views.generic import TemplateView, RedirectView
+from datetime import date
 
 from .forms import UserRegistrationForm, UserAddressForm
+from .ir_reports import generate_ir_report, export_ir_report_pdf
 
 
 User = get_user_model()
@@ -73,3 +76,26 @@ class LogoutView(RedirectView):
         if self.request.user.is_authenticated:
             logout(self.request)
         return super().get_redirect_url(*args, **kwargs)
+
+
+@login_required
+def ir_report_view(request):
+    current_year = date.today().year
+    year = int(request.GET.get('year', current_year - 1))
+    
+    account = request.user.account
+    
+    if request.GET.get('export') == 'pdf':
+        return export_ir_report_pdf(account, year)
+    
+    report_data = generate_ir_report(account, year)
+    
+    available_years = range(current_year - 5, current_year + 1)
+    
+    context = {
+        'report_data': report_data,
+        'year': year,
+        'available_years': available_years,
+    }
+    
+    return render(request, 'accounts/ir_report.html', context)

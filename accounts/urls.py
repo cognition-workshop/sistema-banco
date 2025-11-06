@@ -1,6 +1,6 @@
 from django.urls import path
 
-from .views import UserRegistrationView, LogoutView, UserLoginView
+from .views import UserRegistrationView, LogoutView, UserLoginView, ir_report_view
 
 
 app_name = 'accounts'
@@ -17,5 +17,9 @@ urlpatterns = [
     path(
         "register/", UserRegistrationView.as_view(),
         name="user_registration"
+    ),
+    path(
+        "ir-report/", ir_report_view,
+        name="ir_report"
     ),
 ]

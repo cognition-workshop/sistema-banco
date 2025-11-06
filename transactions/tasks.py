@@ -9,6 +9,14 @@ from transactions.models import Transaction
 
 @task(name="calculate_interest")
 def calculate_interest():
+    try:
+        from banking_calendar.models import BankingHoliday
+        current_date = timezone.now().date()
+        if not BankingHoliday.is_business_day(current_date):
+            return
+    except ImportError:
+        pass
+    
     accounts = UserBankAccount.objects.filter(
         balance__gt=0,
         interest_start_date__gte=timezone.now(),
