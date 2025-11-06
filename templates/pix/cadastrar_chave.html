@@ -1,0 +1,35 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<h1 class="font-mono font-bold text-3xl text-center pb-5 pt-10">Cadastrar Chave PIX</h1>
+<div class="w-full mt-10">
+    <form method="post" class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+        {% csrf_token %}
+        <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="id_tipo">
+                Tipo de Chave
+            </label>
+            {{ form.tipo }}
+            {% if form.tipo.errors %}
+                {% for error in form.tipo.errors %}
+                    <p class="text-red-600 text-sm italic pb-2">{{ error }}</p>
+                {% endfor %}
+            {% endif %}
+        </div>
+        <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="id_chave">
+                Chave
+            </label>
+            {{ form.chave }}
+            {% if form.chave.errors %}
+                {% for error in form.chave.errors %}
+                    <p class="text-red-600 text-sm italic pb-2">{{ error }}</p>
+                {% endfor %}
+            {% endif %}
+        </div>
+        <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" type="submit">
+            Cadastrar
+        </button>
+    </form>
+</div>
+{% endblock %}

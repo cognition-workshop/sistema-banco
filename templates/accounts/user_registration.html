@@ -66,6 +66,19 @@
                 {% endif %}
             </div>
             <div class="w-full md:w-1/2 px-3 mb-6 md:mb-0">
+                <label class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" for="{{ registration_form.cpf.id_for_label }}">
+                    {{ registration_form.cpf.label }}
+                </label>
+                {{ registration_form.cpf }}
+                {% if registration_form.cpf.errors %}
+                    {% for error in registration_form.cpf.errors %}
+                        <p class="text-red-600 text-sm italic pb-2">{{ error }}</p>
+                    {% endfor %}
+                {% endif %}
+            </div>
+        </div>
+        <div class="flex flex-wrap -mx-3 mb-6">
+            <div class="w-full md:w-1/2 px-3 mb-6 md:mb-0">
                 <label class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" for="{{ registration_form.account_type.id_for_label }}">
                     {{ registration_form.account_type.label }}
                 </label>
@@ -76,7 +89,6 @@
                     {% endfor %}
                 {% endif %}
             </div>
-        </div>
         <div class="flex flex-wrap -mx-3 mb-6">
             <div class="w-full md:w-1/2 px-3 mb-6 md:mb-0">
                 <label class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" for="{{ registration_form.gender.id_for_label }}">

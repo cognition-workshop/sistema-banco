@@ -47,11 +47,15 @@ if created:
     demo_user.save()
 
 # Create Bank Account
-account, _ = UserBankAccount.objects.get_or_create(
+account, created_account = UserBankAccount.objects.get_or_create(
     user=demo_user,
     defaults={
         'account_type': savings_type,
+        'cpf': '123.456.789-00',
         'account_no': 1001,
+        'agencia': '0001',
+        'conta': '0000001001',
+        'digito_verificador': '0',
         'gender': 'M',
         'birth_date': '1990-01-01',
         'balance': 5000.00,
@@ -107,5 +111,5 @@ account.save()
 print("✅ Demo data created successfully!")
 print(f"Demo User: demo@example.com / demo123")
 print(f"Account Number: {account.account_no}")
-print(f"Balance: ${account.balance}")
+print(f"Saldo: R$ {account.balance}")
 print(f"Transactions: {Transaction.objects.filter(account=account).count()}")

@@ -6,6 +6,7 @@ from django.core.validators import (
     MaxValueValidator,
 )
 from django.db import models
+from localflavor.br.models import BRCPFField
 
 from .constants import GENDER_CHOICE
 from .managers import UserManager
@@ -77,7 +78,11 @@ class UserBankAccount(models.Model):
         related_name='accounts',
         on_delete=models.CASCADE
     )
+    cpf = BRCPFField('CPF', unique=True)
     account_no = models.PositiveIntegerField(unique=True)
+    agencia = models.CharField('Agência', max_length=4, default='0001')
+    conta = models.CharField('Conta', max_length=10)
+    digito_verificador = models.CharField('Dígito Verificador', max_length=1)
     gender = models.CharField(max_length=1, choices=GENDER_CHOICE)
     birth_date = models.DateField(null=True, blank=True)
     balance = models.DecimalField(
@@ -94,7 +99,16 @@ class UserBankAccount(models.Model):
     initial_deposit_date = models.DateField(null=True, blank=True)
 
     def __str__(self):
-        return str(self.account_no)
+        return f"{self.agencia} | {self.conta}-{self.digito_verificador}"
+    
+    def calculate_verification_digit(self, account_number):
+        """Calculate verification digit using modulo 11 algorithm"""
+        weights = [2, 3, 4, 5, 6, 7, 8, 9]
+        account_str = str(account_number).zfill(8)
+        sum_value = sum(int(digit) * weight for digit, weight in zip(account_str, weights))
+        remainder = sum_value % 11
+        digit = 0 if remainder < 2 else 11 - remainder
+        return str(digit)
 
     def get_interest_calculation_months(self):
         """

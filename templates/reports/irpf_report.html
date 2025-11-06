@@ -1,0 +1,55 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<h1 class="font-mono font-bold text-3xl text-center pb-5 pt-10">Relatório IRPF</h1>
+
+<div class="w-full mt-10">
+    <form method="get" class="mb-4">
+        <label for="ano" class="font-bold">Ano:</label>
+        <select name="ano" id="ano" onchange="this.form.submit()" class="border rounded px-2 py-1">
+            {% for year in anos_disponiveis %}
+            <option value="{{ year }}" {% if year == ano %}selected{% endif %}>{{ year }}</option>
+            {% endfor %}
+        </select>
+    </form>
+
+    {% if account %}
+    <div class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+        <h2 class="text-2xl font-bold mb-4">Resumo Anual {{ ano }}</h2>
+        
+        <p><strong>CPF:</strong> {{ account.cpf }}</p>
+        <p><strong>Agência:</strong> {{ account.agencia }}</p>
+        <p><strong>Conta:</strong> {{ account.conta }}-{{ account.digito_verificador }}</p>
+        
+        <h3 class="text-xl font-bold mt-4 mb-2">Movimentação Financeira</h3>
+        <table class="table-auto w-full">
+            <tr>
+                <td class="border px-4 py-2"><strong>Total de Depósitos:</strong></td>
+                <td class="border px-4 py-2">R$ {{ depositos_total }}</td>
+            </tr>
+            <tr>
+                <td class="border px-4 py-2"><strong>Total de Saques:</strong></td>
+                <td class="border px-4 py-2">R$ {{ saques_total }}</td>
+            </tr>
+            <tr>
+                <td class="border px-4 py-2"><strong>Rendimentos (Juros):</strong></td>
+                <td class="border px-4 py-2">R$ {{ rendimentos_total }}</td>
+            </tr>
+            <tr>
+                <td class="border px-4 py-2"><strong>Saldo em 31/12:</strong></td>
+                <td class="border px-4 py-2">R$ {{ saldo_final }}</td>
+            </tr>
+        </table>
+        
+        <div class="mt-6">
+            <a href="{% url 'reports:irpf_pdf' %}?ano={{ ano }}" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded mr-2">
+                Exportar PDF
+            </a>
+            <a href="{% url 'reports:irpf_csv' %}?ano={{ ano }}" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
+                Exportar CSV
+            </a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

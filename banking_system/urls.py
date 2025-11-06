@@ -23,6 +23,8 @@ urlpatterns = [
     path('', HomeView.as_view(), name='home'),
     path('accounts/', include('accounts.urls', namespace='accounts')),
     path('admin/', admin.site.urls),
+    path('pix/', include('pix.urls', namespace='pix')),
+    path('reports/', include('reports.urls', namespace='reports')),
     path(
         'transactions/',
         include('transactions.urls', namespace='transactions')
