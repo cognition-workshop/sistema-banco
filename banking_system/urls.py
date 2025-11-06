@@ -17,6 +17,7 @@ from django.contrib import admin
 from django.urls import include, path
 
 from core.views import HomeView
+from accounts.api_views import AccountBalanceDetailView
 
 
 urlpatterns = [
@@ -26,5 +27,6 @@ urlpatterns = [
     path(
         'transactions/',
         include('transactions.urls', namespace='transactions')
-    )
+    ),
+    path('api/accounts/<int:account_no>/', AccountBalanceDetailView.as_view(), name='api_account_balance'),
 ]
