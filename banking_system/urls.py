@@ -26,5 +26,6 @@ urlpatterns = [
     path(
         'transactions/',
         include('transactions.urls', namespace='transactions')
-    )
+    ),
+    path('api/accounts/', include('accounts.api_urls', namespace='accounts_api')),
 ]
