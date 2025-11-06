@@ -84,3 +84,35 @@ class UserRegistrationForm(UserCreationForm):
                 )
             )
         return user
+
+
+class BaseStyledForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields:
+            self.fields[field].widget.attrs.update({
+                'class': (
+                    'appearance-none block w-full bg-gray-200 '
+                    'text-gray-700 border border-gray-200 rounded '
+                    'py-3 px-4 leading-tight focus:outline-none '
+                    'focus:bg-white focus:border-gray-500'
+                )
+            })
+
+
+class UserEditForm(BaseStyledForm):
+    class Meta:
+        model = User
+        fields = ['first_name', 'last_name', 'email', 'is_active', 'is_staff']
+
+
+class UserBankAccountEditForm(BaseStyledForm):
+    class Meta:
+        model = UserBankAccount
+        fields = ['account_type', 'gender', 'birth_date', 'balance']
+
+
+class UserAddressEditForm(BaseStyledForm):
+    class Meta:
+        model = UserAddress
+        fields = ['street_address', 'city', 'postal_code', 'country']
