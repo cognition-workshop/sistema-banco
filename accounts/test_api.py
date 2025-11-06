@@ -2,6 +2,7 @@ from rest_framework.test import APITestCase, APIClient
 from rest_framework import status
 from django.contrib.auth import get_user_model
 from .models import BankAccountType, UserBankAccount
+from .utils import validate_brazilian_account
 
 User = get_user_model()
 
@@ -19,10 +20,17 @@ class AccountAPITest(APITestCase):
             annual_interest_rate=5.0,
             interest_calculation_per_year=12
         )
+        agencia = 1
+        conta = 4001
+        agencia_digito, conta_digito = validate_brazilian_account(agencia, conta)
         self.account = UserBankAccount.objects.create(
             user=self.user,
             account_type=self.account_type,
-            account_no=1000000001,
+            cpf='111.444.777-35',
+            agencia=str(agencia).zfill(4),
+            agencia_digito=str(agencia_digito),
+            conta=str(conta).zfill(8),
+            conta_digito=str(conta_digito),
             gender='M',
             balance=1000
         )

@@ -3,6 +3,7 @@ from django.test import TestCase
 from django.contrib.auth import get_user_model
 from django.conf import settings
 from accounts.models import BankAccountType, UserBankAccount
+from accounts.utils import validate_brazilian_account
 from .models import Transaction
 from .forms import DepositForm, WithdrawForm, TransactionDateRangeForm
 from .constants import DEPOSIT, WITHDRAWAL, INTEREST
@@ -23,10 +24,17 @@ class TransactionModelTest(TestCase):
             annual_interest_rate=5.0,
             interest_calculation_per_year=12
         )
+        agencia = 1
+        conta = 1001
+        agencia_digito, conta_digito = validate_brazilian_account(agencia, conta)
         self.account = UserBankAccount.objects.create(
             user=self.user,
             account_type=self.account_type,
-            account_no=1000000001,
+            cpf='123.456.789-09',
+            agencia=str(agencia).zfill(4),
+            agencia_digito=str(agencia_digito),
+            conta=str(conta).zfill(8),
+            conta_digito=str(conta_digito),
             gender='M',
             balance=1000
         )
@@ -40,7 +48,7 @@ class TransactionModelTest(TestCase):
         )
         self.assertEqual(transaction.account, self.account)
         self.assertEqual(transaction.amount, 100)
-        self.assertEqual(str(transaction), '1000000001')
+        self.assertEqual(str(transaction), f'{self.account.get_account_number()} - Deposit')
 
 
 class DepositFormTest(TestCase):
@@ -55,10 +63,17 @@ class DepositFormTest(TestCase):
             annual_interest_rate=5.0,
             interest_calculation_per_year=12
         )
+        agencia = 1
+        conta = 1002
+        agencia_digito, conta_digito = validate_brazilian_account(agencia, conta)
         self.account = UserBankAccount.objects.create(
             user=self.user,
             account_type=self.account_type,
-            account_no=1000000001,
+            cpf='123.456.789-09',
+            agencia=str(agencia).zfill(4),
+            agencia_digito=str(agencia_digito),
+            conta=str(conta).zfill(8),
+            conta_digito=str(conta_digito),
             gender='M',
             balance=1000
         )
@@ -91,10 +106,17 @@ class WithdrawFormTest(TestCase):
             annual_interest_rate=5.0,
             interest_calculation_per_year=12
         )
+        agencia = 1
+        conta = 1003
+        agencia_digito, conta_digito = validate_brazilian_account(agencia, conta)
         self.account = UserBankAccount.objects.create(
             user=self.user,
             account_type=self.account_type,
-            account_no=1000000001,
+            cpf='123.456.789-09',
+            agencia=str(agencia).zfill(4),
+            agencia_digito=str(agencia_digito),
+            conta=str(conta).zfill(8),
+            conta_digito=str(conta_digito),
             gender='M',
             balance=1000
         )
@@ -163,10 +185,17 @@ class CalculateInterestTaskTest(TestCase):
         from datetime import date
         from dateutil.relativedelta import relativedelta
         
+        agencia = 1
+        conta = 1004
+        agencia_digito, conta_digito = validate_brazilian_account(agencia, conta)
         account = UserBankAccount.objects.create(
             user=self.user,
             account_type=self.account_type,
-            account_no=1000000001,
+            cpf='123.456.789-09',
+            agencia=str(agencia).zfill(4),
+            agencia_digito=str(agencia_digito),
+            conta=str(conta).zfill(8),
+            conta_digito=str(conta_digito),
             gender='M',
             balance=1000,
             initial_deposit_date=date.today(),

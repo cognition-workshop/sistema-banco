@@ -3,6 +3,7 @@ from django.test import TestCase
 from django.contrib.auth import get_user_model
 from .models import BankAccountType, UserBankAccount, UserAddress
 from .forms import UserRegistrationForm, UserAddressForm
+from .utils import validate_brazilian_account
 
 User = get_user_model()
 
@@ -30,10 +31,17 @@ class UserModelTest(TestCase):
             annual_interest_rate=5.0,
             interest_calculation_per_year=12
         )
+        agencia = 1
+        conta = 3001
+        agencia_digito, conta_digito = validate_brazilian_account(agencia, conta)
         account = UserBankAccount.objects.create(
             user=self.user,
             account_type=account_type,
-            account_no=1000000001,
+            cpf='123.456.789-09',
+            agencia=str(agencia).zfill(4),
+            agencia_digito=str(agencia_digito),
+            conta=str(conta).zfill(8),
+            conta_digito=str(conta_digito),
             gender='M',
             balance=1000
         )
@@ -72,10 +80,17 @@ class UserBankAccountModelTest(TestCase):
             annual_interest_rate=5.0,
             interest_calculation_per_year=12
         )
+        agencia = 1
+        conta = 3002
+        agencia_digito, conta_digito = validate_brazilian_account(agencia, conta)
         self.account = UserBankAccount.objects.create(
             user=self.user,
             account_type=self.account_type,
-            account_no=1000000001,
+            cpf='111.444.777-35',
+            agencia=str(agencia).zfill(4),
+            agencia_digito=str(agencia_digito),
+            conta=str(conta).zfill(8),
+            conta_digito=str(conta_digito),
             gender='M',
             balance=1000
         )
@@ -83,7 +98,7 @@ class UserBankAccountModelTest(TestCase):
     def test_account_creation(self):
         self.assertEqual(self.account.user, self.user)
         self.assertEqual(self.account.balance, 1000)
-        self.assertEqual(str(self.account), '1000000001')
+        self.assertEqual(str(self.account), self.account.get_account_number())
     
     def test_get_interest_calculation_months(self):
         from datetime import date
@@ -131,7 +146,8 @@ class UserRegistrationFormTest(TestCase):
             'password2': 'TestPass123!',
             'account_type': self.account_type.id,
             'gender': 'M',
-            'birth_date': '1990-01-01'
+            'birth_date': '1990-01-01',
+            'cpf': '123.456.789-09'
         }
         form = UserRegistrationForm(data=form_data)
         self.assertTrue(form.is_valid())
@@ -145,7 +161,8 @@ class UserRegistrationFormTest(TestCase):
             'password2': 'TestPass123!',
             'account_type': self.account_type.id,
             'gender': 'M',
-            'birth_date': '1990-01-01'
+            'birth_date': '1990-01-01',
+            'cpf': '111.444.777-35'
         }
         form = UserRegistrationForm(data=form_data)
         self.assertTrue(form.is_valid())
