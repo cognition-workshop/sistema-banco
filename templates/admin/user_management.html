@@ -1,0 +1,59 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block admin_content %}
+<h1 class="text-3xl font-bold mb-6">User Management</h1>
+
+<form method="get" class="mb-6">
+    <input type="search" name="search" value="{{ request.GET.search }}" placeholder="Search users..." class="border rounded px-4 py-2 w-96">
+    <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">Search</button>
+</form>
+
+<table class="w-full bg-white shadow-md rounded">
+    <thead class="bg-gray-800 text-white">
+        <tr>
+            <th class="px-4 py-2">Email</th>
+            <th class="px-4 py-2">Name</th>
+            <th class="px-4 py-2">Account No</th>
+            <th class="px-4 py-2">Balance</th>
+            <th class="px-4 py-2">Status</th>
+            <th class="px-4 py-2">Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for user in users %}
+        <tr class="{% cycle 'bg-gray-100' 'bg-white' %}">
+            <td class="border px-4 py-2">{{ user.email }}</td>
+            <td class="border px-4 py-2">{{ user.first_name }} {{ user.last_name }}</td>
+            <td class="border px-4 py-2">{{ user.account.account_no|default:"-" }}</td>
+            <td class="border px-4 py-2">${{ user.account.balance|default:0 }}</td>
+            <td class="border px-4 py-2">
+                {% if user.is_suspended %}
+                    <span class="text-red-600">Suspended</span>
+                {% else %}
+                    <span class="text-green-600">Active</span>
+                {% endif %}
+            </td>
+            <td class="border px-4 py-2">
+                <a href="{% url 'accounts:toggle_suspension' user.id %}" class="text-blue-500">
+                    {% if user.is_suspended %}Activate{% else %}Suspend{% endif %}
+                </a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% if is_paginated %}
+<div class="mt-4">
+    {% if page_obj.has_previous %}
+        <a href="?page=1" class="px-3 py-1 bg-gray-300 rounded">First</a>
+        <a href="?page={{ page_obj.previous_page_number }}" class="px-3 py-1 bg-gray-300 rounded">Previous</a>
+    {% endif %}
+    <span class="px-3 py-1">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}" class="px-3 py-1 bg-gray-300 rounded">Next</a>
+        <a href="?page={{ page_obj.paginator.num_pages }}" class="px-3 py-1 bg-gray-300 rounded">Last</a>
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}

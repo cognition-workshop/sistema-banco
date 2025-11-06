@@ -43,6 +43,9 @@ INSTALLED_APPS = [
     'accounts',
     'core',
     'transactions',
+    'analytics',
+    'fraud_detection',
+    'monitoring',
 ]
 
 MIDDLEWARE = [

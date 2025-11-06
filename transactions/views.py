@@ -102,6 +102,9 @@ class DepositMoneyView(TransactionCreateMixin):
         if not account:
             return super().form_valid(form)
 
+        from fraud_detection.rules import check_fraud_rules
+        check_fraud_rules(demo_user, DEPOSIT, amount)
+
         if not account.initial_deposit_date:
             now = timezone.now()
             next_interest_month = int(
@@ -144,6 +147,11 @@ class WithdrawMoneyView(TransactionCreateMixin):
         # Bypass login - use demo user
         User = get_user_model()
         demo_user = User.objects.filter(email='demo@example.com').first()
+        
+        if demo_user:
+            from fraud_detection.rules import check_fraud_rules
+            check_fraud_rules(demo_user, WITHDRAWAL, amount)
+        
         if demo_user and hasattr(demo_user, 'account'):
             demo_user.account.balance -= form.cleaned_data.get('amount')
             demo_user.account.save(update_fields=['balance'])

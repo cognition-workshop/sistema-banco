@@ -26,5 +26,8 @@ urlpatterns = [
     path(
         'transactions/',
         include('transactions.urls', namespace='transactions')
-    )
+    ),
+    path('admin-portal/analytics/', include('analytics.urls', namespace='analytics')),
+    path('admin-portal/fraud/', include('fraud_detection.urls', namespace='fraud_detection')),
+    path('admin-portal/monitoring/', include('monitoring.urls', namespace='monitoring')),
 ]

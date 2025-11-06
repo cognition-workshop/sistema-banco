@@ -1,0 +1,21 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<div class="flex">
+    <div class="w-64 bg-gray-800 min-h-screen p-4">
+        <h2 class="text-white text-xl font-bold mb-6">Admin Panel</h2>
+        <nav>
+            <a href="{% url 'accounts:admin_user_list' %}" class="block text-white hover:bg-gray-700 p-2 rounded mb-2">User Management</a>
+            <a href="{% url 'transactions:admin_dashboard' %}" class="block text-white hover:bg-gray-700 p-2 rounded mb-2">Transactions</a>
+            <a href="{% url 'analytics:dashboard' %}" class="block text-white hover:bg-gray-700 p-2 rounded mb-2">Analytics</a>
+            <a href="{% url 'fraud_detection:alerts' %}" class="block text-white hover:bg-gray-700 p-2 rounded mb-2">Fraud Alerts</a>
+            <a href="{% url 'monitoring:health' %}" class="block text-white hover:bg-gray-700 p-2 rounded mb-2">System Health</a>
+        </nav>
+    </div>
+    
+    <div class="flex-1 p-8">
+        {% block admin_content %}
+        {% endblock %}
+    </div>
+</div>
+{% endblock %}

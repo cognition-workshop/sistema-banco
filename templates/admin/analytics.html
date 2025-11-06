@@ -1,0 +1,51 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block head_extra %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block admin_content %}
+<h1 class="text-3xl font-bold mb-6">Analytics Dashboard</h1>
+
+<div class="grid grid-cols-3 gap-6 mb-8">
+    <div class="bg-white p-6 rounded shadow">
+        <h3 class="text-gray-500 text-sm">Total Users</h3>
+        <p class="text-3xl font-bold">{{ total_users }}</p>
+    </div>
+    <div class="bg-white p-6 rounded shadow">
+        <h3 class="text-gray-500 text-sm">Total Transactions</h3>
+        <p class="text-3xl font-bold">{{ total_transactions }}</p>
+    </div>
+    <div class="bg-white p-6 rounded shadow">
+        <h3 class="text-gray-500 text-sm">Total Volume</h3>
+        <p class="text-3xl font-bold">${{ total_volume }}</p>
+    </div>
+</div>
+
+<div class="grid grid-cols-2 gap-6">
+    <div class="bg-white p-6 rounded shadow">
+        <h3 class="text-xl font-bold mb-4">Transaction Types</h3>
+        <canvas id="typeChart"></canvas>
+    </div>
+</div>
+
+<div class="mt-6">
+    <a href="{% url 'analytics:export_csv' %}" class="bg-green-500 text-white px-4 py-2 rounded">Export CSV</a>
+</div>
+{% endblock %}
+
+{% block footer_extra %}
+<script>
+const ctx = document.getElementById('typeChart');
+new Chart(ctx, {
+    type: 'pie',
+    data: {
+        labels: ['Deposits', 'Withdrawals'],
+        datasets: [{
+            data: [{{ deposit_count }}, {{ withdrawal_count }}],
+            backgroundColor: ['#10B981', '#EF4444']
+        }]
+    }
+});
+</script>
+{% endblock %}

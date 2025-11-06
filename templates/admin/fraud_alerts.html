@@ -1,0 +1,53 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block admin_content %}
+<h1 class="text-3xl font-bold mb-6">Fraud Alerts</h1>
+
+<form method="get" class="mb-6">
+    <select name="status" class="border rounded px-4 py-2">
+        <option value="">All Statuses</option>
+        <option value="NEW" {% if request.GET.status == "NEW" %}selected{% endif %}>New</option>
+        <option value="REVIEWED" {% if request.GET.status == "REVIEWED" %}selected{% endif %}>Reviewed</option>
+        <option value="RESOLVED" {% if request.GET.status == "RESOLVED" %}selected{% endif %}>Resolved</option>
+    </select>
+    <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">Filter</button>
+</form>
+
+<table class="w-full bg-white shadow-md rounded">
+    <thead class="bg-gray-800 text-white">
+        <tr>
+            <th class="px-4 py-2">User</th>
+            <th class="px-4 py-2">Rule</th>
+            <th class="px-4 py-2">Severity</th>
+            <th class="px-4 py-2">Description</th>
+            <th class="px-4 py-2">Status</th>
+            <th class="px-4 py-2">Date</th>
+            <th class="px-4 py-2">Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for alert in alerts %}
+        <tr class="{% cycle 'bg-gray-100' 'bg-white' %}">
+            <td class="border px-4 py-2">{{ alert.user.email }}</td>
+            <td class="border px-4 py-2">{{ alert.rule_triggered }}</td>
+            <td class="border px-4 py-2">
+                <span class="px-2 py-1 rounded text-white
+                    {% if alert.severity == 'HIGH' %}bg-red-500
+                    {% elif alert.severity == 'MEDIUM' %}bg-yellow-500
+                    {% else %}bg-blue-500{% endif %}">
+                    {{ alert.severity }}
+                </span>
+            </td>
+            <td class="border px-4 py-2">{{ alert.description }}</td>
+            <td class="border px-4 py-2">{{ alert.status }}</td>
+            <td class="border px-4 py-2">{{ alert.created_at|date:"Y-m-d H:i" }}</td>
+            <td class="border px-4 py-2">
+                {% if alert.status == 'NEW' %}
+                    <a href="{% url 'fraud_detection:mark_reviewed' alert.id %}" class="text-blue-500">Mark Reviewed</a>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
