@@ -1,5 +1,6 @@
 from django.contrib import messages
 from django.contrib.auth import get_user_model, login, logout
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import LoginView
 from django.shortcuts import HttpResponseRedirect
 from django.urls import reverse_lazy
@@ -73,3 +74,29 @@ class LogoutView(RedirectView):
         if self.request.user.is_authenticated:
             logout(self.request)
         return super().get_redirect_url(*args, **kwargs)
+
+
+class MeusDadosLGPDView(LoginRequiredMixin, TemplateView):
+    template_name = 'accounts/lgpd_meus_dados.html'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user = self.request.user
+        
+        context['user_data'] = {
+            'email': user.email,
+            'nome': f"{user.first_name} {user.last_name}",
+            'cpf': user.cpf if hasattr(user, 'cpf') else None,
+            'data_cadastro': user.date_joined,
+        }
+        
+        if hasattr(user, 'account'):
+            context['account_data'] = {
+                'agencia': user.account.agencia,
+                'conta': user.account.conta,
+                'saldo': user.account.balance,
+            }
+        
+        context['can_delete'] = True
+        
+        return context

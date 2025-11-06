@@ -9,12 +9,24 @@ from django.core.validators import (
 from django.db import models
 
 from .constants import GENDER_CHOICE
+from .encrypted_fields import EncryptedCharField
 from .managers import UserManager
+from .validators import validate_cpf
 
 
 class User(AbstractUser):
     username = None
     email = models.EmailField(unique=True, null=False, blank=False)
+    cpf = EncryptedCharField(
+        max_length=14,
+        unique=True,
+        null=True,
+        blank=True,
+        validators=[validate_cpf],
+        help_text='CPF no formato XXX.XXX.XXX-XX'
+    )
+    lgpd_consent = models.BooleanField(default=False)
+    lgpd_consent_date = models.DateTimeField(null=True, blank=True)
 
     objects = UserManager()
 
@@ -85,6 +97,26 @@ class UserBankAccount(models.Model):
         on_delete=models.CASCADE
     )
     account_no = models.PositiveIntegerField(unique=True)
+    
+    agencia = models.CharField(
+        max_length=4,
+        help_text="4 dígitos da agência",
+        null=True,
+        blank=True
+    )
+    conta = models.CharField(
+        max_length=10,
+        help_text="Até 10 dígitos da conta",
+        null=True,
+        blank=True
+    )
+    digito_verificador = models.CharField(
+        max_length=1,
+        help_text="Dígito verificador",
+        null=True,
+        blank=True
+    )
+    
     gender = models.CharField(max_length=1, choices=GENDER_CHOICE)
     birth_date = models.DateField(null=True, blank=True)
     balance = models.DecimalField(
@@ -101,7 +133,18 @@ class UserBankAccount(models.Model):
     initial_deposit_date = models.DateField(null=True, blank=True)
 
     def __str__(self):
+        if self.agencia and self.conta and self.digito_verificador:
+            from .utils import formatar_conta_brasileira
+            return formatar_conta_brasileira(self.agencia, self.conta, self.digito_verificador)
         return str(self.account_no)
+    
+    @property
+    def conta_formatada(self):
+        """Return formatted Brazilian account number"""
+        if self.agencia and self.conta and self.digito_verificador:
+            from .utils import formatar_conta_brasileira
+            return formatar_conta_brasileira(self.agencia, self.conta, self.digito_verificador)
+        return None
 
     def get_interest_calculation_months(self):
         """

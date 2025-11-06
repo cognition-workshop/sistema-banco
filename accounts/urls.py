@@ -1,6 +1,6 @@
 from django.urls import path
 
-from .views import UserRegistrationView, LogoutView, UserLoginView
+from .views import UserRegistrationView, LogoutView, UserLoginView, MeusDadosLGPDView
 
 
 app_name = 'accounts'
@@ -17,5 +17,9 @@ urlpatterns = [
     path(
         "register/", UserRegistrationView.as_view(),
         name="user_registration"
+    ),
+    path(
+        "lgpd/meus-dados/", MeusDadosLGPDView.as_view(),
+        name="lgpd_meus_dados"
     ),
 ]

@@ -1,0 +1,40 @@
+{% extends 'core/base.html' %}
+
+{% block head_title %}Meus Dados - LGPD{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold mb-6">Meus Dados (LGPD)</h1>
+    
+    <div class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+        <h2 class="text-2xl font-bold mb-4">Dados Pessoais</h2>
+        <div class="mb-4">
+            <p><strong>Nome:</strong> {{ user_data.nome }}</p>
+            <p><strong>Email:</strong> {{ user_data.email }}</p>
+            <p><strong>CPF:</strong> {{ user_data.cpf|default:"N/A" }}</p>
+            <p><strong>Data de Cadastro:</strong> {{ user_data.data_cadastro }}</p>
+        </div>
+        
+        {% if account_data %}
+        <h2 class="text-2xl font-bold mb-4 mt-6">Dados Bancários</h2>
+        <div class="mb-4">
+            <p><strong>Agência:</strong> {{ account_data.agencia|default:"N/A" }}</p>
+            <p><strong>Conta:</strong> {{ account_data.conta|default:"N/A" }}</p>
+            <p><strong>Saldo:</strong> R$ {{ account_data.saldo }}</p>
+        </div>
+        {% endif %}
+        
+        <div class="mt-6">
+            <p class="text-sm text-gray-600">
+                De acordo com a LGPD (Lei Geral de Proteção de Dados), você tem direito a:
+            </p>
+            <ul class="list-disc list-inside text-sm text-gray-600 mt-2">
+                <li>Acessar seus dados pessoais</li>
+                <li>Corrigir dados incompletos ou desatualizados</li>
+                <li>Solicitar a exclusão de seus dados</li>
+                <li>Revogar o consentimento</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

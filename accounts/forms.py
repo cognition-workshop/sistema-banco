@@ -38,6 +38,10 @@ class UserRegistrationForm(UserCreationForm):
     )
     gender = forms.ChoiceField(choices=GENDER_CHOICE)
     birth_date = forms.DateField()
+    cpf = forms.CharField(
+        max_length=14,
+        help_text='CPF no formato XXX.XXX.XXX-XX'
+    )
 
     class Meta:
         model = User
@@ -45,6 +49,7 @@ class UserRegistrationForm(UserCreationForm):
             'first_name',
             'last_name',
             'email',
+            'cpf',
             'password1',
             'password2',
         ]
@@ -66,6 +71,7 @@ class UserRegistrationForm(UserCreationForm):
     @transaction.atomic
     def save(self, commit=True):
         user = super().save(commit=False)
+        user.cpf = self.cleaned_data.get('cpf')
         user.set_password(self.cleaned_data["password1"])
         if commit:
             user.save()

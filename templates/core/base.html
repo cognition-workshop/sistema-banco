@@ -25,6 +25,16 @@
             {% include 'core/footer.html' %}
 
         {% endblock %}
-        {% block footer_extra %}{% endblock %}
+        {% block footer_extra %}
+            <script src="https://cdn.jsdelivr.net/npm/inputmask@5.0.8/dist/inputmask.min.js"></script>
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    const cpfInput = document.querySelector('input[name="cpf"]');
+                    if (cpfInput) {
+                        Inputmask('999.999.999-99').mask(cpfInput);
+                    }
+                });
+            </script>
+        {% endblock %}
     </body>
 </html>
