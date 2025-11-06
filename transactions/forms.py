@@ -1,9 +1,12 @@
 import datetime
+import logging
 
 from django import forms
 from django.conf import settings
 
 from .models import Transaction
+
+logger = logging.getLogger(__name__)
 
 
 class TransactionForm(forms.ModelForm):
@@ -64,8 +67,14 @@ class WithdrawForm(TransactionForm):
                 f'You can withdraw at most {max_withdraw_amount} $'
             )
 
-        # TODO: Add validation to prevent negative balances
-        # Bug: Users can currently withdraw more than their balance
+        if amount > balance:
+            logger.warning(
+                f'Insufficient balance withdrawal attempt: User {self.account.user.email}, '
+                f'Amount: {amount}, Balance: {balance}'
+            )
+            raise forms.ValidationError(
+                f'Saldo insuficiente. Seu saldo atual é R$ {balance}'
+            )
 
         return amount
 
@@ -75,11 +84,11 @@ class TransactionDateRangeForm(forms.Form):
 
     def clean_daterange(self):
         daterange = self.cleaned_data.get("daterange")
-        print(daterange)
+        logger.debug(f'Date range input: {daterange}')
 
         try:
             daterange = daterange.split(' - ')
-            print(daterange)
+            logger.debug(f'Parsed date range: {daterange}')
             if len(daterange) == 2:
                 for date in daterange:
                     datetime.datetime.strptime(date, '%Y-%m-%d')

@@ -1,7 +1,9 @@
 from dateutil.relativedelta import relativedelta
+import logging
 
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db import transaction, IntegrityError, DatabaseError
 from django.urls import reverse_lazy
 from django.utils import timezone
 from django.views.generic import CreateView, ListView
@@ -13,6 +15,8 @@ from transactions.forms import (
     WithdrawForm,
 )
 from transactions.models import Transaction
+
+logger = logging.getLogger(__name__)
 
 
 class TransactionRepostView(LoginRequiredMixin, ListView):
@@ -28,9 +32,13 @@ class TransactionRepostView(LoginRequiredMixin, ListView):
         return super().get(request, *args, **kwargs)
 
     def get_queryset(self):
-        queryset = super().get_queryset().filter(
-            account=self.request.user.account
-        )
+        try:
+            queryset = super().get_queryset().filter(
+                account=self.request.user.account
+            )
+        except AttributeError:
+            logger.error(f'User {self.request.user.email} does not have an account')
+            return Transaction.objects.none()
 
         daterange = self.form_data.get("daterange")
 
@@ -57,9 +65,13 @@ class TransactionCreateMixin(LoginRequiredMixin, CreateView):
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
-        kwargs.update({
-            'account': self.request.user.account
-        })
+        try:
+            kwargs.update({
+                'account': self.request.user.account
+            })
+        except AttributeError:
+            logger.error(f'User {self.request.user.email} does not have an account')
+            raise
         return kwargs
 
     def get_context_data(self, **kwargs):
@@ -79,37 +91,54 @@ class DepositMoneyView(TransactionCreateMixin):
         initial = {'transaction_type': DEPOSIT}
         return initial
 
+    @transaction.atomic
     def form_valid(self, form):
         amount = form.cleaned_data.get('amount')
         account = self.request.user.account
 
-        if not account.initial_deposit_date:
-            now = timezone.now()
-            next_interest_month = int(
-                12 / account.account_type.interest_calculation_per_year
-            )
-            account.initial_deposit_date = now
-            account.interest_start_date = (
-                now + relativedelta(
-                    months=+next_interest_month
+        try:
+            if not account.initial_deposit_date:
+                now = timezone.now()
+                next_interest_month = int(
+                    12 / account.account_type.interest_calculation_per_year
                 )
+                account.initial_deposit_date = now
+                account.interest_start_date = (
+                    now + relativedelta(
+                        months=+next_interest_month
+                    )
+                )
+
+            account.balance += amount
+            account.save(
+                update_fields=[
+                    'initial_deposit_date',
+                    'balance',
+                    'interest_start_date'
+                ]
             )
 
-        account.balance += amount
-        account.save(
-            update_fields=[
-                'initial_deposit_date',
-                'balance',
-                'interest_start_date'
-            ]
-        )
+            logger.info(
+                f'Deposit successful: User {self.request.user.email}, '
+                f'Amount: {amount}, New Balance: {account.balance}'
+            )
 
-        messages.success(
-            self.request,
-            f'{amount}$ was deposited to your account successfully'
-        )
+            messages.success(
+                self.request,
+                f'{amount}$ was deposited to your account successfully'
+            )
 
-        return super().form_valid(form)
+            return super().form_valid(form)
+        except (IntegrityError, DatabaseError) as e:
+            logger.error(
+                f'Deposit failed: User {self.request.user.email}, Amount: {amount}, Error: {str(e)}',
+                exc_info=True
+            )
+            messages.error(
+                self.request,
+                'Erro ao processar depósito. Por favor, tente novamente ou contate o suporte.'
+            )
+            return self.form_invalid(form)
 
 
 class WithdrawMoneyView(TransactionCreateMixin):
@@ -120,15 +149,44 @@ class WithdrawMoneyView(TransactionCreateMixin):
         initial = {'transaction_type': WITHDRAWAL}
         return initial
 
+    @transaction.atomic
     def form_valid(self, form):
         amount = form.cleaned_data.get('amount')
+        account = self.request.user.account
 
-        self.request.user.account.balance -= form.cleaned_data.get('amount')
-        self.request.user.account.save(update_fields=['balance'])
+        try:
+            if amount > account.balance:
+                logger.warning(
+                    f'Withdrawal attempt with insufficient balance: User {self.request.user.email}, '
+                    f'Amount: {amount}, Balance: {account.balance}'
+                )
+                messages.error(
+                    self.request,
+                    f'Saldo insuficiente. Seu saldo atual é R$ {account.balance}'
+                )
+                return self.form_invalid(form)
 
-        messages.success(
-            self.request,
-            f'Successfully withdrawn {amount}$ from your account'
-        )
+            account.balance -= amount
+            account.save(update_fields=['balance'])
 
-        return super().form_valid(form)
+            logger.info(
+                f'Withdrawal successful: User {self.request.user.email}, '
+                f'Amount: {amount}, New Balance: {account.balance}'
+            )
+
+            messages.success(
+                self.request,
+                f'Successfully withdrawn {amount}$ from your account'
+            )
+
+            return super().form_valid(form)
+        except (IntegrityError, DatabaseError) as e:
+            logger.error(
+                f'Withdrawal failed: User {self.request.user.email}, Amount: {amount}, Error: {str(e)}',
+                exc_info=True
+            )
+            messages.error(
+                self.request,
+                'Erro ao processar saque. Por favor, tente novamente ou contate o suporte.'
+            )
+            return self.form_invalid(form)
