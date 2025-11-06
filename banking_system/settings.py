@@ -131,7 +131,7 @@ MINIMUM_DEPOSIT_AMOUNT = 10
 MINIMUM_WITHDRAWAL_AMOUNT = 10
 
 # Login redirect
-LOGIN_REDIRECT_URL = 'home'
+LOGIN_REDIRECT_URL = 'accounts:dashboard'
 
 # Celery Settings
 CELERY_BROKER_URL = 'redis://localhost:6379'

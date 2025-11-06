@@ -1,0 +1,195 @@
+{% extends 'core/base.html' %}
+
+{% block head_title %}Dashboard{% endblock %}
+
+{% block head_extra %}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+{% endblock %}
+
+{% block content %}
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold text-gray-800 mb-8">Dashboard</h1>
+        
+        {% if not account %}
+            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+                <p>No account found. Please create an account first.</p>
+            </div>
+        {% else %}
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white rounded-lg shadow-lg p-6 border-l-4 border-blue-500">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-600 text-sm font-medium">Saldo Atual</p>
+                        <p class="text-3xl font-bold text-gray-800 mt-2">$ {{ current_balance }}</p>
+                    </div>
+                    <div class="bg-blue-100 rounded-full p-3">
+                        <svg class="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow-lg p-6 border-l-4 border-green-500">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-600 text-sm font-medium">Depósitos do Mês</p>
+                        <p class="text-3xl font-bold text-gray-800 mt-2">$ {{ monthly_deposits }}</p>
+                    </div>
+                    <div class="bg-green-100 rounded-full p-3">
+                        <svg class="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow-lg p-6 border-l-4 border-red-500">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-600 text-sm font-medium">Saques do Mês</p>
+                        <p class="text-3xl font-bold text-gray-800 mt-2">$ {{ monthly_withdrawals }}</p>
+                    </div>
+                    <div class="bg-red-100 rounded-full p-3">
+                        <svg class="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow-lg p-6 border-l-4 border-yellow-500">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-600 text-sm font-medium">Juros Acumulados</p>
+                        <p class="text-3xl font-bold text-gray-800 mt-2">$ {{ accumulated_interest }}</p>
+                    </div>
+                    <div class="bg-yellow-100 rounded-full p-3">
+                        <svg class="w-8 h-8 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+            <h2 class="text-xl font-bold text-gray-800 mb-4">Evolução do Saldo (Últimos 30 Dias)</h2>
+            <div class="relative" style="height: 300px;">
+                <canvas id="balanceChart"></canvas>
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+            <h2 class="text-xl font-bold text-gray-800 mb-4">Últimas Transações</h2>
+            {% if recent_transactions %}
+                <div class="overflow-x-auto">
+                    <table class="min-w-full">
+                        <thead class="bg-gray-800 text-white">
+                            <tr>
+                                <th class="px-4 py-3 text-left text-sm font-semibold">Tipo</th>
+                                <th class="px-4 py-3 text-left text-sm font-semibold">Data</th>
+                                <th class="px-4 py-3 text-right text-sm font-semibold">Valor</th>
+                                <th class="px-4 py-3 text-right text-sm font-semibold">Saldo Após</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for transaction in recent_transactions %}
+                            <tr class="{% cycle 'bg-gray-50' 'bg-white' %} border-b">
+                                <td class="px-4 py-3">
+                                    <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium
+                                        {% if transaction.transaction_type == 1 %}bg-green-100 text-green-800
+                                        {% elif transaction.transaction_type == 2 %}bg-red-100 text-red-800
+                                        {% else %}bg-yellow-100 text-yellow-800{% endif %}">
+                                        {{ transaction.get_transaction_type_display }}
+                                    </span>
+                                </td>
+                                <td class="px-4 py-3 text-sm text-gray-700">
+                                    {{ transaction.timestamp|date:"d/m/Y H:i" }}
+                                </td>
+                                <td class="px-4 py-3 text-sm text-right font-medium
+                                    {% if transaction.transaction_type == 1 %}text-green-600
+                                    {% elif transaction.transaction_type == 2 %}text-red-600
+                                    {% else %}text-yellow-600{% endif %}">
+                                    {% if transaction.transaction_type == 1 %}+{% elif transaction.transaction_type == 2 %}-{% endif %}$ {{ transaction.amount }}
+                                </td>
+                                <td class="px-4 py-3 text-sm text-right text-gray-700">
+                                    $ {{ transaction.balance_after_transaction }}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-gray-600">Nenhuma transação encontrada.</p>
+            {% endif %}
+            <div class="mt-4 text-center">
+                <a href="{% url 'transactions:transaction_report' %}" class="text-blue-600 hover:text-blue-800 font-medium">
+                    Ver Todas as Transações →
+                </a>
+            </div>
+        </div>
+        
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+            <a href="{% url 'transactions:deposit_money' %}" 
+               class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-lg shadow-lg text-center transition duration-150">
+                <svg class="inline-block w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
+                Depositar
+            </a>
+            <a href="{% url 'transactions:withdraw_money' %}" 
+               class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-8 rounded-lg shadow-lg text-center transition duration-150">
+                <svg class="inline-block w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
+                </svg>
+                Sacar
+            </a>
+        </div>
+        
+        {% endif %}
+    </div>
+{% endblock %}
+
+{% block footer_extra %}
+    <script>
+        {% if account %}
+        const ctx = document.getElementById('balanceChart').getContext('2d');
+        const balanceChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: {{ chart_labels|safe }},
+                datasets: [{
+                    label: 'Saldo',
+                    data: {{ chart_data|safe }},
+                    borderColor: 'rgb(59, 130, 246)',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        ticks: {
+                            callback: function(value) {
+                                return '$ ' + value.toFixed(2);
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        {% endif %}
+    </script>
+{% endblock %}

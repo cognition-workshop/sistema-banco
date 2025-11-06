@@ -10,6 +10,9 @@
     <div class="w-full block flex-grow lg:flex lg:items-center lg:w-auto">
         {# Bypass authentication - always show navigation for demo #}
         <div class="text-md lg:flex-grow">
+            <a href="{% url 'accounts:dashboard' %}" class="block mt-4 lg:inline-block lg:mt-0 text-white hover:text-white mr-4">
+                Dashboard
+            </a>
             <a href="{% url 'transactions:transaction_report' %}" class="block mt-4 lg:inline-block lg:mt-0 text-white hover:text-white mr-4">
                 Transaction Report
             </a>
