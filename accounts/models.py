@@ -108,6 +108,13 @@ class UserBankAccount(models.Model):
         start = self.interest_start_date.month
         return [i for i in range(start, 13, interval)]
 
+    class Meta:
+        permissions = [
+            ("can_approve_transactions", "Can approve transactions"),
+            ("can_view_all_accounts", "Can view all accounts"),
+            ("can_manage_users", "Can manage users"),
+        ]
+
 
 class UserAddress(models.Model):
     user = models.OneToOneField(
