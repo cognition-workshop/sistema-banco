@@ -182,4 +182,30 @@
         </div>
     </form>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const birthDateInput = document.querySelector('input[name="birth_date"]');
+    const emailInput = document.querySelector('input[name="email"]');
+    
+    if (birthDateInput) {
+        birthDateInput.setAttribute('max', new Date().toISOString().split('T')[0]);
+        
+        birthDateInput.addEventListener('change', function() {
+            const birthDate = new Date(this.value);
+            const today = new Date();
+            const age = (today - birthDate) / (365.25 * 24 * 60 * 60 * 1000);
+            
+            if (birthDate > today) {
+                this.setCustomValidity('Data de nascimento não pode estar no futuro');
+            } else if (age < 18) {
+                this.setCustomValidity('Você deve ter pelo menos 18 anos');
+            } else {
+                this.setCustomValidity('');
+            }
+        });
+    }
+});
+</script>
 {% endblock %}
