@@ -122,3 +122,17 @@ class UserAddress(models.Model):
 
     def __str__(self):
         return self.user.email
+
+
+class PixKey(models.Model):
+    account = models.ForeignKey(
+        UserBankAccount,
+        related_name='pix_keys',
+        on_delete=models.CASCADE
+    )
+    key_type = models.CharField(max_length=20)
+    key_value = models.CharField(max_length=255, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.key_type}: {self.key_value}"

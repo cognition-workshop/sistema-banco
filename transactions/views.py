@@ -7,11 +7,12 @@ from django.urls import reverse_lazy
 from django.utils import timezone
 from django.views.generic import CreateView, ListView
 
-from transactions.constants import DEPOSIT, WITHDRAWAL
+from transactions.constants import DEPOSIT, WITHDRAWAL, PIX_TRANSFER
 from transactions.forms import (
     DepositForm,
     TransactionDateRangeForm,
     WithdrawForm,
+    PixTransferForm,
 )
 from transactions.models import Transaction
 
@@ -151,6 +152,56 @@ class WithdrawMoneyView(TransactionCreateMixin):
         messages.success(
             self.request,
             f'Successfully withdrawn {amount}$ from your account'
+        )
+
+        return super().form_valid(form)
+
+
+class PixTransferView(TransactionCreateMixin):
+    form_class = PixTransferForm
+    title = 'Transferir via PIX'
+    template_name = 'transactions/pix_form.html'
+
+    def get_initial(self):
+        initial = {'transaction_type': PIX_TRANSFER}
+        return initial
+
+    def form_valid(self, form):
+        amount = form.cleaned_data.get('amount')
+        destination_account = form.destination_account
+
+        User = get_user_model()
+        demo_user = User.objects.filter(email='demo@example.com').first()
+        source_account = demo_user.account if demo_user and hasattr(demo_user, 'account') else None
+
+        if not source_account:
+            return super().form_valid(form)
+
+        source_account.balance -= amount
+        source_account.save(update_fields=['balance'])
+
+        destination_account.balance += amount
+        destination_account.save(update_fields=['balance'])
+
+        Transaction.objects.create(
+            account=source_account,
+            amount=amount,
+            balance_after_transaction=source_account.balance,
+            transaction_type=PIX_TRANSFER,
+            timestamp=timezone.now()
+        )
+
+        Transaction.objects.create(
+            account=destination_account,
+            amount=amount,
+            balance_after_transaction=destination_account.balance,
+            transaction_type=PIX_TRANSFER,
+            timestamp=timezone.now()
+        )
+
+        messages.success(
+            self.request,
+            f'Transferência PIX de {amount}$ realizada com sucesso'
         )
 
         return super().form_valid(form)
