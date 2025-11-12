@@ -25,7 +25,13 @@
             <label class="block text-gray-700 text-sm font-bold mb-2" for="{{ field.id_for_label }}">
                 {{ field.label }}
             </label>
-            <input class="shadow appearance-none border border-gray-500 rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" name="{{ field.name }}" id="{{ field.id_for_label }}" type="{{ field.widget_type }}">
+            {% if field.name == 'username' %}
+                <input class="shadow appearance-none border border-gray-500 rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" name="{{ field.name }}" id="{{ field.id_for_label }}" type="email" required>
+            {% elif field.name == 'password' %}
+                <input class="shadow appearance-none border border-gray-500 rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" name="{{ field.name }}" id="{{ field.id_for_label }}" type="password" required minlength="8">
+            {% else %}
+                <input class="shadow appearance-none border border-gray-500 rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" name="{{ field.name }}" id="{{ field.id_for_label }}" type="{{ field.widget_type }}" required>
+            {% endif %}
         </div>
             {% if field.errors %}
                 {% for error in field.errors %}

@@ -34,7 +34,7 @@
                 <label class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" for="{{ registration_form.first_name.id_for_label }}">
                     {{ registration_form.first_name.label }}
                 </label>
-                {{ registration_form.first_name }}
+                <input class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500" type="text" name="first_name" id="{{ registration_form.first_name.id_for_label }}" required pattern="[a-zA-Z\s\-']+" minlength="2" maxlength="150">
                 {% if registration_form.first_name.errors %}
                     {% for error in registration_form.first_name.errors %}
                         <p class="text-red-600 text-sm italic pb-2">{{ error }}</p>
@@ -45,7 +45,7 @@
                 <label class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" for="{{ registration_form.last_name.id_for_label }}">
                     {{ registration_form.last_name.label }}
                 </label>
-                {{ registration_form.last_name }}
+                <input class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500" type="text" name="last_name" id="{{ registration_form.last_name.id_for_label }}" required pattern="[a-zA-Z\s\-']+" minlength="2" maxlength="150">
                 {% if registration_form.last_name.errors %}
                     {% for error in registration_form.last_name.errors %}
                         <p class="text-red-600 text-sm italic pb-2">{{ error }}</p>
@@ -58,7 +58,7 @@
                 <label class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" for="{{ registration_form.email.id_for_label }}">
                     {{ registration_form.email.label }}
                 </label>
-                {{ registration_form.email }}
+                <input class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500" type="email" name="email" id="{{ registration_form.email.id_for_label }}" required>
                 {% if registration_form.email.errors %}
                     {% for error in registration_form.email.errors %}
                         <p class="text-red-600 text-sm italic pb-2">{{ error }}</p>
@@ -69,7 +69,12 @@
                 <label class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" for="{{ registration_form.account_type.id_for_label }}">
                     {{ registration_form.account_type.label }}
                 </label>
-                {{ registration_form.account_type }}
+                <select class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500" name="account_type" id="{{ registration_form.account_type.id_for_label }}" required>
+                    <option value="">Select account type</option>
+                    {% for value, label in registration_form.fields.account_type.choices %}
+                        <option value="{{ value }}">{{ label }}</option>
+                    {% endfor %}
+                </select>
                 {% if registration_form.account_type.errors %}
                     {% for error in registration_form.account_type.errors %}
                     <p class="text-red-600 text-sm italic pb-2">{{ error }}</p>
@@ -82,7 +87,12 @@
                 <label class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" for="{{ registration_form.gender.id_for_label }}">
                     {{ registration_form.gender.label }}
                 </label>
-                {{ registration_form.gender }}
+                <select class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500" name="gender" id="{{ registration_form.gender.id_for_label }}" required>
+                    <option value="">Select gender</option>
+                    {% for value, label in registration_form.fields.gender.choices %}
+                        <option value="{{ value }}">{{ label }}</option>
+                    {% endfor %}
+                </select>
                 {% if registration_form.gender.errors %}
                     {% for error in registration_form.gender.errors %}
                         <p class="text-red-600 text-sm italic pb-2">{{ error }}</p>
@@ -93,7 +103,7 @@
                 <label class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" for="{{ registration_form.birth_date.id_for_label }}">
                     {{ registration_form.birth_date.label }}
                 </label>
-                {{ registration_form.birth_date }}
+                <input class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500" type="date" name="birth_date" id="{{ registration_form.birth_date.id_for_label }}" required>
                 {% if registration_form.birth_date.errors %}
                     {% for error in registration_form.birth_date.errors %}
                     <p class="text-red-600 text-sm italic pb-2">{{ error }}</p>
@@ -106,7 +116,7 @@
                 <label class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" for="{{ registration_form.password1.id_for_label }}">
                     {{ registration_form.password1.label }}
                 </label>
-                {{ registration_form.password1 }}
+                <input class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500" type="password" name="password1" id="{{ registration_form.password1.id_for_label }}" required minlength="8">
                 {% if registration_form.password1.errors %}
                     {% for error in registration_form.password1.errors %}
                         <p class="text-red-600 text-sm italic pb-2">{{ error }}</p>
@@ -117,7 +127,7 @@
                 <label class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" for="{{ registration_form.password2.id_for_label }}">
                     {{ registration_form.password2.label }}
                 </label>
-                {{ registration_form.password2 }}
+                <input class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500" type="password" name="password2" id="{{ registration_form.password2.id_for_label }}" required minlength="8">
                     {% if registration_form.password2.errors %}
                     {% for error in registration_form.password2.errors %}
                         <p class="text-red-600 text-sm italic pb-2">{{ error }}</p>
@@ -132,7 +142,7 @@
                 <label class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" for="{{ address_form.street_address.id_for_label }}">
                     {{ address_form.street_address.label }}
                 </label>
-                {{ address_form.street_address }}
+                <input class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500" type="text" name="street_address" id="{{ address_form.street_address.id_for_label }}" required minlength="5" maxlength="512">
                 {% if address_form.street_address.errors %}
                     {% for error in address_form.street_address.errors %}
                         <p class="text-red-600 text-sm italic pb-2">{{ error }}</p>
@@ -143,7 +153,7 @@
                 <label class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" for="{{ address_form.city.id_for_label }}">
                     {{ address_form.city.label }}
                 </label>
-                {{ address_form.city }}
+                <input class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500" type="text" name="city" id="{{ address_form.city.id_for_label }}" required pattern="[a-zA-Z\s\-']+" minlength="2" maxlength="256">
                 {% if address_form.city.errors %}
                     {% for error in address_form.city.errors %}
                         <p class="text-red-600 text-sm italic pb-2">{{ error }}</p>
@@ -156,7 +166,7 @@
                 <label class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" for="{{ address_form.postal_code.id_for_label }}">
                     {{ address_form.postal_code.label }}
                 </label>
-                {{ address_form.postal_code }}
+                <input class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500" type="number" name="postal_code" id="{{ address_form.postal_code.id_for_label }}" required min="1" max="99999999">
                 {% if address_form.postal_code.errors %}
                     {% for error in address_form.postal_code.errors %}
                         <p class="text-red-600 text-sm italic pb-2">{{ error }}</p>
@@ -167,7 +177,7 @@
                 <label class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" for="{{ address_form.country.id_for_label }}">
                     {{ address_form.country.label }}
                 </label>
-                {{ address_form.country }}
+                <input class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500" type="text" name="country" id="{{ address_form.country.id_for_label }}" required minlength="2" maxlength="256">
                 {% if address_form.country.errors %}
                     {% for error in address_form.country.errors %}
                         <p class="text-red-600 text-sm italic pb-2">{{ error }}</p>
@@ -182,4 +192,41 @@
         </div>
     </form>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const birthDateInput = document.querySelector('input[name="birth_date"]');
+    
+    if (birthDateInput) {
+        const today = new Date();
+        const maxDate = today.toISOString().split('T')[0];
+        const minDate = new Date(today.getFullYear() - 120, today.getMonth(), today.getDate()).toISOString().split('T')[0];
+        
+        birthDateInput.setAttribute('max', maxDate);
+        birthDateInput.setAttribute('min', minDate);
+        
+        birthDateInput.addEventListener('change', function() {
+            const birthDate = new Date(this.value);
+            const age = Math.floor((today - birthDate) / (365.25 * 24 * 60 * 60 * 1000));
+            
+            if (age < 18) {
+                this.setCustomValidity('You must be at least 18 years old to register');
+            } else if (age > 120) {
+                this.setCustomValidity('Please enter a valid birth date');
+            } else {
+                this.setCustomValidity('');
+            }
+        });
+    }
+    
+    form.addEventListener('submit', function(e) {
+        if (!form.checkValidity()) {
+            e.preventDefault();
+            e.stopPropagation();
+            form.classList.add('was-validated');
+        }
+    });
+});
+</script>
 {% endblock %}
