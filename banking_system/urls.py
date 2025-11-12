@@ -17,12 +17,14 @@ from django.contrib import admin
 from django.urls import include, path
 
 from core.views import HomeView
+from accounts.admin import admin_site
 
 
 urlpatterns = [
     path('', HomeView.as_view(), name='home'),
     path('accounts/', include('accounts.urls', namespace='accounts')),
-    path('admin/', admin.site.urls),
+    path('admin/users/', include('accounts.admin_urls', namespace='admin_users')),
+    path('admin/', admin_site.urls),
     path(
         'transactions/',
         include('transactions.urls', namespace='transactions')
