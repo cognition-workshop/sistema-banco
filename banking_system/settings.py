@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'django_celery_beat',
 
     'accounts',
+    'audit',
     'core',
     'transactions',
     'reports',
@@ -59,6 +60,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'audit.middleware.AuditMiddleware',
 ]
 
 ROOT_URLCONF = 'banking_system.urls'
