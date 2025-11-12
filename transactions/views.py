@@ -14,6 +14,7 @@ from transactions.forms import (
     WithdrawForm,
 )
 from transactions.models import Transaction
+from transactions.fraud_detection import FraudDetectionService
 
 
 class TransactionRepostView(ListView):
@@ -125,8 +126,11 @@ class DepositMoneyView(TransactionCreateMixin):
 
         messages.success(
             self.request,
-            f'{amount}$ was deposited to your account successfully'
+            f'R$ {amount} foi depositado em sua conta com sucesso'
         )
+        
+        if hasattr(self, 'object') and self.object:
+            FraudDetectionService.analyze_transaction(self.object)
 
         return super().form_valid(form)
 
@@ -150,7 +154,10 @@ class WithdrawMoneyView(TransactionCreateMixin):
 
         messages.success(
             self.request,
-            f'Successfully withdrawn {amount}$ from your account'
+            f'R$ {amount} foi sacado de sua conta com sucesso'
         )
+        
+        if hasattr(self, 'object') and self.object:
+            FraudDetectionService.analyze_transaction(self.object)
 
         return super().form_valid(form)
