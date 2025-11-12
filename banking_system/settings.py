@@ -44,6 +44,11 @@ INSTALLED_APPS = [
     'drf_spectacular',
 
     'django_celery_beat',
+    
+    'health_check',
+    'health_check.db',
+    'health_check.cache',
+    'health_check.contrib.celery_ping',
 
     'accounts',
     'audit',
@@ -97,6 +102,16 @@ DATABASES = {
         'PASSWORD': 'postgres',
         'HOST': 'localhost',
         'PORT': '5432',
+    }
+}
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': 'redis://localhost:6379/1',
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        }
     }
 }
 
