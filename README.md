@@ -138,6 +138,94 @@ celery -A banking_system worker -l info
 celery -A banking_system beat -l info
 ```
 
+## CI/CD Pipeline
+
+This project now includes a complete CI/CD pipeline with GitHub Actions.
+
+### Docker Setup (Recommended for Development)
+
+1. Configure environment variables:
+```bash
+cp .env.example .env
+```
+
+2. Start all services with Docker Compose:
+```bash
+docker-compose up -d
+```
+
+3. Run migrations:
+```bash
+docker-compose exec web python manage.py migrate
+```
+
+4. Create superuser:
+```bash
+docker-compose exec web python manage.py createsuperuser
+```
+
+5. View logs:
+```bash
+docker-compose logs -f web
+```
+
+### Pipeline Stages
+
+The GitHub Actions workflow runs automatically on push and pull requests:
+
+1. **Test** - Runs Django tests with Redis service configured
+2. **Lint** - Checks code quality with flake8 and black
+3. **Deploy** - Deploys to production (master/main only)
+
+### Environment Variables
+
+Required environment variables (see `.env.example`):
+
+- `SECRET_KEY`: Django secret key (required in production)
+- `DEBUG`: Set to `False` in production
+- `ALLOWED_HOSTS`: Comma-separated list of allowed hosts
+- `CELERY_BROKER_URL`: Redis URL for Celery broker
+- `CELERY_RESULT_BACKEND`: Redis URL for Celery results
+- Database configuration (optional, defaults to SQLite)
+
+### Development Commands
+
+```bash
+# Run tests
+python manage.py test
+
+# Run linting
+flake8 .
+
+# Check code formatting
+black --check .
+
+# Format code
+black .
+```
+
+### Docker Commands
+
+```bash
+# Start all services
+docker-compose up -d
+
+# Stop all services
+docker-compose down
+
+# View logs
+docker-compose logs -f web
+
+# Rebuild images
+docker-compose build
+
+# Run migrations
+docker-compose exec web python manage.py migrate
+
+# Access Django shell
+docker-compose exec web python manage.py shell
+```
+
 ## Images:
 ![alt text](https://i.imgur.com/FvgmEJL.png)
 #
