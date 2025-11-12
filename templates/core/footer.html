@@ -1,11 +1,37 @@
-<footer class="footer bg-gray-200 relative pt-1 border-b-2 mt-10">
-    <div class="container mx-auto px-6">
-        <div class="mt-5 flex flex-col items-center">
-            <div class="sm:w-2/3 text-center py-6">
-                <p class="text-md text-gray-900 font-bold mb-2">
-                    Banking System
-                </p>
+<footer class="bg-[#091E42] text-white mt-20">
+    <div class="container mx-auto px-6 py-12">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <div class="col-span-1 md:col-span-2">
+                <div class="flex items-center space-x-3 mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9" />
+                    </svg>
+                    <span class="text-2xl font-bold">BankSystem</span>
+                </div>
+                <p class="text-gray-300 mb-4">Your trusted partner for modern banking solutions. Secure, fast, and reliable.</p>
             </div>
+
+            <div>
+                <h3 class="text-lg font-semibold mb-4">Quick Links</h3>
+                <ul class="space-y-2">
+                    <li><a href="{% url 'transactions:transaction_report' %}" class="text-gray-300 hover:text-white transition-colors">Transactions</a></li>
+                    <li><a href="{% url 'transactions:deposit_money' %}" class="text-gray-300 hover:text-white transition-colors">Deposit</a></li>
+                    <li><a href="{% url 'transactions:withdraw_money' %}" class="text-gray-300 hover:text-white transition-colors">Withdraw</a></li>
+                </ul>
+            </div>
+
+            <div>
+                <h3 class="text-lg font-semibold mb-4">Support</h3>
+                <ul class="space-y-2">
+                    <li><a href="#" class="text-gray-300 hover:text-white transition-colors">Terms of Service</a></li>
+                    <li><a href="#" class="text-gray-300 hover:text-white transition-colors">Privacy Policy</a></li>
+                    <li><a href="#" class="text-gray-300 hover:text-white transition-colors">Contact Us</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
+            <p>&copy; 2024 BankSystem. All rights reserved.</p>
         </div>
     </div>
 </footer>

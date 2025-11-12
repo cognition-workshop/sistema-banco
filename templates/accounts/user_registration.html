@@ -1,232 +1,268 @@
 {% extends 'core/base.html' %}
 
-{% block head_title %}Banking System{% endblock %}
+{% block head_title %}Register - Banking System{% endblock %}
 
 {% block content %}
-{% if registration_form.non_field_errors %}
-    {% for error in registration_form.non_field_errors %}
-    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mt-2" role="alert">
-        <p class="font-bold">Error!</p>
-        <p class="block sm:inline">{{ error }}</p>
-    </div>
-    {% endfor %}
-{% endif %}
-{% if address_form.non_field_errors %}
-    {% for error in address_form.non_field_errors %}
-    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mt-2" role="alert">
-        <p class="font-bold">Error!</p>
-        <p class="block sm:inline">{{ error }}</p>
-    </div>
-    {% endfor %}
-{% endif %}
+<div class="min-h-screen py-12 px-4">
+    <div class="max-w-6xl mx-auto">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+            <div class="bg-white rounded-2xl shadow-2xl p-8 lg:p-12">
+                <div class="mb-8">
+                    <h1 class="text-4xl font-bold text-gray-900 mb-2">Create Account</h1>
+                    <p class="text-gray-600">Join us and start banking today</p>
+                </div>
 
-<h1 class="font-mono font-bold text-3xl text-center pb-5 pt-10">Register</h1>
-<hr />
-<div class="w-full mt-10">
-    <form method="post" class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+                {% if registration_form.non_field_errors %}
+                    {% for error in registration_form.non_field_errors %}
+                    <div class="bg-red-50 border-l-4 border-red-500 p-4 mb-4 rounded-lg flex items-start space-x-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-500 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                        </svg>
+                        <div>
+                            <p class="font-bold text-red-700">Error!</p>
+                            <p class="text-red-700">{{ error }}</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% endif %}
+                {% if address_form.non_field_errors %}
+                    {% for error in address_form.non_field_errors %}
+                    <div class="bg-red-50 border-l-4 border-red-500 p-4 mb-4 rounded-lg flex items-start space-x-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-500 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                        </svg>
+                        <div>
+                            <p class="font-bold text-red-700">Error!</p>
+                            <p class="text-red-700">{{ error }}</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% endif %}
+                <form method="post" class="space-y-6">
         {% csrf_token %}
         {% for hidden_field in registration_form.hidden_fields %}
             {{ hidden_field.errors }}
             {{ hidden_field }}
         {% endfor %}
-        <div class="flex flex-wrap -mx-3 mb-6">
-            <div class="w-full md:w-1/2 px-3 mb-6 md:mb-0">
-                <label class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" for="{{ registration_form.first_name.id_for_label }}">
-                    {{ registration_form.first_name.label }}
-                </label>
-                <input class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500" type="text" name="first_name" id="{{ registration_form.first_name.id_for_label }}" required pattern="[a-zA-Z\s\-']+" minlength="2" maxlength="150">
-                {% if registration_form.first_name.errors %}
-                    {% for error in registration_form.first_name.errors %}
-                        <p class="text-red-600 text-sm italic pb-2">{{ error }}</p>
-                    {% endfor %}
-                {% endif %}
-            </div>
-            <div class="w-full md:w-1/2 px-3">
-                <label class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" for="{{ registration_form.last_name.id_for_label }}">
-                    {{ registration_form.last_name.label }}
-                </label>
-                <input class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500" type="text" name="last_name" id="{{ registration_form.last_name.id_for_label }}" required pattern="[a-zA-Z\s\-']+" minlength="2" maxlength="150">
-                {% if registration_form.last_name.errors %}
-                    {% for error in registration_form.last_name.errors %}
-                        <p class="text-red-600 text-sm italic pb-2">{{ error }}</p>
-                    {% endfor %}
-                {% endif %}
-            </div>
-        </div>
-        <div class="flex flex-wrap -mx-3 mb-6">
-            <div class="w-full md:w-1/2 px-3 mb-6 md:mb-0">
-                <label class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" for="{{ registration_form.email.id_for_label }}">
-                    {{ registration_form.email.label }}
-                </label>
-                <input class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500" type="email" name="email" id="{{ registration_form.email.id_for_label }}" required>
-                {% if registration_form.email.errors %}
-                    {% for error in registration_form.email.errors %}
-                        <p class="text-red-600 text-sm italic pb-2">{{ error }}</p>
-                    {% endfor %}
-                {% endif %}
-            </div>
-            <div class="w-full md:w-1/2 px-3 mb-6 md:mb-0">
-                <label class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" for="{{ registration_form.account_type.id_for_label }}">
-                    {{ registration_form.account_type.label }}
-                </label>
-                <select class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500" name="account_type" id="{{ registration_form.account_type.id_for_label }}" required>
-                    <option value="">Select account type</option>
-                    {% for value, label in registration_form.fields.account_type.choices %}
-                        <option value="{{ value }}">{{ label }}</option>
-                    {% endfor %}
-                </select>
-                {% if registration_form.account_type.errors %}
-                    {% for error in registration_form.account_type.errors %}
-                    <p class="text-red-600 text-sm italic pb-2">{{ error }}</p>
-                    {% endfor %}
-                {% endif %}
-            </div>
-        </div>
-        <div class="flex flex-wrap -mx-3 mb-6">
-            <div class="w-full md:w-1/2 px-3 mb-6 md:mb-0">
-                <label class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" for="{{ registration_form.gender.id_for_label }}">
-                    {{ registration_form.gender.label }}
-                </label>
-                <select class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500" name="gender" id="{{ registration_form.gender.id_for_label }}" required>
-                    <option value="">Select gender</option>
-                    {% for value, label in registration_form.fields.gender.choices %}
-                        <option value="{{ value }}">{{ label }}</option>
-                    {% endfor %}
-                </select>
-                {% if registration_form.gender.errors %}
-                    {% for error in registration_form.gender.errors %}
-                        <p class="text-red-600 text-sm italic pb-2">{{ error }}</p>
-                    {% endfor %}
-                {% endif %}
-            </div>
-            <div class="w-full md:w-1/2 px-3 mb-6 md:mb-0">
-                <label class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" for="{{ registration_form.birth_date.id_for_label }}">
-                    {{ registration_form.birth_date.label }}
-                </label>
-                <input class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500" type="date" name="birth_date" id="{{ registration_form.birth_date.id_for_label }}" required>
-                {% if registration_form.birth_date.errors %}
-                    {% for error in registration_form.birth_date.errors %}
-                    <p class="text-red-600 text-sm italic pb-2">{{ error }}</p>
-                    {% endfor %}
-                {% endif %}
-            </div>
-        </div>
-        <div class="flex flex-wrap -mx-3 mb-6">
-            <div class="w-full md:w-1/2 px-3 mb-6 md:mb-0">
-                <label class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" for="{{ registration_form.password1.id_for_label }}">
-                    {{ registration_form.password1.label }}
-                </label>
-                <input class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500" type="password" name="password1" id="{{ registration_form.password1.id_for_label }}" required minlength="8">
-                {% if registration_form.password1.errors %}
-                    {% for error in registration_form.password1.errors %}
-                        <p class="text-red-600 text-sm italic pb-2">{{ error }}</p>
-                    {% endfor %}
-                {% endif %}
-            </div>
-            <div class="w-full md:w-1/2 px-3 mb-6 md:mb-0">
-                <label class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" for="{{ registration_form.password2.id_for_label }}">
-                    {{ registration_form.password2.label }}
-                </label>
-                <input class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500" type="password" name="password2" id="{{ registration_form.password2.id_for_label }}" required minlength="8">
-                    {% if registration_form.password2.errors %}
-                    {% for error in registration_form.password2.errors %}
-                        <p class="text-red-600 text-sm italic pb-2">{{ error }}</p>
-                    {% endfor %}
-                {% endif %}
-            </div>
-        </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center space-x-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-[#0052CC]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                            </svg>
+                            <span>Personal Information</span>
+                        </h3>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <label class="block text-gray-700 font-semibold mb-2" for="{{ registration_form.first_name.id_for_label }}">
+                                    {{ registration_form.first_name.label }}
+                                </label>
+                                {{ registration_form.first_name }}
+                                {% if registration_form.first_name.errors %}
+                                    {% for error in registration_form.first_name.errors %}
+                                        <p class="text-red-600 text-sm mt-1">{{ error }}</p>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 font-semibold mb-2" for="{{ registration_form.last_name.id_for_label }}">
+                                    {{ registration_form.last_name.label }}
+                                </label>
+                                {{ registration_form.last_name }}
+                                {% if registration_form.last_name.errors %}
+                                    {% for error in registration_form.last_name.errors %}
+                                        <p class="text-red-600 text-sm mt-1">{{ error }}</p>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+                        </div>
 
-        {% for hidden_field in address_form.hidden_fields %} {{ hidden_field.errors }} {{ hidden_field }} {% endfor %}
-        <div class="flex flex-wrap -mx-3 mb-6">
-            <div class="w-full md:w-1/2 px-3 mb-6 md:mb-0">
-                <label class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" for="{{ address_form.street_address.id_for_label }}">
-                    {{ address_form.street_address.label }}
-                </label>
-                <input class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500" type="text" name="street_address" id="{{ address_form.street_address.id_for_label }}" required minlength="5" maxlength="512">
-                {% if address_form.street_address.errors %}
-                    {% for error in address_form.street_address.errors %}
-                        <p class="text-red-600 text-sm italic pb-2">{{ error }}</p>
-                    {% endfor %}
-                {% endif %}
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <label class="block text-gray-700 font-semibold mb-2" for="{{ registration_form.email.id_for_label }}">
+                                    {{ registration_form.email.label }}
+                                </label>
+                                {{ registration_form.email }}
+                                {% if registration_form.email.errors %}
+                                    {% for error in registration_form.email.errors %}
+                                        <p class="text-red-600 text-sm mt-1">{{ error }}</p>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 font-semibold mb-2" for="{{ registration_form.account_type.id_for_label }}">
+                                    {{ registration_form.account_type.label }}
+                                </label>
+                                {{ registration_form.account_type }}
+                                {% if registration_form.account_type.errors %}
+                                    {% for error in registration_form.account_type.errors %}
+                                    <p class="text-red-600 text-sm mt-1">{{ error }}</p>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <label class="block text-gray-700 font-semibold mb-2" for="{{ registration_form.gender.id_for_label }}">
+                                    {{ registration_form.gender.label }}
+                                </label>
+                                {{ registration_form.gender }}
+                                {% if registration_form.gender.errors %}
+                                    {% for error in registration_form.gender.errors %}
+                                        <p class="text-red-600 text-sm mt-1">{{ error }}</p>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 font-semibold mb-2" for="{{ registration_form.birth_date.id_for_label }}">
+                                    {{ registration_form.birth_date.label }}
+                                </label>
+                                {{ registration_form.birth_date }}
+                                {% if registration_form.birth_date.errors %}
+                                    {% for error in registration_form.birth_date.errors %}
+                                    <p class="text-red-600 text-sm mt-1">{{ error }}</p>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center space-x-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-[#0052CC]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                            </svg>
+                            <span>Security</span>
+                        </h3>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-gray-700 font-semibold mb-2" for="{{ registration_form.password1.id_for_label }}">
+                                    {{ registration_form.password1.label }}
+                                </label>
+                                {{ registration_form.password1 }}
+                                {% if registration_form.password1.errors %}
+                                    {% for error in registration_form.password1.errors %}
+                                        <p class="text-red-600 text-sm mt-1">{{ error }}</p>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 font-semibold mb-2" for="{{ registration_form.password2.id_for_label }}">
+                                    {{ registration_form.password2.label }}
+                                </label>
+                                {{ registration_form.password2 }}
+                                    {% if registration_form.password2.errors %}
+                                    {% for error in registration_form.password2.errors %}
+                                        <p class="text-red-600 text-sm mt-1">{{ error }}</p>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    {% for hidden_field in address_form.hidden_fields %} {{ hidden_field.errors }} {{ hidden_field }} {% endfor %}
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center space-x-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-[#0052CC]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                            <span>Address Information</span>
+                        </h3>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <label class="block text-gray-700 font-semibold mb-2" for="{{ address_form.street_address.id_for_label }}">
+                                    {{ address_form.street_address.label }}
+                                </label>
+                                {{ address_form.street_address }}
+                                {% if address_form.street_address.errors %}
+                                    {% for error in address_form.street_address.errors %}
+                                        <p class="text-red-600 text-sm mt-1">{{ error }}</p>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 font-semibold mb-2" for="{{ address_form.city.id_for_label }}">
+                                    {{ address_form.city.label }}
+                                </label>
+                                {{ address_form.city }}
+                                {% if address_form.city.errors %}
+                                    {% for error in address_form.city.errors %}
+                                        <p class="text-red-600 text-sm mt-1">{{ error }}</p>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-gray-700 font-semibold mb-2" for="{{ address_form.postal_code.id_for_label }}">
+                                    {{ address_form.postal_code.label }}
+                                </label>
+                                {{ address_form.postal_code }}
+                                {% if address_form.postal_code.errors %}
+                                    {% for error in address_form.postal_code.errors %}
+                                        <p class="text-red-600 text-sm mt-1">{{ error }}</p>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 font-semibold mb-2" for="{{ address_form.country.id_for_label }}">
+                                    {{ address_form.country.label }}
+                                </label>
+                                {{ address_form.country }}
+                                {% if address_form.country.errors %}
+                                    {% for error in address_form.country.errors %}
+                                        <p class="text-red-600 text-sm mt-1">{{ error }}</p>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <button class="w-full btn-primary text-white font-bold py-4 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all text-lg" type="submit">
+                        Create Account
+                    </button>
+                </form>
             </div>
-            <div class="w-full md:w-1/2 px-3">
-                <label class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" for="{{ address_form.city.id_for_label }}">
-                    {{ address_form.city.label }}
-                </label>
-                <input class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500" type="text" name="city" id="{{ address_form.city.id_for_label }}" required pattern="[a-zA-Z\s\-']+" minlength="2" maxlength="256">
-                {% if address_form.city.errors %}
-                    {% for error in address_form.city.errors %}
-                        <p class="text-red-600 text-sm italic pb-2">{{ error }}</p>
-                    {% endfor %}
-                {% endif %}
+
+            <div class="hidden lg:block sticky top-8">
+                <div class="bg-gradient-to-br from-[#0052CC] to-[#0066FF] rounded-2xl p-12 text-white h-full">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-32 w-32 mb-8 mx-auto text-white/30" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                    </svg>
+                    <h2 class="text-3xl font-bold mb-6 text-center">Join Thousands of Users</h2>
+                    <ul class="space-y-4 text-white/90">
+                        <li class="flex items-start space-x-3">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                            <span>Instant account activation</span>
+                        </li>
+                        <li class="flex items-start space-x-3">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                            <span>Bank-level security encryption</span>
+                        </li>
+                        <li class="flex items-start space-x-3">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                            <span>24/7 customer support</span>
+                        </li>
+                        <li class="flex items-start space-x-3">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                            <span>Free unlimited transactions</span>
+                        </li>
+                    </ul>
+                </div>
             </div>
         </div>
-        <div class="flex flex-wrap -mx-3 mb-6">
-            <div class="w-full md:w-1/2 px-3 mb-6 md:mb-0">
-                <label class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" for="{{ address_form.postal_code.id_for_label }}">
-                    {{ address_form.postal_code.label }}
-                </label>
-                <input class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500" type="number" name="postal_code" id="{{ address_form.postal_code.id_for_label }}" required min="1" max="99999999">
-                {% if address_form.postal_code.errors %}
-                    {% for error in address_form.postal_code.errors %}
-                        <p class="text-red-600 text-sm italic pb-2">{{ error }}</p>
-                    {% endfor %}
-                {% endif %}
-            </div>
-            <div class="w-full md:w-1/2 px-3">
-                <label class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" for="{{ address_form.country.id_for_label }}">
-                    {{ address_form.country.label }}
-                </label>
-                <input class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500" type="text" name="country" id="{{ address_form.country.id_for_label }}" required minlength="2" maxlength="256">
-                {% if address_form.country.errors %}
-                    {% for error in address_form.country.errors %}
-                        <p class="text-red-600 text-sm italic pb-2">{{ error }}</p>
-                    {% endfor %}
-                {% endif %}
-            </div>
-        </div>
-        <div class="flex items-center justify-between">
-            <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit">
-                Register
-            </button>
-        </div>
-    </form>
+    </div>
 </div>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const form = document.querySelector('form');
-    const birthDateInput = document.querySelector('input[name="birth_date"]');
-    
-    if (birthDateInput) {
-        const today = new Date();
-        const maxDate = today.toISOString().split('T')[0];
-        const minDate = new Date(today.getFullYear() - 120, today.getMonth(), today.getDate()).toISOString().split('T')[0];
-        
-        birthDateInput.setAttribute('max', maxDate);
-        birthDateInput.setAttribute('min', minDate);
-        
-        birthDateInput.addEventListener('change', function() {
-            const birthDate = new Date(this.value);
-            const age = Math.floor((today - birthDate) / (365.25 * 24 * 60 * 60 * 1000));
-            
-            if (age < 18) {
-                this.setCustomValidity('You must be at least 18 years old to register');
-            } else if (age > 120) {
-                this.setCustomValidity('Please enter a valid birth date');
-            } else {
-                this.setCustomValidity('');
-            }
-        });
-    }
-    
-    form.addEventListener('submit', function(e) {
-        if (!form.checkValidity()) {
-            e.preventDefault();
-            e.stopPropagation();
-            form.classList.add('was-validated');
-        }
-    });
-});
-</script>
 {% endblock %}
