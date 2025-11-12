@@ -32,6 +32,15 @@ class User(AbstractUser):
     )
     is_suspended = models.BooleanField(default=False)
 
+    ROLE_CHOICES = [
+        ('admin', 'Administrador'),
+        ('supervisor', 'Supervisor'),
+        ('auditor', 'Auditor'),
+    ]
+
+    is_admin = models.BooleanField(default=False)
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, blank=True, null=True)
+
     objects = UserManager()
 
     USERNAME_FIELD = 'email'
